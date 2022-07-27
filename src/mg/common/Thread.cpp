@@ -23,6 +23,9 @@
 namespace mg {
 namespace common {
 
+	void ThreadSetCurrentName(
+		const char* aName);
+
 	Thread::Thread(
 		const char* aName)
 		: myHandle(nullptr)
@@ -115,7 +118,7 @@ namespace common {
 	void
 	Thread::PrivTrampoline()
 	{
-		PrivSetName();
+		ThreadSetCurrentName(myName);
 		Run();
 		myLock.Lock();
 		MG_COMMON_ASSERT(mg::common::AtomicFlagClear(&myIsRunning) != 0);

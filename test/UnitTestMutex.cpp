@@ -55,12 +55,46 @@ namespace unittests {
 		MG_COMMON_ASSERT(counter == 0);
 	}
 
+	static void
+	UnitTestMutexRecursive()
+	{
+		mg::common::Mutex mutex;
+		mutex.Lock();
+		mutex.Lock();
+		bool rc = true;
+		mg::common::ThreadCallback tryLockCallback([&]() {
+			rc = mutex.TryLock();
+			if (rc)
+				mutex.Unlock();
+		});
+		mg::common::ThreadFunc* tryLockThread =
+			new mg::common::ThreadFunc(tryLockCallback);
+		tryLockThread->Start();
+		tryLockThread->StopAndDelete();
+		MG_COMMON_ASSERT(!rc);
+
+		mutex.Unlock();
+		rc = true;
+		tryLockThread = new mg::common::ThreadFunc(tryLockCallback);
+		tryLockThread->Start();
+		tryLockThread->StopAndDelete();
+		MG_COMMON_ASSERT(!rc);
+
+		mutex.Unlock();
+		rc = false;
+		tryLockThread = new mg::common::ThreadFunc(tryLockCallback);
+		tryLockThread->Start();
+		tryLockThread->StopAndDelete();
+		MG_COMMON_ASSERT(rc);
+	}
+
 	void
 	UnitTestMutex()
 	{
 		TestSuiteGuard suite("Mutex");
 
 		UnitTestMutexBasic();
+		UnitTestMutexRecursive();
 	}
 
 }

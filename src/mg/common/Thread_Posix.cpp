@@ -35,10 +35,11 @@ namespace common {
 	// cache it by own means. Caching significantly improves
 	// perf, because syscall(SYS_gettid) appeared to be very
 	// slow, as any system call bypassing [vdso] optimization.
-	static MG_THREADLOCAL pid_t theThreadID = 0;
+	static MG_THREADLOCAL ThreadId theThreadID = 0;
 
 	void
-	Thread::PrivSetName()
+	ThreadSetCurrentName(
+		const char* aName)
 	{
 		// 16 bytes including terminating 0 is a kernel level
 		// restriction. Can't be workarounded. Raise of an error
@@ -46,11 +47,15 @@ namespace common {
 		// (if not all) have names longer than 15 characters.
 		// Name is truncated instead.
 		char buffer[16];
-		strncpy(buffer, myName, 15);
+		strncpy(buffer, aName, 15);
 		buffer[15] = 0;
-		int rc = pthread_setname_np(myHandle->native_handle(), buffer);
+#if IS_PLATFORM_APPLE
+		pthread_setname_np(buffer);
+#else
+		int rc = pthread_setname_np(pthread_self(), buffer);
 		MG_DEV_ASSERT(rc == 0);
-		MG_UNUSED(rc);
+#endif
+
 	}
 
 	ThreadId
@@ -61,8 +66,17 @@ namespace common {
 		// before any other functions are called. But there is
 		// one thread, not having a trampoline - the main thread.
 		// The check is for him.
-		if (theThreadID == 0)
-			theThreadID = syscall(SYS_gettid);
+		if (theThreadID == 0) {
+#if IS_PLATFORM_APPLE
+			uint64 tid = 0;
+			int rc = pthread_threadid_np(pthread_self(), &tid);
+			MG_DEV_ASSERT(rc == 0);
+#else
+			uint64 tid = syscall(SYS_gettid);
+#endif
+			MG_DEV_ASSERT((uint64)(ThreadId)tid == tid);
+			theThreadID = (ThreadId)tid;
+		}
 		return theThreadID;
 	}
 

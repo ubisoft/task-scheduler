@@ -6,15 +6,12 @@ set(CMAKE_CXX_STANDARD 11)
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
 	add_compile_options(
-		-Wall -Wextra -Wpedantic -Werror -Wunused-function
-		-Wno-invalid-offsetof -Wno-unused-value
-		-Wno-deprecated-copy
+		-Wall -Wextra -Wpedantic -Werror -Wno-unknown-warning-option -Wunused-function
+		-Wno-invalid-offsetof -Wno-unused-value -Wno-deprecated-copy
+		-Wno-gnu-zero-variadic-macro-arguments
 		-fno-exceptions
 		-fno-rtti
 	)
-	if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-		add_compile_options(-Wno-gnu-zero-variadic-macro-arguments)
-	endif()
 
 	set(CMAKE_C_FLAGS ${CMAKE_C_FLAGS} "-pthread")
 	set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-pthread")

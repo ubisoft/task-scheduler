@@ -25,7 +25,11 @@ namespace common {
 	{
 		pthread_condattr_t attr;
 		MG_COMMON_ASSERT(pthread_condattr_init(&attr) == 0);
+#if !IS_PLATFORM_APPLE
+		// Mac supports only real time, sadly. That gives worse precision in case of any
+		// time shifts.
 		MG_COMMON_ASSERT(pthread_condattr_setclock(&attr, CLOCK_MONOTONIC) == 0);
+#endif
 		MG_COMMON_ASSERT(pthread_cond_init(&myHandle, &attr) == 0);
 		MG_COMMON_ASSERT(pthread_condattr_destroy(&attr) == 0);
 	}
@@ -49,7 +53,12 @@ namespace common {
 		bool* aOutIsTimedOut)
 	{
 		struct timespec ts;
-		MG_COMMON_ASSERT(clock_gettime(CLOCK_MONOTONIC, &ts) == 0);
+#if IS_PLATFORM_APPLE
+		const clockid_t clockid = CLOCK_REALTIME;
+#else
+		const clockid_t clockid = CLOCK_MONOTONIC;
+#endif
+		MG_COMMON_ASSERT(clock_gettime(clockid, &ts) == 0);
 		if (aTimeoutMs < 1000)
 		{
 			ts.tv_nsec += aTimeoutMs * 1000000;

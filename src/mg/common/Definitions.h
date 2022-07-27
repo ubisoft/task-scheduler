@@ -19,9 +19,15 @@
 #ifdef __linux__
 #define IS_PLATFORM_POSIX 1
 #define IS_PLATFORM_WIN 0
+#define IS_PLATFORM_APPLE 0
 #elif _WIN32
 #define IS_PLATFORM_POSIX 0
 #define IS_PLATFORM_WIN 1
+#define IS_PLATFORM_APPLE 0
+#elif __APPLE__
+#define IS_PLATFORM_POSIX 1
+#define IS_PLATFORM_WIN 0
+#define IS_PLATFORM_APPLE 1
 #else
 #error "Uknown platform"
 #endif

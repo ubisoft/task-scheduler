@@ -50,10 +50,11 @@ The algorithms used in the scheduler are validated in TLA+ specifications to ens
 	- Windows MSVC;
 	- Clang;
 	- GCC;
-* OS should be any version of Linux, Windows, WSL. The actual testing was done on:
+* OS should be any version of Linux, Windows, WSL, Mac. The actual testing was done on:
 	- Windows 10;
 	- WSLv1;
 	- Debian 4.19;
+	- MacOS Catalina 10.15.5;
 * Supports only architecture x86-64. On ARM it might work, but wasn't compiled nor tested;
 * CMake. Compatible with `cmake` CLI and with VisualStudio CMake.
 

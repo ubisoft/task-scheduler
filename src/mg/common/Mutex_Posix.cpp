@@ -29,8 +29,7 @@ namespace common {
 		pthread_mutexattr_t attr;
 
 		MG_COMMON_ASSERT(pthread_mutexattr_init(&attr) == 0);
-		MG_COMMON_ASSERT(pthread_mutexattr_settype(&attr,
-			PTHREAD_MUTEX_RECURSIVE_NP) == 0);
+		MG_COMMON_ASSERT(pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE) == 0);
 		MG_COMMON_ASSERT(pthread_mutex_init(&myHandle, &attr) == 0);
 		MG_COMMON_ASSERT(pthread_mutexattr_destroy(&attr) == 0);
 	}

@@ -22,7 +22,8 @@ namespace mg {
 namespace common {
 
 	void
-	Thread::PrivSetName()
+	ThreadSetCurrentName(
+		const char* aName)
 	{
 		typedef struct tagTHREADNAME_INFO
 		{
@@ -34,7 +35,7 @@ namespace common {
 
 		THREADNAME_INFO info;
 		info.dwType = 0x1000;
-		info.szName = myName;
+		info.szName = aName;
 		info.dwThreadID = (DWORD)-1;
 		info.dwFlags = 0;
 

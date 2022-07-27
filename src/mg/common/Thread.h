@@ -58,8 +58,6 @@ namespace common {
 	private:
 		void PrivTrampoline();
 
-		void PrivSetName();
-
 		virtual void Run() = 0;
 
 		Mutex myLock;
