@@ -142,9 +142,8 @@ namespace common {
 	private:
 		void PrivNextWpos();
 
-		bool PrivGarbageCollectLocked();
-
-		bool PrivGarbageCollect();
+		void PrivGarbageCollectLocked(
+			MCQBaseSubQueue* aItem);
 
 		mg::common::Mutex myLock;
 		int32 mySubQueueCount;
