@@ -124,6 +124,7 @@ namespace common {
 		void* myFirstPending;
 		const uint32 mySize;
 		uint32 myConsumerCount;
+		MCQBaseSubQueue* myPrev;
 		MCQBaseSubQueue* myNext;
 	};
 
@@ -138,6 +139,7 @@ namespace common {
 		, myFirstPending(nullptr)
 		, mySize(aSize)
 		, myConsumerCount(0)
+		, myPrev(nullptr)
 		, myNext(nullptr)
 	{
 		Reset();
@@ -146,6 +148,7 @@ namespace common {
 	MCQBaseSubQueue::~MCQBaseSubQueue()
 	{
 		MG_COMMON_ASSERT(myConsumerCount == 0);
+		MG_COMMON_ASSERT(myPrev == nullptr);
 		MG_COMMON_ASSERT(myNext == nullptr);
 		delete[] myQueue;
 	}
@@ -154,6 +157,7 @@ namespace common {
 	MCQBaseSubQueue::Reset()
 	{
 		MG_COMMON_ASSERT(myConsumerCount == 0);
+		MG_COMMON_ASSERT(myPrev == nullptr);
 		MG_COMMON_ASSERT(myNext == nullptr);
 		MG_COMMON_ASSERT((uint32)myReadIndex == mySize);
 		MG_COMMON_ASSERT(myWriteIndex == mySize);
@@ -375,14 +379,10 @@ namespace common {
 				return nullptr;
 			}
 			--cur->myConsumerCount;
-			cur = cur->myNext;
+			MCQBaseSubQueue* next = cur->myNext;
+			myQueue->PrivGarbageCollectLocked(cur);
+			cur = next;
 			++cur->myConsumerCount;
-			// Do not recycle all empty sub-queues at once, if
-			// there are many of them. Otherwise the lock may take
-			// too long time, and may block other consumers from
-			// switching to next sub-queues. Besides, anyway this
-			// iteration could free at most one sub-queue.
-			myQueue->PrivGarbageCollectLocked();
 			myQueue->myLock.Unlock();
 
 			mySubQueue = cur;
@@ -415,12 +415,8 @@ namespace common {
 		mg::common::AtomicDecrement(&myQueue->myConsumerCount);
 		myQueue->myLock.Lock();
 		--mySubQueue->myConsumerCount;
+		myQueue->PrivGarbageCollectLocked(mySubQueue);
 		myQueue->myLock.Unlock();
-
-		// Detach must recycle everything, because normally that
-		// happens at Pop() one by one, but this consumer won't do
-		// that again, and needs to do it now.
-		while (myQueue->PrivGarbageCollect());
 
 		mySubQueue = nullptr;
 		myQueue = nullptr;
@@ -448,6 +444,7 @@ namespace common {
 		while (myHead != nullptr)
 		{
 			MCQBaseSubQueue* next = myHead->myNext;
+			myHead->myPrev = nullptr;
 			myHead->myNext = nullptr;
 			delete myHead;
 			myHead = next;
@@ -535,11 +532,14 @@ namespace common {
 		MCQBaseSubQueue* tail = head;
 		for (uint32 i = 1; i < count; ++i)
 		{
-			tail->myNext = new MCQBaseSubQueue(size);
-			tail = tail->myNext;
+			MCQBaseSubQueue* next = new MCQBaseSubQueue(size);
+			tail->myNext = next;
+			next->myPrev = tail;
+			tail = next;
 		}
 		mg::common::AtomicAdd(&mySubQueueCount, (int32)count);
 
+		head->myPrev = myTail;
 		myTail->myNext = head;
 		myTail = tail;
 		myLock.Unlock();
@@ -561,55 +561,60 @@ namespace common {
 			// store the same size in the root queue.
 			myWpos = new MCQBaseSubQueue(myTail->mySize);
 			mg::common::AtomicIncrement(&mySubQueueCount);
+			myWpos->myPrev = myTail;
 			myTail->myNext = myWpos;
 			myTail = myWpos;
 		}
 		myLock.Unlock();
 	}
 
-	bool
-	MCQBaseQueue::PrivGarbageCollectLocked()
+	void
+	MCQBaseQueue::PrivGarbageCollectLocked(
+		MCQBaseSubQueue* aItem)
 	{
 		MG_DEV_ASSERT(myLock.IsOwnedByThisThread());
-		MCQBaseSubQueue* head = myHead;
 		// Write position is occupied by producer. More data may
 		// be written to it, so don't touch.
-		if (head == myWpos)
-			return false;
+		if (aItem == myWpos)
+			return;
 		// The sub-queue is still referenced by some consumer.
 		// Can't recycle. It would be as bad as just calling
 		// delete on it. Last consumer working with this sub-queue
 		// will recycle it later.
-		if (head->myConsumerCount != 0)
-			return false;
+		if (aItem->myConsumerCount != 0)
+			return;
 		// Not all elements are read, obviously can't recycle.
 		// Note, that it is safe to read rindex here. Because the
 		// sub-queue is not referenced by any consumer, and
 		// therefore rindex can't change here concurrently.
-		if ((uint32)head->myReadIndex < head->mySize)
-			return false;
-		myHead = head->myNext;
-		head->myNext = nullptr;
-		MG_COMMON_ASSERT(myHead != nullptr);
-
+		if ((uint32)aItem->myReadIndex < aItem->mySize)
+			return;
+		// Can't be last - wpos is always ahead and this item is not wpos.
+		MCQBaseSubQueue* next = aItem->myNext;
+		MCQBaseSubQueue* prev = aItem->myPrev;
+		MG_COMMON_ASSERT(next != nullptr);
+		if (prev == nullptr)
+		{
+			MG_COMMON_ASSERT(aItem == myHead);
+			next->myPrev = nullptr;
+			myHead = next;
+		}
+		else
+		{
+			prev->myNext = next;
+			next->myPrev = prev;
+		}
 		// XXX: it may make sense to introduce a smarter recycling
 		// technique. For example, if the number of free
 		// sub-queues becomes equal to the number of not consumed
 		// sub-queues, then stop recycling and use delete.
-		head->Reset();
-		myTail->myNext = head;
-		myTail = head;
-		return true;
-	}
+		aItem->myNext = nullptr;
+		aItem->myPrev = nullptr;
+		aItem->Reset();
 
-	inline bool
-	MCQBaseQueue::PrivGarbageCollect()
-	{
-		MG_DEV_ASSERT(!myLock.IsOwnedByThisThread());
-		myLock.Lock();
-		bool rc = PrivGarbageCollectLocked();
-		myLock.Unlock();
-		return rc;
+		myTail->myNext = aItem;
+		aItem->myPrev = myTail;
+		myTail = aItem;
 	}
 
 }

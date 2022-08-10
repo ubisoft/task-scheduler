@@ -393,28 +393,58 @@ namespace unittests {
 		// head.
 		UTMCQueue queue(2);
 
-		UTMCQValue vs[6];
+		UTMCQValue vs[8];
 		UTMCQueueConsumer c1(&queue);
 		UTMCQueueConsumer c2(&queue);
 
-		for (int i = 0; i < 6; ++i)
+		for (int i = 0; i < 8; ++i)
 			queue.Push(&vs[i]);
 
-		// The head is fully consumed.
+		// First 2 sub-queues are fully consumed, one is garbage collected.
+		//
+		// [0, 1] -> [2, 3] -> [4, 5] -> [6, 7]
+		//  c1
+		//  c2
 		MG_COMMON_ASSERT(c1.Pop() == &vs[0]);
-		MG_COMMON_ASSERT(queue.Count() == 5);
+		MG_COMMON_ASSERT(queue.Count() == 7);
 		MG_COMMON_ASSERT(c1.Pop() == &vs[1]);
-		MG_COMMON_ASSERT(queue.Count() == 4);
+		MG_COMMON_ASSERT(queue.Count() == 6);
+		// [x, x] -> [2, 3] -> [4, 5] -> [6, 7]
+		//  c2        c1
 		MG_COMMON_ASSERT(c1.Pop() == &vs[2]);
-		MG_COMMON_ASSERT(queue.Count() == 3);
+		MG_COMMON_ASSERT(queue.Count() == 5);
 		MG_COMMON_ASSERT(c1.Pop() == &vs[3]);
-		MG_COMMON_ASSERT(queue.Count() == 2);
+		MG_COMMON_ASSERT(queue.Count() == 4);
+		// [x, x] -> [x, x] -> [4, 5] -> [6, 7]
+		//  c2           c1
+		MG_COMMON_ASSERT(c1.Pop() == &vs[4]);
+		MG_COMMON_ASSERT(queue.Count() == 3);
+		// [x, x] -> [x, 5] -> [6, 7]
+		//  c2        c1
 
 		// But still is referenced by one of the consumers. And it
 		// should recycle it and the next sub-queue now.
-		MG_COMMON_ASSERT(c2.Pop() == &vs[4]);
+		MG_COMMON_ASSERT(c2.Pop() == &vs[5]);
+		MG_COMMON_ASSERT(queue.Count() == 2);
+		//  [x, x] -> [6, 7]
+		//   c1 c2
+		MG_COMMON_ASSERT(c1.Pop() == &vs[6]);
 		MG_COMMON_ASSERT(queue.Count() == 1);
-		MG_COMMON_ASSERT(c1.Pop() == &vs[5]);
+		// [x, x] -> [x, 7]
+		//     c2     c1
+		MG_COMMON_ASSERT(c2.Pop() == &vs[7]);
+		MG_COMMON_ASSERT(queue.Count() == 0);
+		// [x, x]
+		//  c1 c2
+		MG_COMMON_ASSERT(c1.Pop() == nullptr);
+		MG_COMMON_ASSERT(c2.Pop() == nullptr);
+
+		// Ensure it is still functional.
+		queue.Push(&vs[0]);
+		queue.Push(&vs[1]);
+		MG_COMMON_ASSERT(c1.Pop() == &vs[0]);
+		MG_COMMON_ASSERT(queue.Count() == 1);
+		MG_COMMON_ASSERT(c2.Pop() == &vs[1]);
 		MG_COMMON_ASSERT(queue.Count() == 0);
 
 		MG_COMMON_ASSERT(c1.Pop() == nullptr);
