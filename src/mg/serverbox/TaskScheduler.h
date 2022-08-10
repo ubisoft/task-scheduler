@@ -78,6 +78,12 @@ namespace serverbox {
 
 		~TaskScheduler();
 
+		// Ensure the scheduler can fit the given number of tasks
+		// in its internal queues without making any additional
+		// memory allocations.
+		void Reserve(
+			uint32 aCount);
+
 		// Post as is. The task can be configured using its Set
 		// methods before the Post.
 		void Post(
