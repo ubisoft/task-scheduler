@@ -668,12 +668,12 @@ namespace unittests {
 		for (int i = 0; i < aElementCount; ++i)
 			MG_COMMON_ASSERT(values[i].myValue == -i);
 
-		printf(
-			"Locked queue, elements = %d, threads = %d, duration = %lf ms\n",
+		Report(
+			"Locked queue, elements = %d, threads = %d, duration = %lf ms",
 			aElementCount, aThreadCount, duration
 		);
 		for (int i = 0; i < aThreadCount; ++i)
-			printf("Thread %d did %d pops\n", i + 1, threads[i].GetPopCount());
+			Report("Thread %d did %d pops", i + 1, threads[i].GetPopCount());
 
 		delete[] threads;
 		delete[] values;
@@ -781,14 +781,14 @@ namespace unittests {
 			aElementCount / aSubQueueSize + (aElementCount % aSubQueueSize != 0);
 		MG_COMMON_ASSERT(queue.SubQueueCount() <= subQueueCountMax);
 
-		printf(
+		Report(
 			"Special queue, elements = %d, threads = %d, duration = %lf ms, "
 			"push = %lf ms, subqueue count = %u, reserve = %d, pending = %d, "
-			"subqueue size = %d\n", aElementCount, aThreadCount, duration, durationPush,
+			"subqueue size = %d", aElementCount, aThreadCount, duration, durationPush,
 			queue.SubQueueCount(), (int)aReserve, (int)aIsPushPending, aSubQueueSize
 		);
 		for (int i = 0; i < aThreadCount; ++i)
-			printf("Thread %d did %d pops\n", i + 1, threads[i].GetPopCount());
+			Report("Thread %d did %d pops", i + 1, threads[i].GetPopCount());
 
 		delete[] threads;
 		delete[] values;
