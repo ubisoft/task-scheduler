@@ -58,6 +58,13 @@ namespace serverbox {
 	}
 
 	void
+	TaskScheduler::Reserve(
+		uint32 aCount)
+	{
+		myQueueReady.Reserve(aCount);
+	}
+
+	void
 	TaskScheduler::Post(
 		Task* aTask)
 	{
