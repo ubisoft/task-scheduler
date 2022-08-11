@@ -17,6 +17,7 @@
 #pragma once
 
 #include "mg/common/BinaryHeap.h"
+#include "mg/common/ForwardList.h"
 #include "mg/common/MultiConsumerQueue.h"
 #include "mg/common/MultiProducerQueueIntrusive.h"
 #include "mg/common/Signal.h"
@@ -45,6 +46,12 @@ namespace serverbox {
 	// task deadline is met (or it was woken up or signaled).
 	using TaskSchedulerQueueReady = mg::common::MultiConsumerQueue<Task>;
 	using TaskSchedulerQueueReadyConsumer = mg::common::MultiConsumerQueueConsumer<Task>;
+	// Pending queue is populated from the front queue for further processing. Normally
+	// all its tasks are just handled right away, but if there is a particularly huge wave
+	// of new tasks, then the scheduler might start buffering them in the pending queue
+	// for processing in pieces of a limited size. It is accessed only by the
+	// sched-thread.
+	using TaskSchedulerQueuePending = mg::common::ForwardList<Task>;
 
 	// Special type to post callbacks not bound to a task. The
 	// scheduler creates tasks for them inside. Keep in mind, that
@@ -278,9 +285,20 @@ namespace serverbox {
 		// barrier.
 		mg::common::HybridArray<TaskSchedulerThread*, 8> myThreads;
 
+		TaskSchedulerQueuePending myQueuePending;
 		TaskSchedulerQueueWaiting myQueueWaiting;
 		TaskSchedulerQueueReady myQueueReady;
 		mg::common::Signal mySignalReady;
+		// Threads try to execute not just all ready tasks in a row - periodically they
+		// try to take care of the scheduling too. It helps to prevent the front-queue
+		// from growing too much.
+		const uint32 myExecBatchSize;
+		// The waiting and front tasks not always are handled by the scheduler all at
+		// once. They are processed in limited batches. This is done to prevent
+		// the bottleneck when the scheduling takes too long time while the other threads
+		// are idle and the ready-queue is empty. For example, processing of a million of
+		// front queue tasks might take ~100-200ms.
+		const uint32 mySchedBatchSize;
 
 		// The pending and waiting tasks must be dispatched
 		// somehow to be moved to the ready queue. For that there

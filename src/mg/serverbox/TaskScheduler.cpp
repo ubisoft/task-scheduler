@@ -16,20 +16,19 @@
 
 #include "TaskScheduler.h"
 
-#include "mg/common/ForwardList.h"
 #include "mg/common/ScratchPad.h"
 #include "mg/common/Time.h"
 
 namespace mg {
 namespace serverbox {
 
-	using TaskForwardList = mg::common::ForwardList<Task>;
-
 	TaskScheduler::TaskScheduler(
 		const char* aName,
 		uint32 aThreadCount,
 		uint32 aSubQueueSize)
 		: myQueueReady(aSubQueueSize)
+		, myExecBatchSize(aSubQueueSize)
+		, mySchedBatchSize(aSubQueueSize * aThreadCount)
 		, myIsSchedulerWorking(0)
 		, myIsStopped(0)
 	{
@@ -52,6 +51,7 @@ namespace serverbox {
 		mySignalFront.Send();
 		for (int i = 0, count = myThreads.Count(); i < count; ++i)
 			myThreads[i]->StopAndDelete();
+		MG_COMMON_ASSERT(myQueuePending.IsEmpty());
 		MG_COMMON_ASSERT(myQueueFront.PopAllFastReversed() == nullptr);
 		MG_COMMON_ASSERT(myQueueWaiting.Count() == 0);
 		MG_COMMON_ASSERT(myQueueReady.Count() == 0);
@@ -136,9 +136,12 @@ namespace serverbox {
 		int32 old;
 		Task* t;
 		Task* next;
-		TaskForwardList ready;
+		Task* tail;
+		TaskSchedulerQueuePending ready;
 		uint64 deadline;
 		uint64 timestamp = mg::common::GetMilliseconds();
+		uint32 batch;
+		uint32 maxBatch = mySchedBatchSize;
 
 	retry:
 		if (PrivIsStopped())
@@ -148,7 +151,8 @@ namespace serverbox {
 		// Handle waiting tasks. They are older than the ones in
 		// the front queue, so must be handled first.
 
-		while (myQueueWaiting.Count() > 0)
+		batch = 0;
+		while (myQueueWaiting.Count() > 0 && ++batch < maxBatch)
 		{
 			t = myQueueWaiting.GetTop();
 			if (t->myDeadline > timestamp)
@@ -181,26 +185,19 @@ namespace serverbox {
 		}
 
 		// -------------------------------------------------------
-		// Handle front tasks. They are popped unordered to make
-		// it faster. But the reversed order is ok because of 2
-		// reasons:
-		//
-		// - For WAITING tasks order of insertion into the binary
-		//   heap does not matter, they are re-sorted anyway
-		//   inside of the heap into its own order;
-		//
-		// - For other tasks the order matters. But the loop below
-		//   will reverse them while scanning the popped list, in
-		//   one pass.
+		// Handle front tasks.
 
 		mySignalFront.Receive();
-		t = myQueueFront.PopAllFastReversed();
-
-		while (t != nullptr)
+		// Popping the front queue takes linear time due to how the multi-producer queue
+		// is implemented. It is not batched so far, but even for millions of tasks it is
+		// a few milliseconds tops.
+		t = myQueueFront.PopAll(tail);
+		myQueuePending.Append(t, tail);
+		batch = 0;
+		while (!myQueuePending.IsEmpty() && ++batch < maxBatch)
 		{
-			next = t->myNext;
+			t = myQueuePending.PopFirst();
 			t->myNext = nullptr;
-
 			if (timestamp < t->myDeadline)
 			{
 				t->myIsExpired = false;
@@ -223,7 +220,6 @@ namespace serverbox {
 					// it is also added to the front queue by the
 					// wakeup, and the scheduler handles this case
 					// below.
-					t = next;
 					continue;
 				}
 				MG_COMMON_ASSERT(
@@ -253,12 +249,7 @@ namespace serverbox {
 			// two queues simultaneously.
 			if (t->myIndex >= 0)
 				myQueueWaiting.Remove(t);
-
-			// Here the front tasks are reversed second time.
-			// First time was at their pop from the front queue.
-			// So reverse + reverse = original order.
-			ready.Prepend(t);
-			t = next;
+			ready.Append(t);
 		}
 
 		// End of tasks polling.
@@ -274,7 +265,7 @@ namespace serverbox {
 		}
 		myQueueReady.FlushPending();
 
-		if (myQueueReady.Count() == 0)
+		if (myQueueReady.Count() == 0 && myQueuePending.IsEmpty())
 		{
 			// No ready tasks means the other workers already
 			// sleep on ready-signal. Or are going to start
@@ -379,15 +370,19 @@ namespace serverbox {
 	void
 	TaskSchedulerThread::Run()
 	{
+		int64 maxBatch = myScheduler->myExecBatchSize;
+		int64 batch;
 		while (!myScheduler->PrivIsStopped())
 		{
-			if (myScheduler->PrivSchedule())
-				mg::common::AtomicIncrement64(&myScheduleCount);
-
-			int64 execCount = 0;
-			while (myScheduler->PrivExecute(myConsumer.Pop()))
-				++execCount;
-			mg::common::AtomicAdd64(&myExecuteCount, execCount);
+			do
+			{
+				if (myScheduler->PrivSchedule())
+					mg::common::AtomicIncrement64(&myScheduleCount);
+				batch = 0;
+				while (myScheduler->PrivExecute(myConsumer.Pop()) && ++batch < maxBatch);
+				mg::common::AtomicAdd64(&myExecuteCount, batch);
+			} while (batch == maxBatch);
+			MG_COMMON_ASSERT(batch < maxBatch);
 
 			myScheduler->PrivWaitReady();
 		}
