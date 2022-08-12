@@ -17,6 +17,7 @@
 #include "Mutex.h"
 
 #include "mg/common/Assert.h"
+#include "mg/common/Atomic.h"
 #include "mg/common/Thread.h"
 
 namespace mg {
@@ -37,6 +38,8 @@ namespace common {
 	void
 	Mutex::Lock()
 	{
+		if (TryLock())
+			return;
 		::EnterCriticalSection(&myHandle);
 		++myLockCount;
 		myOwner = GetCurrentThreadId();
@@ -46,7 +49,10 @@ namespace common {
 	Mutex::TryLock()
 	{
 		if (!::TryEnterCriticalSection(&myHandle))
+		{
+			mg::common::AtomicIncrement64(&theMutexStartContentCount);
 			return false;
+		}
 		++myLockCount;
 		myOwner = GetCurrentThreadId();
 		return true;
@@ -60,7 +66,6 @@ namespace common {
 		if (--myLockCount == 0)
 			myOwner = 0;
 		::LeaveCriticalSection(&myHandle);
-
 	}
 
 }
