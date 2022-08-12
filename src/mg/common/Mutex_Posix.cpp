@@ -17,6 +17,7 @@
 #include "Mutex.h"
 
 #include "mg/common/Assert.h"
+#include "mg/common/Atomic.h"
 #include "mg/common/Thread.h"
 
 namespace mg {
@@ -43,6 +44,8 @@ namespace common {
 	void
 	Mutex::Lock()
 	{
+		if (TryLock())
+			return;
 		MG_COMMON_ASSERT(pthread_mutex_lock(&myHandle) == 0);
 		++myLockCount;
 		myOwner = GetCurrentThreadId();
@@ -52,7 +55,10 @@ namespace common {
 	Mutex::TryLock()
 	{
 		if (pthread_mutex_trylock(&myHandle) != 0)
+		{
+			mg::common::AtomicIncrement64(&theMutexStartContentCount);
 			return false;
+		}
 		++myLockCount;
 		myOwner = GetCurrentThreadId();
 		return true;

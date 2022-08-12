@@ -33,6 +33,12 @@ namespace common {
 	using MutexHandle = CRITICAL_SECTION;
 #endif
 
+	extern int64 theMutexStartContentCount;
+
+	void MutexStatClear();
+
+	uint64 MutexStatContentionCount();
+
 	class Mutex
 	{
 	public:
