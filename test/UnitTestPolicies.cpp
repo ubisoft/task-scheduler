@@ -764,12 +764,10 @@ namespace unittests {
 				~T()
 				{
 					myValue = -1;
-#if IS_COMPILER_GCC && IS_BUILD_RELEASE
 					// Otherwise GCC optimizes the destructor out
 					// seeing that the values are re-assigned
 					// later anyway.
 					CompilerBarrier();
-#endif
 				}
 
 				int myValue;
@@ -805,9 +803,7 @@ namespace unittests {
 				~Parent()
 				{
 					myValue = -1;
-#if IS_COMPILER_GCC && IS_BUILD_RELEASE
 					CompilerBarrier();
-#endif
 				}
 
 				int myValue;
