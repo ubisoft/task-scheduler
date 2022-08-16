@@ -31,11 +31,11 @@ The execution is also fair in terms of order. Meaning that the tasks start execu
 
 #### Performance
 The performance depends on thread count and task durations. An example of how it can look:
-- 3.70 GHz Intel Xeon;
-- 5 worker threads, CPU core count is > 5;
+- 2.30 GHz Intel Xeon, 8 physical cores;
+- 2 worker threads;
 - A task body takes up to tens of nanoseconds, quite short. Worst case scenario for contention.
 
-That gives **more than 5 millions of tasks per second**. The benchmarks are running as part of the testing suite in `test/` folder. That is helpful if want to reproduce and/or measure on another machine.
+That gives **more than 5 millions of tasks per second**. For more info see `bench` folder with detailed reports and if want to run them locally.
 
 #### Correctness
 The algorithms used in the scheduler are validated in TLA+ specifications to ensure absence of deadlocks, unintentional reordering, task loss, and other logical mistakes.
