@@ -61,5 +61,13 @@ namespace common {
 		const char* aFmtString,
 		va_list aArgList);
 
+	bool StringToNumber(
+		const char* aString,
+		uint32& aOutNumber);
+
+	bool StringToNumber(
+		const char* aString,
+		uint64& aOutNumber);
+
 }
 }
