@@ -47,5 +47,37 @@ namespace common {
 		return (uint32) rc;
 	}
 
+	bool
+	StringToNumber(
+		const char* aString,
+		uint64&	aOutNumber)
+	{
+		// Need to check for minus manually, because strtoull()
+		// applies negation to the result. Despite the fact it
+		// returns an unsigned type. Result is garbage.
+		while (isspace(*aString))
+			++aString;
+		if (*aString == '-')
+			return false;
+		char* end;
+		errno = 0;
+		aOutNumber = strtoull(aString, &end, 10);
+		return errno == 0 && *aString != 0 && *end == 0;
+	}
+
+	bool
+	StringToNumber(
+		const char* aString,
+		uint32& aOutNumber)
+	{
+		uint64 res;
+		if (StringToNumber(aString, res) && res <= UINT32_MAX)
+		{
+			aOutNumber = (uint32) res;
+			return true;
+		}
+		return false;
+	}
+
 }
 }
