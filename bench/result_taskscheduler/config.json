@@ -1,0 +1,133 @@
+{
+	"os": "Operating system name and version",
+	"cpu": "Processor details",
+	"versions": {
+		"canon": {
+			"name": "Canon task scheduler",
+			"short_name": "canon scheduler",
+			"exe": "bench_taskscheduler"
+		},
+		"trivial": {
+			"name": "Trivial task scheduler",
+			"short_name": "trivial scheduler",
+			"exe": "bench_taskscheduler_trivial"
+		}
+	},
+	"main_version": "canon",
+	"metric_key": "Exec per second",
+	"metric_name": "tasks per second",
+	"precision": 0.01,
+	"scenarios": [
+		{
+			"name": "Nano load, 1 thread, 10 000 000 tasks, each is executed 1 time",
+			"cmd": "-load nano -threads 1 -tasks 10000000 -exes 1",
+			"count": 5
+		},
+		{
+			"name": "Nano load, 1 thread, 5 000 000 tasks, each is executed 10 times",
+			"cmd": "-load nano -threads 1 -tasks 5000000 -exes 10",
+			"count": 5
+		},
+
+		{
+			"name": "Nano load, 2 threads, 10 000 000 tasks, each is executed 1 time",
+			"cmd": "-load nano -threads 2 -tasks 10000000 -exes 1",
+			"count": 5
+		},
+		{
+			"name": "Nano load, 2 threads, 5 000 000 tasks, each is executed 10 times",
+			"cmd": "-load nano -threads 2 -tasks 5000000 -exes 10",
+			"count": 5
+		},
+
+		{
+			"name": "Nano load, 3 threads, 10 000 000 tasks, each is executed 1 time",
+			"cmd": "-load nano -threads 3 -tasks 10000000 -exes 1",
+			"count": 5
+		},
+		{
+			"name": "Nano load, 3 threads, 5 000 000 tasks, each is executed 10 times",
+			"cmd": "-load nano -threads 3 -tasks 5000000 -exes 10",
+			"count": 5
+		},
+
+		{
+			"name": "Nano load, 5 threads, 10 000 000 tasks, each is executed 1 time",
+			"cmd": "-load nano -threads 5 -tasks 10000000 -exes 1",
+			"count": 5
+		},
+		{
+			"name": "Nano load, 5 threads, 5 000 000 tasks, each is executed 10 times",
+			"cmd": "-load nano -threads 5 -tasks 5000000 -exes 10",
+			"count": 5
+		},
+
+		{
+			"name": "Nano load, 10 threads, 10 000 000 tasks, each is executed 1 time",
+			"cmd": "-load nano -threads 10 -tasks 10000000 -exes 1",
+			"count": 5
+		},
+		{
+			"name": "Nano load, 10 threads, 5 000 000 tasks, each is executed 10 times",
+			"cmd": "-load nano -threads 10 -tasks 5000000 -exes 10",
+			"count": 5
+		},
+
+
+
+		{
+			"name": "Micro load, 1 thread, 1 000 000 tasks, each is executed 1 time",
+			"cmd": "-load micro -threads 1 -tasks 1000000 -exes 1",
+			"count": 5
+		},
+		{
+			"name": "Micro load, 1 thread, 100 000 tasks, each is executed 10 times",
+			"cmd": "-load micro -threads 1 -tasks 100000 -exes 10",
+			"count": 5
+		},
+
+		{
+			"name": "Micro load, 2 threads, 2 000 000 tasks, each is executed 1 time",
+			"cmd": "-load micro -threads 2 -tasks 2000000 -exes 1",
+			"count": 5
+		},
+		{
+			"name": "Micro load, 2 threads, 200 000 tasks, each is executed 10 times",
+			"cmd": "-load micro -threads 2 -tasks 200000 -exes 10",
+			"count": 5
+		},
+
+		{
+			"name": "Micro load, 3 threads, 3 000 000 tasks, each is executed 1 time",
+			"cmd": "-load micro -threads 3 -tasks 3000000 -exes 1",
+			"count": 5
+		},
+		{
+			"name": "Micro load, 3 threads, 300 000 tasks, each is executed 10 times",
+			"cmd": "-load micro -threads 3 -tasks 300000 -exes 10",
+			"count": 5
+		},
+
+		{
+			"name": "Micro load, 5 threads, 5 000 000 tasks, each is executed 1 time",
+			"cmd": "-load micro -threads 5 -tasks 5000000 -exes 1",
+			"count": 5
+		},
+		{
+			"name": "Micro load, 5 threads, 500 000 tasks, each is executed 10 times",
+			"cmd": "-load micro -threads 5 -tasks 500000 -exes 10",
+			"count": 5
+		},
+
+		{
+			"name": "Micro load, 10 threads, 10 000 000 tasks, each is executed 1 time",
+			"cmd": "-load micro -threads 10 -tasks 10000000 -exes 1",
+			"count": 5
+		},
+		{
+			"name": "Micro load, 10 threads, 1 000 000 tasks, each is executed 10 times",
+			"cmd": "-load micro -threads 10 -tasks 1000000 -exes 10",
+			"count": 5
+		}
+	]
+}
