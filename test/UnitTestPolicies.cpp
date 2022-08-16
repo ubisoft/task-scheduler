@@ -30,6 +30,13 @@ namespace mg {
 namespace unittests {
 
 	static void
+	CompilerBarrier()
+	{
+		int32 flag = 0;
+		mg::common::AtomicFlagSet(&flag);
+	}
+
+	static void
 	UnitTestPoliciesCopy()
 	{
 		{
@@ -761,7 +768,7 @@ namespace unittests {
 					// Otherwise GCC optimizes the destructor out
 					// seeing that the values are re-assigned
 					// later anyway.
-					mg::common::CompilerBarrier();
+					CompilerBarrier();
 #endif
 				}
 
@@ -799,7 +806,7 @@ namespace unittests {
 				{
 					myValue = -1;
 #if IS_COMPILER_GCC && IS_BUILD_RELEASE
-					mg::common::CompilerBarrier();
+					CompilerBarrier();
 #endif
 				}
 
