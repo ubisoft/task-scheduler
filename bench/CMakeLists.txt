@@ -64,3 +64,21 @@ target_link_libraries(bench_mpscqueue_trivial
 	mgcommon
 	bench
 )
+
+add_executable(bench_signal
+	BenchSignal.cpp
+	BenchSignalTemplate.hpp
+)
+target_link_libraries(bench_signal
+	mgcommon
+	bench
+)
+
+add_executable(bench_signal_trivial
+	BenchSignalTrivial.cpp
+	BenchSignalTemplate.hpp
+)
+target_link_libraries(bench_signal_trivial
+	mgcommon
+	bench
+)

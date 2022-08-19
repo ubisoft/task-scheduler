@@ -66,6 +66,13 @@ namespace common {
 		return __atomic_sub_fetch(aValue, 1, __ATOMIC_SEQ_CST);
 	}
 
+	static inline int64
+	AtomicDecrement64(
+		int64* aValue)
+	{
+		return __atomic_sub_fetch(aValue, 1, __ATOMIC_SEQ_CST);
+	}
+
 	static inline int32
 	AtomicExchange(
 		int32* aDest,

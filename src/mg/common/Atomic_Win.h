@@ -119,6 +119,13 @@ namespace common {
 		return InterlockedIncrement64(aValue);
 	}
 
+	static inline int64
+	AtomicDecrement64(
+		int64* aValue)
+	{
+		return InterlockedDecrement64(aValue);
+	}
+
 	static inline int32
 	AtomicAdd(
 		int32* aDest,

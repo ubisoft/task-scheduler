@@ -38,7 +38,7 @@ namespace common {
 		myLock.Unlock();
 	}
 
-	void
+	bool
 	Signal::Send()
 	{
 		int32 oldState = mg::common::AtomicCompareExchange(&myState, SIGNAL_STATE_PROBE,
@@ -48,7 +48,7 @@ namespace common {
 		// is one of the key features of Signal - lock-free signal
 		// re-send if it is not consumed yet.
 		if (oldState != SIGNAL_STATE_EMPTY)
-			return;
+			return false;
 
 		// The signal must be done under a lock. Consider how the
 		// blocking receive works:
@@ -80,6 +80,7 @@ namespace common {
 		MG_COMMON_ASSERT(oldState == SIGNAL_STATE_PROBE);
 		myCond.Signal();
 		myLock.Unlock();
+		return true;
 	}
 
 	bool

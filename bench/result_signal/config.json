@@ -1,0 +1,117 @@
+{
+	"os": "Operating system name and version",
+	"cpu": "Processor details",
+	"versions": {
+		"canon": {
+			"name": "Canon Signal",
+			"short_name": "canon signal",
+			"exe": "bench_signal"
+		},
+		"trivial": {
+			"name": "Trivial Signal",
+			"short_name": "trivial signal",
+			"exe": "bench_signal_trivial"
+		}
+	},
+	"main_version": "canon",
+	"metric_key": "Items/sec",
+	"metric_name": "items per second",
+	"precision": 0.01,
+	"scenarios": [
+		{
+			"name": "Empty load, 4 senders, 1 receiver, 3 000 000 signals, optimized send",
+			"cmd": "-load empty -senders 4 -receivers 1 -sigs 3000000 -each 0",
+			"count": 5
+		},
+		{
+			"name": "Empty load, 1 sender, 4 receivers, 1 000 000 signals, optimized send",
+			"cmd": "-load empty -senders 1 -receivers 4 -sigs 1000000 -each 0",
+			"count": 5
+		},
+		{
+			"name": "Empty load, 4 senders, 4 receivers, 1 000 000 signals, optimized send",
+			"cmd": "-load empty -senders 4 -receivers 4 -sigs 1000000 -each 0",
+			"count": 5
+		},
+
+		{
+			"name": "Empty load, 4 senders, 1 receiver, 1 000 000 signals, non-optimized send",
+			"cmd": "-load empty -senders 4 -receivers 1 -sigs 1000000 -each 1",
+			"count": 5
+		},
+		{
+			"name": "Empty load, 1 sender, 4 receivers, 1 000 000 signals, non-optimized send",
+			"cmd": "-load empty -senders 1 -receivers 4 -sigs 1000000 -each 1",
+			"count": 5
+		},
+		{
+			"name": "Empty load, 4 senders, 4 receivers, 1 000 000 signals, non-optimized send",
+			"cmd": "-load empty -senders 4 -receivers 4 -sigs 1000000 -each 1",
+			"count": 5
+		},
+
+		{
+			"name": "Nano load, 4 senders, 1 receiver, 1 000 000 signals, optimized send",
+			"cmd": "-load nano -senders 4 -receivers 1 -sigs 1000000 -each 0",
+			"count": 5
+		},
+		{
+			"name": "Nano load, 1 sender, 4 receivers, 1 000 000 signals, optimized send",
+			"cmd": "-load nano -senders 1 -receivers 4 -sigs 1000000 -each 0",
+			"count": 5
+		},
+		{
+			"name": "Nano load, 4 senders, 4 receivers, 1 000 000 signals, optimized send",
+			"cmd": "-load nano -senders 4 -receivers 4 -sigs 1000000 -each 0",
+			"count": 5
+		},
+
+		{
+			"name": "Nano load, 4 senders, 1 receiver, 1 000 000 signals, non-optimized send",
+			"cmd": "-load nano -senders 4 -receivers 1 -sigs 1000000 -each 1",
+			"count": 5
+		},
+		{
+			"name": "Nano load, 1 sender, 4 receivers, 1 000 000 signals, non-optimized send",
+			"cmd": "-load nano -senders 1 -receivers 4 -sigs 1000000 -each 1",
+			"count": 5
+		},
+		{
+			"name": "Nano load, 4 senders, 4 receivers, 1 000 000 signals, non-optimized send",
+			"cmd": "-load nano -senders 4 -receivers 4 -sigs 1000000 -each 1",
+			"count": 5
+		},
+
+		{
+			"name": "Micro load, 4 senders, 1 receiver, 1 000 000 signals, optimized send",
+			"cmd": "-load micro -senders 4 -receivers 1 -sigs 1000000 -each 0",
+			"count": 5
+		},
+		{
+			"name": "Micro load, 1 sender, 4 receivers, 1 000 000 signals, optimized send",
+			"cmd": "-load micro -senders 1 -receivers 4 -sigs 1000000 -each 0",
+			"count": 5
+		},
+		{
+			"name": "Micro load, 4 senders, 4 receivers, 1 000 000 signals, optimized send",
+			"cmd": "-load micro -senders 4 -receivers 4 -sigs 1000000 -each 0",
+			"count": 5
+		},
+
+		{
+			"name": "Micro load, 4 senders, 1 receiver, 1 000 000 signals, non-optimized send",
+			"cmd": "-load micro -senders 4 -receivers 1 -sigs 1000000 -each 1",
+			"count": 5
+		},
+		{
+			"name": "Micro load, 1 sender, 4 receivers, 1 000 000 signals, non-optimized send",
+			"cmd": "-load micro -senders 1 -receivers 4 -sigs 1000000 -each 1",
+			"count": 5
+		},
+		{
+			"name": "Micro load, 4 senders, 4 receivers, 1 000 000 signals, non-optimized send",
+			"cmd": "-load micro -senders 4 -receivers 4 -sigs 1000000 -each 1",
+			"count": 5
+		}
+	]
+}

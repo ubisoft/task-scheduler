@@ -54,7 +54,7 @@ namespace common {
 		// changes. To simulate broadcast the thread received the
 		// signal first can check if there is more work to handle,
 		// and re-send the signal to wake a next thread.
-		void Send();
+		bool Send();
 
 		bool Receive();
 
