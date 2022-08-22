@@ -22,6 +22,9 @@
 
 #include <stdarg.h>
 
+#define MG_BENCH_FALSE_SHARING_BARRIER(name) \
+	MG_UNUSED_MEMBER char name[128]
+
 namespace mg {
 namespace bench {
 
@@ -117,6 +120,8 @@ namespace bench {
 
 	BenchLoadType BenchLoadTypeFromString(
 		const char* aVal);
+
+	void BenchMakeNanoWork();
 
 	void BenchMakeMicroWork();
 

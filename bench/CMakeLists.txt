@@ -46,3 +46,21 @@ target_link_libraries(bench_mcspqueue_trivial
 	mgcommon
 	bench
 )
+
+add_executable(bench_mpscqueue
+	BenchMultiProducerQueue.cpp
+	BenchMultiProducerQueueTemplate.hpp
+)
+target_link_libraries(bench_mpscqueue
+	mgcommon
+	bench
+)
+
+add_executable(bench_mpscqueue_trivial
+	BenchMultiProducerQueueTrivial.cpp
+	BenchMultiProducerQueueTemplate.hpp
+)
+target_link_libraries(bench_mpscqueue_trivial
+	mgcommon
+	bench
+)

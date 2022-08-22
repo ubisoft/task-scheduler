@@ -232,6 +232,12 @@ namespace bench {
 	}
 
 	void
+	BenchMakeNanoWork()
+	{
+		BenchMakeWork(20);
+	}
+
+	void
 	BenchMakeMicroWork()
 	{
 		BenchMakeWork(100);
