@@ -3,6 +3,8 @@
 #include "mg/common/ConditionVariable.h"
 #include "mg/common/Mutex.h"
 
+#include <atomic>
+
 namespace mg {
 namespace common {
 
@@ -72,7 +74,7 @@ namespace common {
 
 		mg::common::ConditionVariable myCond;
 		mg::common::Mutex myLock;
-		int32 myState;
+		std::atomic<State> myState;
 	};
 
 }

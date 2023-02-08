@@ -1,7 +1,6 @@
 #include "Signal.h"
 
 #include "mg/common/Assert.h"
-#include "mg/common/Atomic.h"
 
 namespace mg {
 namespace common {
@@ -25,13 +24,12 @@ namespace common {
 	void
 	Signal::Send()
 	{
-		int32 oldState = mg::common::AtomicCompareExchange(&myState, SIGNAL_STATE_PROBE,
-			SIGNAL_STATE_EMPTY);
+		State oldState = SIGNAL_STATE_EMPTY;
 		// If it was already set, then no need to proceed. The
 		// condition variable is signaled by another thread. That
 		// is one of the key features of Signal - lock-free signal
 		// re-send if it is not consumed yet.
-		if (oldState != SIGNAL_STATE_EMPTY)
+		if (!myState.compare_exchange_strong(oldState, SIGNAL_STATE_PROBE))
 			return;
 
 		// The signal must be done under a lock. Consider how the
@@ -60,7 +58,7 @@ namespace common {
 		// the signal and delete it making the sender thread
 		// crash.
 		myLock.Lock();
-		oldState = mg::common::AtomicExchange(&myState, SIGNAL_STATE_SIGNALED);
+		oldState = std::atomic_exchange(&myState, SIGNAL_STATE_SIGNALED);
 		MG_COMMON_ASSERT(oldState == SIGNAL_STATE_PROBE);
 		myCond.Signal();
 		myLock.Unlock();
@@ -75,8 +73,8 @@ namespace common {
 		// the mutex after its deletion.
 		// Still the operation must remain lock-free, as it is one
 		// of the key features of Signal.
-		return mg::common::AtomicCompareExchange(&myState, SIGNAL_STATE_EMPTY,
-			SIGNAL_STATE_SIGNALED) == SIGNAL_STATE_SIGNALED;
+		State oldState = SIGNAL_STATE_SIGNALED;
+		return myState.compare_exchange_strong(oldState, SIGNAL_STATE_EMPTY);
 	}
 
 	void
