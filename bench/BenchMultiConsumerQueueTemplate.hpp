@@ -8,6 +8,7 @@
 #include "mg/common/Thread.h"
 
 #include <algorithm>
+#include <atomic>
 
 #define MG_WARMUP_ITEM_COUNT 10000
 
@@ -36,8 +37,8 @@ namespace bench {
 		void Run() override;
 
 		BenchQueueConsumer myConsumer;
-		int64 myCount;
-		int32 myPauseState;
+		std::atomic<uint64> myCount;
+		std::atomic<int> myPauseState;
 		BenchLoadType myLoadType;
 	};
 
@@ -112,29 +113,29 @@ namespace bench {
 	void
 	BenchConsumerThread::Pause()
 	{
-		int32 old = mg::common::AtomicExchange(&myPauseState, 1);
+		int32 old = myPauseState.exchange(1);
 		MG_COMMON_ASSERT(old == 0);
-		while (mg::common::AtomicLoad(&myPauseState) != 2)
+		while (myPauseState.load() != 2)
 			mg::common::Sleep(1);
 	}
 
 	void
 	BenchConsumerThread::Continue()
 	{
-		int32 old = mg::common::AtomicExchange(&myPauseState, 0);
+		int32 old = myPauseState.exchange(0);
 		MG_COMMON_ASSERT(old == 2);
 	}
 
 	void
 	BenchConsumerThread::StatClear()
 	{
-		mg::common::AtomicExchange64(&myCount, 0);
+		myCount.store(0);
 	}
 
 	uint64
 	BenchConsumerThread::StatGetCount() const
 	{
-		return (uint64) mg::common::AtomicLoad64((int64*)&myCount);
+		return myCount.load();
 	}
 
 	void
@@ -144,16 +145,16 @@ namespace bench {
 		{
 			while (myConsumer.Pop() != nullptr)
 			{
-				mg::common::AtomicIncrement64(&myCount);
+				myCount.fetch_add(1);
 				if (myLoadType == BENCH_LOAD_MICRO)
 					BenchMakeMicroWork();
 			}
-			int32 pause = mg::common::AtomicLoad(&myPauseState);
+			int32 pause = myPauseState.load();
 			if (pause != 0)
 			{
 				MG_COMMON_ASSERT(pause == 1);
-				mg::common::AtomicExchange(&myPauseState, 2);
-				while (mg::common::AtomicLoad(&myPauseState) != 0)
+				myPauseState.exchange(2);
+				while (myPauseState.load() != 0)
 					mg::common::Sleep(1);
 			}
 		}

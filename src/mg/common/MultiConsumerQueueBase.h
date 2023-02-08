@@ -1,10 +1,13 @@
 #pragma once
 
-#include "mg/common/Atomic.h"
 #include "mg/common/Mutex.h"
+
+#include <atomic>
 
 namespace mg {
 namespace common {
+
+	static_assert(sizeof(std::atomic<int>) == sizeof(int), "atomic has overhead");
 
 	// Multi-Consumer-Single-Producer queue for void pointers.
 	// It is used as a base for the templated queue able to store
@@ -130,9 +133,9 @@ namespace common {
 			MCQBaseSubQueue* aItem);
 
 		mg::common::Mutex myLock;
-		int32 mySubQueueCount;
-		int32 myCount;
-		int32 myPendingCount;
+		std::atomic<uint32> mySubQueueCount;
+		std::atomic<uint32> myCount;
+		uint32 myPendingCount;
 
 		// Fields above are accessed from all participants - from
 		// consumer threads and from producer thread. So their
@@ -144,7 +147,7 @@ namespace common {
 		// chances to stay in the cache for longer time, than for
 		// the fields above.
 
-		int32 myConsumerCount;
+		std::atomic<int32> myConsumerCount;
 		MCQBaseSubQueue* myHead;
 		MCQBaseSubQueue* myWpos;
 		MCQBaseSubQueue* myTail;
@@ -155,19 +158,19 @@ namespace common {
 	inline uint32
 	MCQBaseQueue::SubQueueCount()
 	{
-		return mg::common::AtomicLoad(&mySubQueueCount);
+		return mySubQueueCount.load();
 	}
 
 	inline uint32
 	MCQBaseQueue::ConsumerCount()
 	{
-		return mg::common::AtomicLoad(&myConsumerCount);
+		return myConsumerCount.load();
 	}
 
 	inline uint32
 	MCQBaseQueue::Count()
 	{
-		return mg::common::AtomicLoad(&myCount);
+		return myCount.load();
 	}
 
 }

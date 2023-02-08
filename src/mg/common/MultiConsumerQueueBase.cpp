@@ -35,7 +35,7 @@ namespace common {
 
 		// Read-index. This is where the next consumer will try to
 		// read.
-		int32 myReadIndex;
+		std::atomic<uint32> myReadIndex;
 		// Flush-index. This is the latest index visible to the
 		// readers. It always points at nullptr, and the element
 		// under it must be updated atomically. Consumers see data
@@ -63,7 +63,7 @@ namespace common {
 		// The queue pointer never changes, this is correct. The
 		// elements are changed, but not the pointer at the queue
 		// itself.
-		void**const myQueue;
+		std::atomic<void*>*const myQueue;
 		// First pending element. It is saved here to be stored to
 		// the flush-index position upon flush or normal push to
 		// notify consumers that there is more to consume.
@@ -119,7 +119,7 @@ namespace common {
 		, myWriteIndex(aSize)
 		// + 1 because the queue is null-terminated. See the
 		// methods implementation why.
-		, myQueue(new void*[aSize + 1])
+		, myQueue(new std::atomic<void*>[aSize + 1])
 		, myFirstPending(nullptr)
 		, mySize(aSize)
 		, myConsumerCount(0)
@@ -202,7 +202,7 @@ namespace common {
 			aItem = old;
 			myFirstPending = nullptr;
 		}
-		old = mg::common::AtomicExchangePtr(&myQueue[findex], aItem);
+		old = myQueue[findex].exchange(aItem);
 		MG_DEV_ASSERT(old == nullptr);
 		return true;
 	}
@@ -247,7 +247,7 @@ namespace common {
 		// [findex, windex]. The atomic works as a 'release'
 		// memory barrier for all of them.
 		myQueue[windex] = nullptr;
-		void* old = mg::common::AtomicExchangePtr(&myQueue[findex], myFirstPending);
+		void* old = myQueue[findex].exchange(myFirstPending);
 		MG_DEV_ASSERT(old == nullptr);
 		MG_UNUSED(old);
 		myFirstPending = nullptr;
@@ -265,10 +265,7 @@ namespace common {
 		// thread simultaneously read the same element and already
 		// returned it. In this case the current thread will
 		// retry.
-		uint32 rindex;
-		// It is enough to make just one load. All the next loads
-		// are done implicitly by cmpxchg.
-		uint32 oldRindex = (uint32) mg::common::AtomicLoad(&myReadIndex);
+		uint32 rindex = myReadIndex.load();
 		// The cycle is not a busy loop, is not a lock, and is not
 		// a 'waiting'. Because lock or waiting would mean the
 		// thread is blocked onto something not yet done by
@@ -277,16 +274,12 @@ namespace common {
 		// progresses in a single iteration almost always.
 		do
 		{
-			rindex = oldRindex;
 			if (rindex == mySize)
 				return false;
-			aOutItem = mg::common::AtomicLoadPtr(&myQueue[rindex]);
+			aOutItem = myQueue[rindex].load();
 			if (aOutItem == nullptr)
 				return true;
-		} while ((oldRindex = (uint32) mg::common::AtomicCompareExchange(
-			&myReadIndex, rindex + 1, rindex
-		)) != rindex);
-
+		} while (!myReadIndex.compare_exchange_weak(rindex, rindex + 1));
 		return true;
 	}
 
@@ -372,7 +365,7 @@ namespace common {
 			mySubQueue = cur;
 		}
 		if (res != nullptr)
-			mg::common::AtomicDecrement(&myQueue->myCount);
+			myQueue->myCount.fetch_sub(1);
 		return res;
 	}
 
@@ -380,7 +373,7 @@ namespace common {
 	MCQBaseConsumer::Attach(
 		MCQBaseQueue* aQueue)
 	{
-		mg::common::AtomicIncrement(&aQueue->myConsumerCount);
+		aQueue->myConsumerCount.fetch_add(1);
 
 		aQueue->myLock.Lock();
 		MCQBaseSubQueue* head = aQueue->myHead;
@@ -396,7 +389,7 @@ namespace common {
 	{
 		if (myQueue == nullptr)
 			return;
-		mg::common::AtomicDecrement(&myQueue->myConsumerCount);
+		myQueue->myConsumerCount.fetch_sub(1);
 		myQueue->myLock.Lock();
 		--mySubQueue->myConsumerCount;
 		myQueue->PrivGarbageCollectLocked(mySubQueue);
@@ -447,7 +440,7 @@ namespace common {
 		// It is very important to update the count before pushing
 		// the element. Otherwise a consumer may pop it, decrement
 		// the count, and may make it negative.
-		bool becameNotEmpty = mg::common::AtomicAdd(&myCount, count) == 0;
+		bool becameNotEmpty = myCount.fetch_add(count) == 0;
 
 		// Fast-path - almost always a lock-free push.
 		if (myWpos->Push(aItem))
@@ -489,7 +482,7 @@ namespace common {
 	{
 		if (myPendingCount == 0)
 			return false;
-		bool becameNotEmpty = mg::common::AtomicAdd(&myCount, myPendingCount) == 0;
+		bool becameNotEmpty = myCount.fetch_add(myPendingCount) == 0;
 		myPendingCount = 0;
 		myWpos->FlushPending();
 		return becameNotEmpty;
@@ -505,7 +498,7 @@ namespace common {
 		myLock.Lock();
 		uint32 size = myTail->mySize;
 		aCount = aCount / size + (aCount % size != 0);
-		uint32 count = (uint32) mg::common::AtomicLoad(&mySubQueueCount);
+		uint32 count = mySubQueueCount.load();
 		if (count >= aCount)
 		{
 			myLock.Unlock();
@@ -521,7 +514,7 @@ namespace common {
 			next->myPrev = tail;
 			tail = next;
 		}
-		mg::common::AtomicAdd(&mySubQueueCount, (int32)count);
+		mySubQueueCount.fetch_add(count);
 
 		head->myPrev = myTail;
 		myTail->myNext = head;
@@ -544,7 +537,7 @@ namespace common {
 			// constant. So can be accessed freely. No need to
 			// store the same size in the root queue.
 			myWpos = new MCQBaseSubQueue(myTail->mySize);
-			mg::common::AtomicIncrement(&mySubQueueCount);
+			mySubQueueCount.fetch_add(1);
 			myWpos->myPrev = myTail;
 			myTail->myNext = myWpos;
 			myTail = myWpos;

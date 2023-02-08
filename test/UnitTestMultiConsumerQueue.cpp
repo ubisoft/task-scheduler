@@ -602,14 +602,14 @@ namespace unittests {
 		void
 		Create(
 			UTMCQueueLocked* aQueue,
-			int32* aTotalPopCount)
+			std::atomic<uint32>* aTotalPopCount)
 		{
 			myQueue = aQueue;
 			myPopCount = 0;
 			myTotalPopCount = aTotalPopCount;
 		}
 
-		int
+		uint32
 		GetPopCount()
 		{
 			return myPopCount;
@@ -628,7 +628,7 @@ namespace unittests {
 					MG_COMMON_ASSERT(v->myValue >= 0);
 					v->myValue = -v->myValue;
 					++myPopCount;
-					mg::common::AtomicIncrement(myTotalPopCount);
+					myTotalPopCount->fetch_add(1);
 					if (++yield % 10000 == 0)
 						mg::common::Sleep(1);
 				}
@@ -638,23 +638,23 @@ namespace unittests {
 		}
 
 		UTMCQueueLocked* myQueue;
-		int32 myPopCount;
-		int32* myTotalPopCount;
+		uint32 myPopCount;
+		std::atomic<uint32>* myTotalPopCount;
 	};
 
 	static void
 	UnitTestMCQLockedStress(
-		int aElementCount,
-		int aThreadCount)
+		uint32 aElementCount,
+		uint32 aThreadCount)
 	{
 		UTMCQueueLocked queue;
-		int32 popCount = 0;
+		std::atomic<uint32> popCount(0);
 		UTMCQValue* values = new UTMCQValue[aElementCount];
-		for (int i = 0; i < aElementCount; ++i)
+		for (uint32 i = 0; i < aElementCount; ++i)
 			values[i].myValue = i;
 
 		UTMCQLockedConsumerThread* threads = new UTMCQLockedConsumerThread[aThreadCount];
-		for (int i = 0; i < aThreadCount; ++i)
+		for (uint32 i = 0; i < aThreadCount; ++i)
 		{
 			threads[i].Create(&queue, &popCount);
 			threads[i].Start();
@@ -664,30 +664,30 @@ namespace unittests {
 		timer.Start();
 
 		uint64 yield = 0;
-		for (int i = 0; i < aElementCount; ++i)
+		for (uint32 i = 0; i < aElementCount; ++i)
 		{
 			queue.Push(&values[i]);
 			if (++yield % 10000 == 0)
 				mg::common::Sleep(1);
 		}
 
-		while (mg::common::AtomicLoad(&popCount) != aElementCount)
+		while (popCount.load() != aElementCount)
 			mg::common::Sleep(1);
 
 		double duration = timer.GetMilliSeconds();
 
-		for (int i = 0; i < aThreadCount; ++i)
+		for (uint32 i = 0; i < aThreadCount; ++i)
 			threads[i].BlockingStop();
 
-		for (int i = 0; i < aElementCount; ++i)
-			MG_COMMON_ASSERT(values[i].myValue == -i);
+		for (uint32 i = 0; i < aElementCount; ++i)
+			MG_COMMON_ASSERT(values[i].myValue == -(int)i);
 
 		Report(
-			"Locked queue, elements = %d, threads = %d, duration = %lf ms",
+			"Locked queue, elements = %u, threads = %u, duration = %lf ms",
 			aElementCount, aThreadCount, duration
 		);
-		for (int i = 0; i < aThreadCount; ++i)
-			Report("Thread %d did %d pops", i + 1, threads[i].GetPopCount());
+		for (uint32 i = 0; i < aThreadCount; ++i)
+			Report("Thread %u did %u pops", i + 1, threads[i].GetPopCount());
 
 		delete[] threads;
 		delete[] values;
@@ -700,14 +700,14 @@ namespace unittests {
 		void
 		Create(
 			UTMCQueue* aQueue,
-			int32* aTotalPopCount)
+			std::atomic<uint32>* aTotalPopCount)
 		{
 			myConsumer.Attach(aQueue);
 			myPopCount = 0;
 			myTotalPopCount = aTotalPopCount;
 		}
 
-		int
+		uint32
 		GetPopCount()
 		{
 			return myPopCount;
@@ -726,7 +726,7 @@ namespace unittests {
 					MG_COMMON_ASSERT(v->myValue >= 0);
 					v->myValue = -v->myValue;
 					++myPopCount;
-					mg::common::AtomicIncrement(myTotalPopCount);
+					myTotalPopCount->fetch_add(1);
 					if (++yield % 10000 == 0)
 						mg::common::Sleep(1);
 				}
@@ -736,29 +736,29 @@ namespace unittests {
 		}
 
 		UTMCQueueConsumer myConsumer;
-		int32 myPopCount;
-		int32* myTotalPopCount;
+		uint32 myPopCount;
+		std::atomic<uint32>* myTotalPopCount;
 	};
 
 	static void
 	UnitTestMCQStress(
 		bool aIsPushPending,
 		bool aReserve,
-		int aSubQueueSize,
-		int aElementCount,
-		int aThreadCount)
+		uint32 aSubQueueSize,
+		uint32 aElementCount,
+		uint32 aThreadCount)
 	{
 		UTMCQueue queue(aSubQueueSize);
 		if (aReserve)
 			queue.Reserve(aElementCount);
 
-		int32 popCount = 0;
+		std::atomic<uint32> popCount(0);
 		UTMCQValue* values = new UTMCQValue[aElementCount];
-		for (int i = 0; i < aElementCount; ++i)
+		for (uint32 i = 0; i < aElementCount; ++i)
 			values[i].myValue = i;
 
 		UTMCQConsumerThread* threads = new UTMCQConsumerThread[aThreadCount];
-		for (int i = 0; i < aThreadCount; ++i)
+		for (uint32 i = 0; i < aThreadCount; ++i)
 		{
 			threads[i].Create(&queue, &popCount);
 			threads[i].Start();
@@ -769,40 +769,40 @@ namespace unittests {
 
 		if (aIsPushPending)
 		{
-			for (int i = 0; i < aElementCount; ++i)
+			for (uint32 i = 0; i < aElementCount; ++i)
 				queue.PushPending(&values[i]);
 			queue.FlushPending();
 		}
 		else
 		{
-			for (int i = 0; i < aElementCount; ++i)
+			for (uint32 i = 0; i < aElementCount; ++i)
 				queue.Push(&values[i]);
 		}
 		double durationPush = timer.GetMilliSeconds();
 
-		while (mg::common::AtomicLoad(&popCount) != aElementCount)
+		while (popCount.load() != aElementCount)
 			mg::common::Sleep(1);
 
 		double duration = timer.GetMilliSeconds();
 
-		for (int i = 0; i < aThreadCount; ++i)
+		for (uint32 i = 0; i < aThreadCount; ++i)
 			threads[i].BlockingStop();
 
-		for (int i = 0; i < aElementCount; ++i)
-			MG_COMMON_ASSERT(values[i].myValue == -i);
+		for (uint32 i = 0; i < aElementCount; ++i)
+			MG_COMMON_ASSERT(values[i].myValue == -(int)i);
 
 		uint32 subQueueCountMax =
 			aElementCount / aSubQueueSize + (aElementCount % aSubQueueSize != 0);
 		MG_COMMON_ASSERT(queue.SubQueueCount() <= subQueueCountMax);
 
 		Report(
-			"Special queue, elements = %d, threads = %d, duration = %lf ms, "
+			"Special queue, elements = %u, threads = %u, duration = %lf ms, "
 			"push = %lf ms, subqueue count = %u, reserve = %d, pending = %d, "
-			"subqueue size = %d", aElementCount, aThreadCount, duration, durationPush,
+			"subqueue size = %u", aElementCount, aThreadCount, duration, durationPush,
 			queue.SubQueueCount(), (int)aReserve, (int)aIsPushPending, aSubQueueSize
 		);
-		for (int i = 0; i < aThreadCount; ++i)
-			Report("Thread %d did %d pops", i + 1, threads[i].GetPopCount());
+		for (uint32 i = 0; i < aThreadCount; ++i)
+			Report("Thread %u did %u pops", i + 1, threads[i].GetPopCount());
 
 		delete[] threads;
 		delete[] values;
@@ -812,6 +812,8 @@ namespace unittests {
 	UnitTestMultiConsumerQueue()
 	{
 		TestSuiteGuard suite("MultiConsumerQueue");
+
+		static_assert(sizeof(std::atomic<void*>) == 8, "");
 
 		UnitTestMCQLockedBasic();
 		UnitTestMCQLockedStress(100, 2);
