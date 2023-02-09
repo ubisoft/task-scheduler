@@ -55,8 +55,8 @@ namespace serverbox {
 	Task::ReceiveSignal()
 	{
 		PrivTouch();
-		return mg::common::AtomicCompareExchange(&myStatus, TASK_STATUS_PENDING,
-			TASK_STATUS_SIGNALED) == TASK_STATUS_SIGNALED;
+		TaskStatus expected = TASK_STATUS_SIGNALED;
+		return myStatus.compare_exchange_strong(expected, TASK_STATUS_PENDING);
 	}
 
 	void

@@ -1,5 +1,6 @@
 #include "UnitTest.h"
 
+#include "mg/common/Atomic.h"
 #include "mg/common/QPTimer.h"
 #include "mg/common/Random.h"
 #include "mg/common/Time.h"

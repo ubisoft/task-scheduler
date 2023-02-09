@@ -2,6 +2,7 @@
 
 #include "Bench.h"
 
+#include "mg/common/Atomic.h"
 #include "mg/common/Mutex.h"
 #include "mg/common/Random.h"
 

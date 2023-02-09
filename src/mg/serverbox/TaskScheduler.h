@@ -297,8 +297,8 @@ namespace serverbox {
 		//
 		// The worker thread, doing the scheduling right now, is
 		// called 'sched-thread' throughout the code.
-		int32 myIsSchedulerWorking;
-		int32 myIsStopped;
+		std::atomic<bool> myIsSchedulerWorking;
+		std::atomic<bool> myIsStopped;
 
 		friend class TaskSchedulerThread;
 	};
@@ -320,8 +320,8 @@ namespace serverbox {
 
 		TaskScheduler* myScheduler;
 		TaskSchedulerQueueReadyConsumer myConsumer;
-		int64 myExecuteCount;
-		int64 myScheduleCount;
+		std::atomic<uint64> myExecuteCount;
+		std::atomic<uint64> myScheduleCount;
 	};
 
 	struct TaskOneShot
@@ -374,13 +374,13 @@ namespace serverbox {
 	inline uint64
 	TaskSchedulerThread::StatPopExecuteCount()
 	{
-		return (uint64)mg::common::AtomicExchange64(&myExecuteCount, 0);
+		return myExecuteCount.exchange(0);
 	}
 
 	inline uint64
 	TaskSchedulerThread::StatPopScheduleCount()
 	{
-		return (uint64)mg::common::AtomicExchange64(&myScheduleCount, 0);
+		return myScheduleCount.exchange(0);
 	}
 
 	template<typename... Args>

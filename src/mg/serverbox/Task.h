@@ -1,8 +1,9 @@
 #pragma once
 
-#include "mg/common/Atomic.h"
 #include "mg/common/Callback.h"
 #include "mg/common/Types.h"
+
+#include <atomic>
 
 namespace mg {
 namespace serverbox {
@@ -155,7 +156,7 @@ namespace serverbox {
 		// waiting queue.
 		int32 myIndex;
 	private:
-		int32 myStatus;
+		std::atomic<TaskStatus> myStatus;
 		uint64 myDeadline;
 		TaskCallback myCallback;
 		// True if the task is inside the scheduler in one of its
@@ -206,7 +207,7 @@ namespace serverbox {
 	inline bool
 	Task::IsSignaled()
 	{
-		return mg::common::AtomicLoad(&myStatus) == TASK_STATUS_SIGNALED;
+		return myStatus.load() == TASK_STATUS_SIGNALED;
 	}
 
 	inline bool
