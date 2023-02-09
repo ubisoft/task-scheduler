@@ -1,7 +1,8 @@
 #pragma once
 
-#include "mg/common/Atomic.h"
 #include "mg/common/Types.h"
+
+#include <atomic>
 
 namespace mg {
 namespace common {
@@ -18,7 +19,7 @@ namespace common {
 		inline bool
 		IsEmpty()
 		{
-			return mg::common::AtomicLoadPtr(&myHead) == nullptr;
+			return myHead.load() == nullptr;
 		}
 
 		// Returns true if the object was first. That may be
@@ -95,7 +96,7 @@ namespace common {
 		inline T*
 		PopAllFastReversed()
 		{
-			return mg::common::AtomicExchangePtr(&myHead, (T*)nullptr);
+			return myHead.exchange(nullptr);
 		}
 
 		inline T*
@@ -129,18 +130,15 @@ namespace common {
 			T* aFirst,
 			T* aLast)
 		{
-			T* oldHead;
+			T* oldHead = myHead.load();
 			do
 			{
-				oldHead = mg::common::AtomicLoadPtr(&myHead);
 				aLast->*myNext = oldHead;
-			} while (mg::common::AtomicCompareExchangePtr(
-				&myHead, aFirst, oldHead
-			) != oldHead);
+			} while (!myHead.compare_exchange_weak(oldHead, aFirst));
 			return oldHead == nullptr;
 		}
 
-		T* myHead;
+		std::atomic<T*> myHead;
 	};
 
 }

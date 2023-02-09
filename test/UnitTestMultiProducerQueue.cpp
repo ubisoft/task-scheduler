@@ -275,15 +275,15 @@ namespace unittests {
 		data.Reserve(threadCount * itemCount);
 
 		mg::common::HybridArray<mg::common::ThreadFunc*, threadCount> threads;
-		int32 readyCount = 0;
+		std::atomic<uint32> readyCount(0);
 		for (uint32 ti = 0; ti < threadCount; ++ti)
 		{
 			threads.Add(new mg::common::ThreadFunc([&]() {
 
 				const uint32 packMaxSize = 5;
 
-				uint32 threadId = mg::common::AtomicIncrement(&readyCount) - 1;
-				while ((uint32)mg::common::AtomicLoad(&readyCount) != threadCount)
+				uint32 threadId = readyCount.fetch_add(1);
+				while (readyCount.load() != threadCount)
 					mg::common::Sleep(1);
 
 				uint32 i = 0;
