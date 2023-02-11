@@ -5,6 +5,7 @@
 #include "mg/common/String.h"
 #include "mg/common/Types.h"
 
+#include <atomic>
 #include <thread>
 
 #define MG_THREADLOCAL thread_local
@@ -48,8 +49,8 @@ namespace common {
 		ConditionVariable myCond;
 		std::thread* myHandle;
 		HybridString<64> myName;
-		int32 myIsStopRequested;
-		int32 myIsRunning;
+		std::atomic<bool> myIsStopRequested;
+		std::atomic<bool> myIsRunning;
 		bool myWasStarted;
 	};
 
