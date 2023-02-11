@@ -1,8 +1,8 @@
 #include "Bench.h"
 
-#include "mg/common/Atomic.h"
 #include "mg/common/Random.h"
 
+#include <atomic>
 #include <ctype.h>
 #include <stdio.h>
 
@@ -210,8 +210,8 @@ namespace bench {
 	{
 		for (int i = 0; i < aCount; ++i)
 		{
-			int32 flag = mg::common::RandomBool();
-			mg::common::AtomicFlagSet(&flag);
+			std::atomic<bool> flag(mg::common::RandomBool());
+			flag.store(true);
 		}
 	}
 

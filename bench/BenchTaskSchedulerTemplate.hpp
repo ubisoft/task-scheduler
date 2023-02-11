@@ -2,7 +2,6 @@
 
 #include "Bench.h"
 
-#include "mg/common/Atomic.h"
 #include "mg/common/Mutex.h"
 #include "mg/common/Random.h"
 
@@ -44,8 +43,8 @@ namespace bench {
 		BenchTask* myTasks;
 		const uint32 myTaskCount;
 		const uint32 myExecuteCount;
-		int32 myStopCount;
-		int64 myTotalExecuteCount;
+		std::atomic<uint32> myStopCount;
+		std::atomic<uint64> myTotalExecuteCount;
 		TaskScheduler* myScheduler;
 	};
 
@@ -130,14 +129,14 @@ namespace bench {
 	void
 	BenchTaskCtl::Warmup()
 	{
-		int32 execCount = 0;
+		std::atomic<uint32> execCount(0);
 		for (int i = 0; i < MG_WARMUP_TASK_COUNT; ++i)
 		{
 			myScheduler->PostOneShot([&]() {
-				mg::common::AtomicIncrement(&execCount);
+				execCount.fetch_add(1);
 			});
 		}
-		while (mg::common::AtomicLoad(&execCount) != MG_WARMUP_TASK_COUNT)
+		while (execCount.load() != MG_WARMUP_TASK_COUNT)
 			mg::common::Sleep(1);
 		// Cleanup the stats to make the bench's results clean.
 		uint32 count = 0;
@@ -175,21 +174,21 @@ namespace bench {
 	{
 		uint64 total = myExecuteCount * myTaskCount;
 		WaitExecuteCount(total);
-		MG_COMMON_ASSERT((int64)total == mg::common::AtomicLoad64(&myTotalExecuteCount));
+		MG_COMMON_ASSERT(total == myTotalExecuteCount.load());
 	}
 
 	void
 	BenchTaskCtl::WaitExecuteCount(
 		uint64 aCount)
 	{
-		while (mg::common::AtomicLoad64(&myTotalExecuteCount) < (int64) aCount)
+		while (myTotalExecuteCount.load() < aCount)
 			mg::common::Sleep(1);
 	}
 
 	void
 	BenchTaskCtl::WaitAllStopped()
 	{
-		while (mg::common::AtomicLoad(&myStopCount) != (int32) myTaskCount)
+		while (myStopCount.load() != myTaskCount)
 			mg::common::Sleep(1);
 		for (uint32 i = 0; i < myTaskCount; ++i)
 			MG_COMMON_ASSERT(myTasks[i].myExecuteCount == myExecuteCount);
@@ -247,7 +246,7 @@ namespace bench {
 	{
 		MG_COMMON_ASSERT(aTask == this);
 		++myExecuteCount;
-		mg::common::AtomicIncrement64(&myCtx->myTotalExecuteCount);
+		myCtx->myTotalExecuteCount.fetch_add(1);
 		if (myExecuteCount >= myCtx->myExecuteCount)
 			return Stop();
 		return myCtx->myScheduler->Post(aTask);
@@ -259,7 +258,7 @@ namespace bench {
 	{
 		MG_COMMON_ASSERT(aTask == this);
 		++myExecuteCount;
-		mg::common::AtomicIncrement64(&myCtx->myTotalExecuteCount);
+		myCtx->myTotalExecuteCount.fetch_add(1);
 		BenchMakeMicroWork();
 		if (myExecuteCount >= myCtx->myExecuteCount)
 			return Stop();
@@ -273,7 +272,7 @@ namespace bench {
 		MG_COMMON_ASSERT(aTask == this);
 		aTask->ReceiveSignal();
 		++myExecuteCount;
-		mg::common::AtomicIncrement64(&myCtx->myTotalExecuteCount);
+		myCtx->myTotalExecuteCount.fetch_add(1);
 		BenchMakeHeavyWork();
 		bool isLast = myExecuteCount >= myCtx->myExecuteCount;
 		if (myExecuteCount % 10 == 0)
@@ -299,7 +298,7 @@ namespace bench {
 	void
 	BenchTask::Stop()
 	{
-		mg::common::AtomicIncrement(&myCtx->myStopCount);
+		myCtx->myStopCount.fetch_add(1);
 	}
 
 	//////////////////////////////////////////////////////////////////////////////////////

@@ -1,7 +1,6 @@
 #include "Bench.h"
 
 #include "mg/common/Array.h"
-#include "mg/common/Atomic.h"
 #include "mg/common/Callback.h"
 #include "mg/common/ConditionVariable.h"
 #include "mg/common/ForwardList.h"
@@ -108,7 +107,7 @@ namespace bench {
 		void Run() override;
 
 		TaskScheduler* myScheduler;
-		int64 myExecuteCount;
+		std::atomic<uint64> myExecuteCount;
 	};
 
 	//////////////////////////////////////////////////////////////////////////////////////
@@ -238,7 +237,7 @@ namespace bench {
 	uint64
 	TaskSchedulerThread::StatPopExecuteCount()
 	{
-		return (uint64)mg::common::AtomicExchange64(&myExecuteCount, 0);
+		return myExecuteCount.exchange(0);
 	}
 
 	uint64
@@ -267,7 +266,7 @@ namespace bench {
 				t->myCallback(t);
 				mutex.Lock();
 			}
-			mg::common::AtomicAdd64(&myExecuteCount, batch);
+			myExecuteCount.fetch_add(batch);
 			if (isStopped)
 				break;
 			cond.Wait(mutex);
