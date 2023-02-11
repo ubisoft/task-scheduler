@@ -1,21 +1,14 @@
 #pragma once
 
-#include "mg/common/Definitions.h"
+#include "mg/common/Assert.h"
 
-#if IS_PLATFORM_POSIX
-#include <pthread.h>
-#endif
+#include <atomic>
+#include <mutex>
 
 F_DECLARE_CLASS(mg, common, ConditionVariable)
 
 namespace mg {
 namespace common {
-
-#if IS_PLATFORM_POSIX
-	using MutexHandle = pthread_mutex_t;
-#else
-	using MutexHandle = CRITICAL_SECTION;
-#endif
 
 	extern int64_t theMutexStartContentCount;
 
@@ -26,25 +19,20 @@ namespace common {
 	class Mutex
 	{
 	public:
-		Mutex();
-
-		~Mutex();
+		Mutex() : myOwner(0) {}
+		~Mutex() { MG_COMMON_ASSERT(myOwner == 0); }
 
 		void Lock();
-
 		bool TryLock();
-
 		void Unlock();
-
 		bool IsOwnedByThisThread() const;
 
 	private:
 		Mutex(
 			const Mutex&) = delete;
 
-		MutexHandle myHandle;
+		std::mutex myHandle;
 		uint32_t myOwner;
-		int myLockCount;
 
 		friend class ConditionVariable;
 	};

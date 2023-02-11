@@ -2,14 +2,10 @@
 
 #include "mg/common/Mutex.h"
 
+#include <condition_variable>
+
 namespace mg {
 namespace common {
-
-#if IS_PLATFORM_POSIX
-	using ConditionVarHandle = pthread_cond_t;
-#else
-	using ConditionVarHandle = CONDITION_VARIABLE;
-#endif
 
 	// Condition variable allows to atomically unlock a mutex and
 	// lock on a condition until a signal. This is vital for some
@@ -29,37 +25,25 @@ namespace common {
 	class ConditionVariable
 	{
 	public:
-		ConditionVariable();
-
-		~ConditionVariable();
+		ConditionVariable() = default;
 
 		void Wait(
 			Mutex& aMutex);
-
 		void TimedWait(
 			Mutex& aMutex,
 			uint32_t aTimeoutMs,
 			bool* aOutIsTimedOut);
 
-		void Signal();
-
-		void Broadcast();
+		void Signal() { myHandle.notify_one(); }
+		void Broadcast() { myHandle.notify_all(); }
 
 	private:
-		void PrivWait(
-			MutexHandle& aMutex);
-
-		void PrivTimedWait(
-			MutexHandle& aMutex,
-			uint32_t aTimeoutMs,
-			bool* aOutIsTimedOut);
-
 		ConditionVariable(
 			const ConditionVariable&) = delete;
 		ConditionVariable& operator=(
 			const ConditionVariable&) = delete;
 
-		ConditionVarHandle myHandle;
+		std::condition_variable_any myHandle;
 	};
 
 }
