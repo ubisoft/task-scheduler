@@ -6,6 +6,8 @@
 #include <pthread.h>
 #endif
 
+#include <atomic>
+
 F_DECLARE_CLASS(mg, common, ConditionVariable)
 
 namespace mg {
@@ -17,7 +19,7 @@ namespace common {
 	using MutexHandle = CRITICAL_SECTION;
 #endif
 
-	extern int64 theMutexStartContentCount;
+	extern std::atomic<uint64> theMutexStartContentCount;
 
 	void MutexStatClear();
 

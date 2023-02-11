@@ -1,23 +1,24 @@
 #include "Mutex.h"
 
-#include "mg/common/Atomic.h"
 #include "mg/common/Thread.h"
+
+#include <atomic>
 
 namespace mg {
 namespace common {
 
-	int64 theMutexStartContentCount = 0;
+	std::atomic<uint64> theMutexStartContentCount(0);
 
 	void
 	MutexStatClear()
 	{
-		mg::common::AtomicExchange64(&theMutexStartContentCount, 0);
+		theMutexStartContentCount.store(0);
 	}
 
 	uint64
 	MutexStatContentionCount()
 	{
-		return (uint64) mg::common::AtomicLoad64(&theMutexStartContentCount);
+		return theMutexStartContentCount.load();
 	}
 
 	bool

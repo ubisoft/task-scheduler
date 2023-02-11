@@ -1,7 +1,6 @@
 #include "Mutex.h"
 
 #include "mg/common/Assert.h"
-#include "mg/common/Atomic.h"
 #include "mg/common/Thread.h"
 
 namespace mg {
@@ -40,7 +39,7 @@ namespace common {
 	{
 		if (pthread_mutex_trylock(&myHandle) != 0)
 		{
-			mg::common::AtomicIncrement64(&theMutexStartContentCount);
+			theMutexStartContentCount.fetch_add(1);
 			return false;
 		}
 		++myLockCount;
