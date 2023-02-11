@@ -10,17 +10,13 @@ namespace common {
 		Mutex& aMutex)
 	{
 		MG_COMMON_ASSERT(aMutex.IsOwnedByThisThread());
-		MG_COMMON_ASSERT(aMutex.myLockCount == 1);
 		uint32 tid = aMutex.myOwner;
 		aMutex.myOwner = 0;
-		aMutex.myLockCount = 0;
 
-		PrivWait(aMutex.myHandle);
+		myHandle.wait(aMutex.myHandle);
 
 		MG_COMMON_ASSERT(aMutex.myOwner == 0);
-		MG_COMMON_ASSERT(aMutex.myLockCount == 0);
 		aMutex.myOwner = tid;
-		aMutex.myLockCount = 1;
 	}
 
 	void
@@ -30,17 +26,15 @@ namespace common {
 		bool* aOutIsTimedOut)
 	{
 		MG_COMMON_ASSERT(aMutex.IsOwnedByThisThread());
-		MG_COMMON_ASSERT(aMutex.myLockCount == 1);
 		uint32 tid = aMutex.myOwner;
 		aMutex.myOwner = 0;
-		aMutex.myLockCount = 0;
 
-		PrivTimedWait(aMutex.myHandle, aTimeoutMs, aOutIsTimedOut);
+		*aOutIsTimedOut = myHandle.wait_for(aMutex.myHandle,
+			std::chrono::milliseconds(aTimeoutMs)) ==
+			std::cv_status::timeout;
 
 		MG_COMMON_ASSERT(aMutex.myOwner == 0);
-		MG_COMMON_ASSERT(aMutex.myLockCount == 0);
 		aMutex.myOwner = tid;
-		aMutex.myLockCount = 1;
 	}
 
 }

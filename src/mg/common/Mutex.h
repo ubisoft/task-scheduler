@@ -1,23 +1,15 @@
 #pragma once
 
+#include "mg/common/Assert.h"
 #include "mg/common/Types.h"
 
-#if IS_PLATFORM_POSIX
-#include <pthread.h>
-#endif
-
 #include <atomic>
+#include <mutex>
 
 F_DECLARE_CLASS(mg, common, ConditionVariable)
 
 namespace mg {
 namespace common {
-
-#if IS_PLATFORM_POSIX
-	using MutexHandle = pthread_mutex_t;
-#else
-	using MutexHandle = CRITICAL_SECTION;
-#endif
 
 	extern std::atomic<uint64> theMutexStartContentCount;
 
@@ -28,25 +20,20 @@ namespace common {
 	class Mutex
 	{
 	public:
-		Mutex();
-
-		~Mutex();
+		Mutex() : myOwner(0) {}
+		~Mutex() { MG_COMMON_ASSERT(myOwner == 0); }
 
 		void Lock();
-
 		bool TryLock();
-
 		void Unlock();
-
 		bool IsOwnedByThisThread() const;
 
 	private:
 		Mutex(
 			const Mutex&) = delete;
 
-		MutexHandle myHandle;
+		std::mutex myHandle;
 		uint32 myOwner;
-		int myLockCount;
 
 		friend class ConditionVariable;
 	};
@@ -55,9 +42,8 @@ namespace common {
 	{
 	public:
 		MutexLock(
-			Mutex& aMutex);
-
-		~MutexLock();
+			Mutex& aMutex) : myMutex(&aMutex) { myMutex->Lock(); }
+		~MutexLock() { if (myMutex != nullptr) myMutex->Unlock(); }
 
 		void Unlock();
 
@@ -71,21 +57,6 @@ namespace common {
 	};
 
 	//////////////////////////////////////////////////////////////
-
-	inline
-	MutexLock::MutexLock(
-		Mutex& aMutex)
-		: myMutex(&aMutex)
-	{
-		myMutex->Lock();
-	}
-
-	inline
-	MutexLock::~MutexLock()
-	{
-		if (myMutex != nullptr)
-			myMutex->Unlock();
-	}
 
 	inline void
 	MutexLock::Unlock()

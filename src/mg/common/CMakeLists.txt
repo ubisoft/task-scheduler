@@ -41,16 +41,12 @@ set(mgcommon_src
 
 if(WIN32)
 	set(mgcommon_src ${mgcommon_src}
-		ConditionVariable_Win.cpp
-		Mutex_Win.cpp
 		QPTimer_Win.cpp
 		Thread_Win.cpp
 		Time_Win.cpp
 	)
 else()
 	set(mgcommon_src ${mgcommon_src}
-		ConditionVariable_Posix.cpp
-		Mutex_Posix.cpp
 		QPTimer_Posix.cpp
 		Thread_Posix.cpp
 		Time_Posix.cpp

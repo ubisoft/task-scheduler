@@ -21,6 +21,35 @@ namespace common {
 		return theMutexStartContentCount.load();
 	}
 
+	void
+	Mutex::Lock()
+	{
+		if (TryLock())
+			return;
+		myHandle.lock();
+		myOwner = GetCurrentThreadId();
+	}
+
+	bool
+	Mutex::TryLock()
+	{
+		if (!myHandle.try_lock())
+		{
+			theMutexStartContentCount.fetch_add(1);
+			return false;
+		}
+		myOwner = GetCurrentThreadId();
+		return true;
+	}
+
+	void
+	Mutex::Unlock()
+	{
+		MG_COMMON_ASSERT(IsOwnedByThisThread());
+		myOwner = 0;
+		myHandle.unlock();
+	}
+
 	bool
 	Mutex::IsOwnedByThisThread() const
 	{
