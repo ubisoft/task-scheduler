@@ -1,4 +1,3 @@
-#include "mg/common/Atomic.h"
 #include "mg/common/ConditionVariable.h"
 #include "mg/common/ThreadFunc.h"
 
@@ -17,19 +16,18 @@ namespace unittests {
 
 	static inline void
 	UnitTestCondVarSend(
-		int32* aCounter,
-		int32* aNextCounter)
+		std::atomic<uint32>* aCounter,
+		uint32* aNextCounter)
 	{
-		*aNextCounter = mg::common::AtomicIncrement(aCounter) + 1;
+		*aNextCounter = aCounter->fetch_add(1) + 2;
 	}
 
 	static inline void
 	UnitTestCondVarReceive(
-		int32* aCounter,
-		int32* aNextCounter)
+		std::atomic<uint32>* aCounter,
+		uint32* aNextCounter)
 	{
-		while (mg::common::AtomicCompareExchange(aCounter, *aNextCounter,
-			*aNextCounter) != *aNextCounter);
+		while (aCounter->load() != *aNextCounter);
 		++*aNextCounter;
 	}
 
@@ -38,10 +36,10 @@ namespace unittests {
 	{
 		mg::common::ConditionVariable var;
 		mg::common::Mutex mutex;
-		int32 stepCounter = 0;
-		int32 next = 0;
+		std::atomic<uint32> stepCounter(0);
+		uint32 next = 0;
 		mg::common::ThreadFunc worker([&]() {
-			int32 workerNext = 1;
+			uint32 workerNext = 1;
 
 			// Test that simple lock/unlock work correct.
 			UnitTestCondVarReceive(&stepCounter, &workerNext);

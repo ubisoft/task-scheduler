@@ -1,7 +1,8 @@
-#include "mg/common/Atomic.h"
 #include "mg/common/Policies.h"
 
 #include "UnitTest.h"
+
+#include <atomic>
 
 #if IS_COMPILER_GCC && IS_BUILD_RELEASE
 // In Release build GCC optimizations give some false-positive
@@ -16,8 +17,7 @@ namespace unittests {
 	static void
 	CompilerBarrier()
 	{
-		int32 flag = 0;
-		mg::common::AtomicFlagSet(&flag);
+		std::atomic_thread_fence(std::memory_order_seq_cst);
 	}
 
 	static void
