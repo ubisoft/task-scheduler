@@ -4,7 +4,6 @@ set(mgcommon_src
 	Array.h
 	Assert.cpp
 	Assert.h
-	Atomic.h
 	BinaryHeap.h
 	Callback.h
 	ConditionVariable.cpp
@@ -42,7 +41,6 @@ set(mgcommon_src
 
 if(WIN32)
 	set(mgcommon_src ${mgcommon_src}
-		Atomic_Win.h
 		ConditionVariable_Win.cpp
 		Mutex_Win.cpp
 		QPTimer_Win.cpp
@@ -51,7 +49,6 @@ if(WIN32)
 	)
 else()
 	set(mgcommon_src ${mgcommon_src}
-		Atomic_Posix.h
 		ConditionVariable_Posix.cpp
 		Mutex_Posix.cpp
 		QPTimer_Posix.cpp
