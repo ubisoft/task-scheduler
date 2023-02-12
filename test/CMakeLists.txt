@@ -15,6 +15,7 @@ add_executable(test
 	UnitTestPolicies.cpp
 	UnitTestSignal.cpp
 	UnitTestTaskScheduler.cpp
+	UnitTestUtil.cpp
 )
 
 target_include_directories(test PUBLIC

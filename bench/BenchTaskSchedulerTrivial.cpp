@@ -223,7 +223,8 @@ namespace bench {
 	TaskSchedulerThread::TaskSchedulerThread(
 		const char* aName,
 		TaskScheduler* aScheduler)
-		: Thread(mg::common::ScratchSprintf("mgsb.tsksch%s", aName))
+		: Thread(mg::common::StringFormat(
+			"mgsb.tsksch%s", aName).c_str())
 		, myScheduler(aScheduler)
 	{
 		Start();

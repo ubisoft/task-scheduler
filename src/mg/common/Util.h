@@ -2,6 +2,8 @@
 
 #include "mg/common/Types.h"
 
+#include <string>
+
 #if !defined(_DEBUG) || IS_ORBIS_PLATFORM
 #define MG_TEST(X) (mg::common::PassThrough(X))
 #else
@@ -66,6 +68,10 @@ namespace common {
 	{
 		return (aValue + aAlignment - 1) & ~(aAlignment - 1);
 	}
+
+	std::string StringFormat(
+		const char *aFormat,
+		...);
 
 }
 }
