@@ -102,7 +102,7 @@ namespace common {
 	void
 	Thread::PrivTrampoline()
 	{
-		ThreadSetCurrentName(myName);
+		ThreadSetCurrentName(myName.c_str());
 		Run();
 		myLock.Lock();
 		MG_COMMON_ASSERT(mg::common::AtomicFlagClear(&myIsRunning) != 0);

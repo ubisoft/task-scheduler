@@ -1,6 +1,6 @@
 #include "Assert.h"
 
-#include "mg/common/String.h"
+#include "mg/common/Util.h"
 
 #include <cstdio>
 
@@ -30,14 +30,14 @@ namespace common {
 		const char* aFormat,
 		...)
 	{
-		mg::common::HybridString<1024> expression;
-		expression.Format("(%s): ", aExpression);
+		std::string expression = mg::common::StringFormat(
+			"(%s): ", aExpression);
 
 		va_list	ap;
 		va_start(ap, aFormat);
-		expression.AppendVFormat(aFormat, ap);
+		expression += mg::common::StringVFormat(aFormat, ap);
 		va_end(ap);
-		AssertS(expression, aFile, aLine);
+		AssertS(expression.c_str(), aFile, aLine);
 	}
 
 }

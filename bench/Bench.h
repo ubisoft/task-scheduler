@@ -2,9 +2,10 @@
 
 #include "mg/common/HybridArray.h"
 #include "mg/common/QPTimer.h"
-#include "mg/common/String.h"
+#include "mg/common/StringFunctions.h"
 
 #include <stdarg.h>
+#include <string>
 
 #define MG_BENCH_FALSE_SHARING_BARRIER(name) \
 	MG_UNUSED_MEMBER char name[128]
@@ -78,8 +79,8 @@ namespace bench {
 	private:
 		struct Pair
 		{
-			mg::common::HybridString<32> myKey;
-			mg::common::HybridString<32> myValue;
+			std::string myKey;
+			std::string myValue;
 		};
 
 		const Pair* PrivFind(
