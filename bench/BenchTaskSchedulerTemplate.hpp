@@ -6,6 +6,7 @@
 #include "mg/common/Random.h"
 
 #include <algorithm>
+#include <vector>
 
 #define MG_WARMUP_TASK_COUNT 10000
 
@@ -100,7 +101,7 @@ namespace bench {
 		uint64 myExecPerSecPerThread;
 		double myUsPerExec;
 		uint64 myMutexContentionCount;
-		mg::common::HybridArray<BenchThreadReport, 10> myThreads;
+		std::vector<BenchThreadReport> myThreads;
 	};
 
 	//////////////////////////////////////////////////////////////////////////////////////
@@ -331,14 +332,14 @@ namespace bench {
 			myUsPerExec);
 		Report("Exec per second:            %12llu",
 			(unsigned long long)myExecPerSec);
-		if (myThreads.Count() > 1)
+		if (myThreads.size() > 1)
 		{
 			Report("Exec per second per thread: %12llu",
 				(unsigned long long)myExecPerSecPerThread);
 		}
 		Report("Mutex contention count:     %12llu",
 			(unsigned long long)myMutexContentionCount);
-		for (uint32 i = 0; i < myThreads.Count(); ++i)
+		for (uint32 i = 0; i < myThreads.size(); ++i)
 		{
 			const BenchThreadReport& tr = myThreads[i];
 			Report("Thread %2u: exec: %12llu, sched: %9llu", i,
@@ -394,7 +395,7 @@ namespace bench {
 		report.myUsPerExec = durationMs * 1000 / ctl.myTotalExecuteCount * aThreadCount;
 
 		TaskSchedulerThread*const* threads = sched.GetThreads(aThreadCount);
-		report.myThreads.SetCount(aThreadCount);
+		report.myThreads.resize(aThreadCount);
 		for (uint32 i = 0; i < aThreadCount; ++i)
 		{
 			BenchThreadReport& tr = report.myThreads[i];
@@ -423,13 +424,13 @@ main(
 	if (cmdLine.IsPresent("runs"))
 		runCount = cmdLine.GetU32("runs");
 
-	mg::common::HybridArray<BenchRunReport, 10> reports;
-	reports.SetCount(runCount);
+	std::vector<BenchRunReport> reports;
+	reports.resize(runCount);
 	for (BenchRunReport& r : reports)
 		r = BenchTaskSchedulerRun(loadType, threadCount, taskCount, exeCount);
 	if (runCount < 3)
 		return -1;
-	std::sort(reports.GetBuffer(), reports.GetBuffer() + runCount);
+	std::sort(reports.begin(), reports.end());
 	Report("");
 
 	Report("== Aggregated report:");

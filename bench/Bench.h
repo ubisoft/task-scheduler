@@ -1,11 +1,11 @@
 #pragma once
 
-#include "mg/common/HybridArray.h"
 #include "mg/common/QPTimer.h"
 #include "mg/common/StringFunctions.h"
 
 #include <stdarg.h>
 #include <string>
+#include <vector>
 
 #define MG_BENCH_FALSE_SHARING_BARRIER(name) \
 	MG_UNUSED_MEMBER char name[128]
@@ -89,7 +89,7 @@ namespace bench {
 		const Pair& PrivGet(
 			const char* aName) const;
 
-		mg::common::HybridArray<Pair, 10> myArgs;
+		std::vector<Pair> myArgs;
 	};
 
 	enum BenchLoadType
