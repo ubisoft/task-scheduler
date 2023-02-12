@@ -2,10 +2,10 @@
 
 #include "mg/common/ConditionVariable.h"
 #include "mg/common/Mutex.h"
-#include "mg/common/String.h"
 #include "mg/common/Types.h"
 
 #include <atomic>
+#include <string>
 #include <thread>
 
 #define MG_THREADLOCAL thread_local
@@ -48,7 +48,7 @@ namespace common {
 		Mutex myLock;
 		ConditionVariable myCond;
 		std::thread* myHandle;
-		HybridString<64> myName;
+		std::string myName;
 		std::atomic<bool> myIsStopRequested;
 		std::atomic<bool> myIsRunning;
 		bool myWasStarted;

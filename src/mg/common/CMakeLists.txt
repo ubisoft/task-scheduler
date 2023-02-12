@@ -24,8 +24,6 @@ set(mgcommon_src
 	Random.h
 	Signal.cpp
 	Signal.h
-	String.cpp
-	String.h
 	StringFunctions.cpp
 	StringFunctions.h
 	Thread.cpp
