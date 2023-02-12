@@ -1,6 +1,5 @@
 #include "Bench.h"
 
-#include "mg/common/Array.h"
 #include "mg/common/Atomic.h"
 #include "mg/common/Callback.h"
 #include "mg/common/ConditionVariable.h"
@@ -85,7 +84,7 @@ namespace bench {
 		mg::common::ConditionVariable myCond;
 		bool myIsStopped;
 		TaskList myQueue;
-		mg::common::Array<TaskSchedulerThread*> myWorkers;
+		std::vector<TaskSchedulerThread*> myWorkers;
 
 		friend TaskSchedulerThread;
 	};
@@ -139,7 +138,7 @@ namespace bench {
 		uint32_t /*aSubQueueSize*/)
 		: myIsStopped(false)
 	{
-		myWorkers.SetCount(aThreadCount);
+		myWorkers.resize(aThreadCount);
 		for (TaskSchedulerThread*& w : myWorkers)
 			w = new TaskSchedulerThread(aName, this);
 	}
@@ -217,8 +216,8 @@ namespace bench {
 	TaskScheduler::GetThreads(
 		uint32_t& aOutCount) const
 	{
-		aOutCount = myWorkers.Count();
-		return myWorkers.GetBuffer();
+		aOutCount = myWorkers.size();
+		return myWorkers.data();
 	}
 
 	TaskSchedulerThread::TaskSchedulerThread(

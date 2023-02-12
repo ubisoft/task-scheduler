@@ -1,9 +1,10 @@
-#include "mg/common/HybridArray.h"
 #include "mg/common/MultiProducerQueueIntrusive.h"
 #include "mg/common/Random.h"
 #include "mg/common/ThreadFunc.h"
 
 #include "UnitTest.h"
+
+#include <vector>
 
 namespace mg {
 namespace unittests {
@@ -271,14 +272,15 @@ namespace unittests {
 		const uint32_t threadCount = 10;
 
 		mg::common::MultiProducerQueueIntrusive<Entry> queue;
-		mg::common::Array<Entry*> data;
-		data.Reserve(threadCount * itemCount);
+		std::vector<Entry*> data;
+		data.reserve(threadCount * itemCount);
 
-		mg::common::HybridArray<mg::common::ThreadFunc*, threadCount> threads;
+		std::vector<mg::common::ThreadFunc*> threads;
+		threads.reserve(threadCount);
 		int32_t readyCount = 0;
 		for (uint32_t ti = 0; ti < threadCount; ++ti)
 		{
-			threads.Add(new mg::common::ThreadFunc([&]() {
+			threads.push_back(new mg::common::ThreadFunc([&]() {
 
 				const uint32_t packMaxSize = 5;
 
@@ -306,7 +308,7 @@ namespace unittests {
 						queue.PushMany(head);
 				}
 			}));
-			threads.Last()->Start();
+			threads.back()->Start();
 		}
 
 		bool done = false;
@@ -319,18 +321,19 @@ namespace unittests {
 			Entry* head = queue.PopAll();
 			while (head != nullptr)
 			{
-				data.Add(head);
+				data.push_back(head);
 				head = head->myNext;
 			}
 			if (++yield % 1000 == 0)
 				mg::common::Sleep(1);
 		}
-		MG_COMMON_ASSERT(data.Count() == itemCount * threadCount);
-
-		threads.DeleteAll();
-		mg::common::HybridArray<uint32_t, threadCount> counters;
+		MG_COMMON_ASSERT(data.size() == itemCount * threadCount);
+		for (mg::common::ThreadFunc* f : threads)
+			delete f;
+		std::vector<uint32_t> counters;
+		counters.reserve(threadCount);
 		for (uint32_t i = 0; i < threadCount; ++i)
-			counters.Add(0);
+			counters.push_back(0);
 		for (Entry* e : data)
 			MG_COMMON_ASSERT(e->myId == counters[e->myThreadId]++);
 		for (uint32_t count : counters)

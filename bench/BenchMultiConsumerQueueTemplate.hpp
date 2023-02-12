@@ -2,12 +2,12 @@
 
 #include "Bench.h"
 
-#include "mg/common/Array.h"
 #include "mg/common/Mutex.h"
 #include "mg/common/Random.h"
 #include "mg/common/Thread.h"
 
 #include <algorithm>
+#include <vector>
 
 #define MG_WARMUP_ITEM_COUNT 10000
 
@@ -62,14 +62,14 @@ namespace bench {
 		uint64_t myItemsPerSec;
 		uint64_t myItemsPerSecPerThread;
 		uint64_t myMutexContentionCount;
-		mg::common::HybridArray<BenchThreadReport, 10> myThreads;
+		std::vector<BenchThreadReport> myThreads;
 	};
 
 	//////////////////////////////////////////////////////////////////////////////////////
 
 	static void BenchQueueWarmup(
 		BenchQueue& aQueue,
-		mg::common::IArray<BenchConsumerThread*>& aWorkers);
+		std::vector<BenchConsumerThread*>& aWorkers);
 
 	static BenchRunReport BenchQueueRun(
 		CommandLine& aCmdLine);
@@ -185,14 +185,14 @@ namespace bench {
 	{
 		Report("Items per sec:            %12llu",
 			(unsigned long long)myItemsPerSec);
-		if (myThreads.Count() > 1)
+		if (myThreads.size() > 1)
 		{
 			Report("Items per sec per thread: %12llu",
 				(unsigned long long)myItemsPerSecPerThread);
 		}
 		Report("Mutex contention count:   %12llu",
 			(unsigned long long)myMutexContentionCount);
-		for (uint32_t i = 0; i < myThreads.Count(); ++i)
+		for (uint32_t i = 0; i < myThreads.size(); ++i)
 		{
 			const BenchThreadReport& r = myThreads[i];
 			Report("Thread %2u: pop: %12llu", i, (unsigned long long)r.myPopCount);
@@ -205,7 +205,7 @@ namespace bench {
 	static void
 	BenchQueueWarmup(
 		BenchQueue& aQueue,
-		mg::common::IArray<BenchConsumerThread*>& aWorkers)
+		std::vector<BenchConsumerThread*>& aWorkers)
 	{
 		BenchValue* vals = new BenchValue[MG_WARMUP_ITEM_COUNT];
 		for (uint32_t i = 0; i < MG_WARMUP_ITEM_COUNT; ++i)
@@ -287,8 +287,8 @@ namespace bench {
 			aItemCount, aThreadCount, aSubQueueSize, BenchLoadTypeToString(aLoadType));
 		BenchQueue queue(aSubQueueSize);
 		queue.Reserve(aItemCount);
-		mg::common::Array<BenchConsumerThread*> workers;
-		workers.SetCount(aThreadCount);
+		std::vector<BenchConsumerThread*> workers;
+		workers.resize(aThreadCount);
 		for (BenchConsumerThread*& w : workers)
 			w = new BenchConsumerThread(&queue, aLoadType);
 		BenchQueueWarmup(queue, workers);
@@ -324,7 +324,7 @@ namespace bench {
 
 			report.myItemsPerSec = (uint64_t)((uint64_t)aItemCount * 1000 / durationMs);
 			report.myItemsPerSecPerThread = report.myItemsPerSec / aThreadCount;
-			report.myThreads.SetCount(aThreadCount);
+			report.myThreads.resize(aThreadCount);
 			for (uint32_t i = 0; i < aThreadCount; ++i)
 			{
 				BenchThreadReport& r = report.myThreads[i];
@@ -333,7 +333,8 @@ namespace bench {
 			}
 		}
 		delete[] vals;
-		workers.DeleteAll();
+		for (BenchConsumerThread* w : workers)
+			delete w;
 		report.Print();
 		return report;
 	}
@@ -349,8 +350,8 @@ namespace bench {
 			aItemCount, aThreadCount, aSubQueueSize, BenchLoadTypeToString(aLoadType));
 		BenchQueue queue(aSubQueueSize);
 		queue.Reserve(aItemCount);
-		mg::common::Array<BenchConsumerThread*> workers;
-		workers.SetCount(aThreadCount);
+		std::vector<BenchConsumerThread*> workers;
+		workers.resize(aThreadCount);
 		for (BenchConsumerThread*& w : workers)
 			w = new BenchConsumerThread(&queue, aLoadType);
 		BenchQueueWarmup(queue, workers);
@@ -378,7 +379,7 @@ namespace bench {
 
 			report.myItemsPerSec = (uint64_t)((uint64_t)aItemCount * 1000 / durationMs);
 			report.myItemsPerSecPerThread = report.myItemsPerSec / aThreadCount;
-			report.myThreads.SetCount(aThreadCount);
+			report.myThreads.resize(aThreadCount);
 			for (uint32_t i = 0; i < aThreadCount; ++i)
 			{
 				BenchThreadReport& r = report.myThreads[i];
@@ -387,7 +388,8 @@ namespace bench {
 			}
 		}
 		delete[] vals;
-		workers.DeleteAll();
+		for (BenchConsumerThread* w : workers)
+			delete w;
 		report.Print();
 		return report;
 	}
@@ -406,13 +408,13 @@ main(
 	if (cmdLine.IsPresent("runs"))
 		runCount = cmdLine.GetU32("runs");
 
-	mg::common::HybridArray<BenchRunReport, 10> reports;
-	reports.SetCount(runCount);
+	std::vector<BenchRunReport> reports;
+	reports.resize(runCount);
 	for (BenchRunReport& r : reports)
 		r = BenchQueueRun(cmdLine);
 	if (runCount < 3)
 		return -1;
-	std::sort(reports.GetBuffer(), reports.GetBuffer() + runCount);
+	std::sort(reports.begin(), reports.end());
 	Report("");
 
 	Report("== Aggregated report:");

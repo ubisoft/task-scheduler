@@ -1,7 +1,8 @@
 #include "mg/common/Callback.h"
-#include "mg/common/HybridArray.h"
 
 #include "UnitTest.h"
+
+#include <vector>
 
 namespace mg {
 namespace unittests {
@@ -1557,16 +1558,17 @@ namespace unittests {
 		// Should be able to store the callbacks in an array like
 		// std::function allows.
 		{
-			mg::common::HybridArray<mg::common::Callback<int(int, int)>, 4> arr;
+			std::vector<mg::common::Callback<int(int, int)>> arr;
+			arr.reserve(4);
 			UTCallbackValue1 cv1(1);
 			UTCallbackValue2 cv2(2);
 			UTCallbackValue1::ResetCounters();
 			UTCallbackValue2::ResetCounters();
 
-			arr.Add(UTCallbackSum);
-			arr.Add(&UTCallbackSum);
+			arr.push_back(UTCallbackSum);
+			arr.push_back(&UTCallbackSum);
 
-			arr.Add(UTCallbackValue2(3));
+			arr.push_back(UTCallbackValue2(3));
 			// Implicitly created callback.
 			UTCallbackValue2::UseConstrCount(1);
 			UTCallbackValue2::UseMoveConstrCount(1);
@@ -1577,9 +1579,9 @@ namespace unittests {
 			// callback was created.
 			UTCallbackValue2::UseDestrCount(1);
 
-			arr.Add({&cv1, &UTCallbackValue1::Sum});
+			arr.push_back({&cv1, &UTCallbackValue1::Sum});
 
-			arr.Add({&cv2, &UTCallbackValue2::SumConst});
+			arr.push_back({&cv2, &UTCallbackValue2::SumConst});
 			// Realloc has happened.
 			UTCallbackValue2::UseMoveConstrCount(1);
 			UTCallbackValue2::UseDestrCount(1);

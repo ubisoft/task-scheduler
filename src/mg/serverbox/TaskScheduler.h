@@ -9,6 +9,8 @@
 
 #include "mg/serverbox/Task.h"
 
+#include <vector>
+
 namespace mg {
 namespace serverbox {
 
@@ -267,7 +269,7 @@ namespace serverbox {
 		// separated from the fields below by thread list, which
 		// is almost never updated or read. So can be used as a
 		// barrier.
-		mg::common::HybridArray<TaskSchedulerThread*, 8> myThreads;
+		std::vector<TaskSchedulerThread*> myThreads;
 
 		TaskSchedulerQueuePending myQueuePending;
 		TaskSchedulerQueueWaiting myQueueWaiting;
@@ -367,8 +369,8 @@ namespace serverbox {
 	TaskScheduler::GetThreads(
 		uint32_t& aOutCount) const
 	{
-		aOutCount = myThreads.Count();
-		return myThreads.GetBuffer();
+		aOutCount = myThreads.size();
+		return myThreads.data();
 	}
 
 	inline uint64_t

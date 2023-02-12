@@ -8,6 +8,7 @@
 #include "mg/common/Thread.h"
 
 #include <algorithm>
+#include <vector>
 
 namespace mg {
 namespace bench {
@@ -279,8 +280,8 @@ namespace bench {
 		int64_t sharedQueueSize = 0;
 		BenchThreadReceiver* receiver = new BenchThreadReceiver(queue, signalPtr,
 			sharedQueueSize, aLoadType);
-		mg::common::HybridArray<BenchThreadSender*, 10> senders;
-		senders.SetCount(aSenderCount);
+		std::vector<BenchThreadSender*> senders;
+		senders.resize(aSenderCount);
 		for (BenchThreadSender*& s : senders)
 		{
 			// +1 to deal with [item count % thread count != 0].
@@ -311,7 +312,8 @@ namespace bench {
 
 		delete receiver;
 		receiver = nullptr;
-		senders.DeleteAll();
+		for (BenchThreadSender* s : senders)
+			delete s;
 
 		report.myItemsPerSec = (uint64_t)(aItemCount * 1000 / durationMs);
 		report.myMutexContentionCountPerSec =
@@ -338,13 +340,13 @@ main(
 	if (cmdLine.IsPresent("runs"))
 		runCount = cmdLine.GetU32("runs");
 
-	mg::common::HybridArray<BenchRunReport, 10> reports;
-	reports.SetCount(runCount);
+	std::vector<BenchRunReport> reports;
+	reports.resize(runCount);
 	for (BenchRunReport& r : reports)
 		r = BenchQueueRun(loadType, doUseSignal, itemCount, senderCount);
 	if (runCount < 3)
 		return -1;
-	std::sort(reports.GetBuffer(), reports.GetBuffer() + runCount);
+	std::sort(reports.begin(), reports.end());
 	Report("");
 
 	Report("== Aggregated report:");

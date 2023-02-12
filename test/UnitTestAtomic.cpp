@@ -1,5 +1,5 @@
+#include "mg/common/Assert.h"
 #include "mg/common/Atomic.h"
-#include "mg/common/HybridArray.h"
 
 #include "UnitTest.h"
 

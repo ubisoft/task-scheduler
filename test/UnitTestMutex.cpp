@@ -1,8 +1,9 @@
-#include "mg/common/HybridArray.h"
 #include "mg/common/ThreadFunc.h"
 #include "mg/common/Time.h"
 
 #include "UnitTest.h"
+
+#include <vector>
 
 namespace mg {
 namespace unittests {
@@ -13,11 +14,11 @@ namespace unittests {
 		mg::common::Mutex mutex;
 		uint32_t counter = 0;
 		const uint32_t threadCount = 10;
-
-		mg::common::HybridArray<mg::common::ThreadFunc*, threadCount> threads;
+		std::vector<mg::common::ThreadFunc*> threads;
+		threads.reserve(threadCount);
 		for (uint32_t i = 0; i < threadCount; ++i)
 		{
-			threads.Add(new mg::common::ThreadFunc([&]() {
+			threads.push_back(new mg::common::ThreadFunc([&]() {
 				uint64_t deadline = mg::common::GetMilliseconds() + 2000;
 				uint64_t yield = 0;
 				while (mg::common::GetMilliseconds() < deadline)
@@ -35,7 +36,8 @@ namespace unittests {
 		}
 		for (mg::common::ThreadFunc* f : threads)
 			f->Start();
-		threads.DeleteAll();
+		for (mg::common::ThreadFunc* f : threads)
+			delete f;
 		MG_COMMON_ASSERT(counter == 0);
 	}
 

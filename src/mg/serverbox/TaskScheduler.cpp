@@ -15,25 +15,25 @@ namespace serverbox {
 		, myIsSchedulerWorking(0)
 		, myIsStopped(0)
 	{
-		myThreads.SetCount(aThreadCount);
-		for (uint32_t i = 0; i < aThreadCount; ++i)
+		myThreads.resize(aThreadCount);
+		for (TaskSchedulerThread*& t : myThreads)
 		{
-			myThreads[i] = new TaskSchedulerThread(aName, this);
-			myThreads[i]->Start();
+			t = new TaskSchedulerThread(aName, this);
+			t->Start();
 		}
 	}
 
 	TaskScheduler::~TaskScheduler()
 	{
 		mg::common::AtomicFlagSet(&myIsStopped);
-		for (int i = 0, count = myThreads.Count(); i < count; ++i)
-			myThreads[i]->Stop();
+		for (TaskSchedulerThread* t : myThreads)
+			t->Stop();
 		// It is enough to wake the sched-thread. It will wakeup
 		// another worker, and they will wakeup each other like
 		// domino.
 		mySignalFront.Send();
-		for (int i = 0, count = myThreads.Count(); i < count; ++i)
-			myThreads[i]->StopAndDelete();
+		for (TaskSchedulerThread* t : myThreads)
+			t->StopAndDelete();
 		MG_COMMON_ASSERT(myQueuePending.IsEmpty());
 		MG_COMMON_ASSERT(myQueueFront.PopAllFastReversed() == nullptr);
 		MG_COMMON_ASSERT(myQueueWaiting.Count() == 0);

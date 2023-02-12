@@ -1,5 +1,6 @@
 #include "Bench.h"
 
+#include "mg/common/Assert.h"
 #include "mg/common/Atomic.h"
 #include "mg/common/Random.h"
 
@@ -107,8 +108,8 @@ namespace bench {
 					"Argument %d has invalid chars", i);
 				++pos;
 			}
-			uint32_t argi = myArgs.Count();
-			myArgs.SetCount(argi + 1);
+			uint32_t argi = myArgs.size();
+			myArgs.resize(argi + 1);
 			Pair& p = myArgs[argi];
 			p.myKey = arg;
 			if (i < aArgc)
