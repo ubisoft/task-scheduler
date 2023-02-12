@@ -73,5 +73,9 @@ namespace common {
 		const char *aFormat,
 		...);
 
+	std::string StringVFormat(
+		const char *aFormat,
+		va_list aParams);
+
 }
 }

@@ -1,7 +1,5 @@
 #include "UnitTest.h"
 
-#include "mg/common/ScratchPad.h"
-
 #include <cstdio>
 
 namespace mg {

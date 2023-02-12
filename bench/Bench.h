@@ -2,7 +2,7 @@
 
 #include "mg/common/HybridArray.h"
 #include "mg/common/QPTimer.h"
-#include "mg/common/ScratchPad.h"
+#include "mg/common/String.h"
 
 #include <stdarg.h>
 
@@ -51,7 +51,7 @@ namespace bench {
 
 	private:
 		mg::common::QPTimer myTimer;
-		mg::common::ScratchBuffer myName;
+		std::string myName;
 		bool myIsStopped;
 		double myDuration;
 	};

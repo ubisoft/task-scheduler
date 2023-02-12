@@ -22,7 +22,6 @@ set(mgcommon_src
 	QPTimer.h
 	Random.cpp
 	Random.h
-	ScratchPad.h
 	Signal.cpp
 	Signal.h
 	String.cpp

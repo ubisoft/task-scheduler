@@ -14,12 +14,24 @@ namespace common {
 	{
 		va_list va;
 		va_start(va, aFormat);
+		std::string res = StringVFormat(aFormat, va);
+		va_end(va);
+		return res;
+	}
+
+	std::string
+	StringVFormat(
+		const char *aFormat,
+		va_list aParams)
+	{
+		va_list va;
+		va_copy(va, aParams);
 		int size = vsnprintf(nullptr, 0, aFormat, va);
 		MG_COMMON_ASSERT(size >= 0);
 		va_end(va);
 		++size;
 		char* data = new char[size];
-		va_start(va, aFormat);
+		va_copy(va, aParams);
 		int size2 = vsnprintf(data, size, aFormat, va);
 		MG_COMMON_ASSERT(size2 + 1 == size);
 		va_end(va);
