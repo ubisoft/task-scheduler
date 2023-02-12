@@ -1,6 +1,5 @@
 #include "TaskScheduler.h"
 
-#include "mg/common/ScratchPad.h"
 #include "mg/common/Time.h"
 
 namespace mg {
@@ -343,7 +342,8 @@ namespace serverbox {
 	TaskSchedulerThread::TaskSchedulerThread(
 		const char* aSchedulerName,
 		TaskScheduler* aScheduler)
-		: Thread(mg::common::ScratchSprintf("mgsb.tsksch%s", aSchedulerName))
+		: Thread(mg::common::StringFormat(
+			"mgsb.tsksch%s", aSchedulerName).c_str())
 		, myScheduler(aScheduler)
 		, myExecuteCount(0)
 		, myScheduleCount(0)

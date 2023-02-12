@@ -1,7 +1,5 @@
 #include "UnitTest.h"
 
-#include "mg/common/ScratchPad.h"
-
 #include <cstdio>
 
 namespace mg {
@@ -25,8 +23,8 @@ namespace unittests {
 		const char *aFormat,
 		va_list aArg)
 	{
-		mg::common::ScratchBuffer buf = mg::common::ScratchVsprintf(aFormat, aArg);
-		printf("%s\n", buf.GetBuffer());
+		vprintf(aFormat, aArg);
+		printf("\n");
 	}
 
 	TestSuiteGuard::TestSuiteGuard(

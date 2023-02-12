@@ -19,6 +19,7 @@ namespace unittests {
 	void UnitTestPolicies();
 	void UnitTestSignal();
 	void UnitTestTaskScheduler();
+	void UnitTestUtil();
 
 }
 }
@@ -42,5 +43,6 @@ main()
 	UnitTestPolicies();
 	UnitTestSignal();
 	UnitTestTaskScheduler();
+	UnitTestUtil();
 	return 0;
 }

@@ -27,8 +27,8 @@ namespace bench {
 		const char *aFormat,
 		va_list aArg)
 	{
-		mg::common::ScratchBuffer buf = mg::common::ScratchVsprintf(aFormat, aArg);
-		printf("%s\n", buf.GetBuffer());
+		std::string buf = mg::common::StringVFormat(aFormat, aArg);
+		printf("%s\n", buf.c_str());
 	}
 
 	BenchSuiteGuard::BenchSuiteGuard(
@@ -44,9 +44,9 @@ namespace bench {
 	{
 		va_list va;
 		va_start(va, aFormat);
-		mg::common::ScratchBuffer buf = mg::common::ScratchVsprintf(aFormat, va);
+		std::string buf = mg::common::StringVFormat(aFormat, va);
 		va_end(va);
-		Report("==== [%s] case", buf.GetBuffer());
+		Report("==== [%s] case", buf.c_str());
 	}
 
 	MG_STRFORMAT_PRINTF(2, 3)
@@ -58,7 +58,7 @@ namespace bench {
 	{
 		va_list va;
 		va_start(va, aFormat);
-		myName = mg::common::ScratchVsprintf(aFormat, va);
+		myName = mg::common::StringVFormat(aFormat, va);
 		va_end(va);
 		myTimer.Start();
 	}
@@ -76,7 +76,7 @@ namespace bench {
 	{
 		MG_COMMON_ASSERT(myIsStopped);
 		mg::bench::Report("== [%s] took %.6lf ms",
-			myName.GetBuffer(), myDuration);
+			myName.c_str(), myDuration);
 	}
 
 	double
