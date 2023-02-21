@@ -1,6 +1,9 @@
 #pragma once
 
-#include "mg/common/HybridArray.h"
+#include "mg/common/Assert.h"
+#include "mg/common/TypeTraits.h"
+
+#include <vector>
 
 namespace mg {
 namespace common {
@@ -30,7 +33,7 @@ namespace common {
 	// The heap is optimized for structures having proper move
 	// constructors, and tries to make as few copies as possible.
 	//
-	template<typename T, uint32 StaticSize, typename Methods>
+	template<typename T, typename Methods>
 	class BinaryHeap
 	{
 	public:
@@ -80,7 +83,7 @@ namespace common {
 		void PrivUpdate(
 			uint32 aIndex);
 
-		mg::common::HybridArray<T, StaticSize> myData;
+		std::vector<T> myData;
 	};
 
 	//////////////////////////////////////////////////////////////
@@ -289,9 +292,9 @@ namespace common {
 	// objects, and/or not belonging to the heap.
 	// Non-intrusive, so only top element can be updated and
 	// removed.
-	template<typename T, uint32 StaticSize = 1>
+	template<typename T>
 	using BinaryHeapMinPtr = BinaryHeap<
-		T*, StaticSize, BinaryHeapMinPtrMethods<T>
+		T*, BinaryHeapMinPtrMethods<T>
 	>;
 
 	// Min-heap (top element is the smallest) for pointers to
@@ -300,9 +303,9 @@ namespace common {
 	// Intrusive, so any element can be updated and removed for
 	// logarithmic time. If an element is removed from the heap,
 	// its index is set to -1.
-	template<typename T, uint32 StaticSize = 1, int32 T::*myIndex = &T::myIndex>
+	template<typename T, int32 T::*myIndex = &T::myIndex>
 	using BinaryHeapMinIntrusive = BinaryHeap<
-		T*, StaticSize, BinaryHeapMinPtrIntrusiveMethods<T, myIndex>
+		T*, BinaryHeapMinPtrIntrusiveMethods<T, myIndex>
 	>;
 
 	// Max-heap (top element is the greatest) for pointers to
@@ -310,9 +313,9 @@ namespace common {
 	// objects, and/or not belonging to the heap.
 	// Non-intrusive, so only top element can be updated and
 	// removed.
-	template<typename T, uint32 StaticSize = 1>
+	template<typename T>
 	using BinaryHeapMaxPtr = BinaryHeap<
-		T*, StaticSize, BinaryHeapMaxPtrMethods<T>
+		T*, BinaryHeapMaxPtrMethods<T>
 	>;
 
 	// Max-heap (top element is the greatest) for pointers to
@@ -321,50 +324,51 @@ namespace common {
 	// Intrusive, so any element can be updated and removed for
 	// logarithmic time. If an element is removed from the heap,
 	// its index is set to -1.
-	template<typename T, uint32 StaticSize = 1, int32 T::*myIndex = &T::myIndex>
+	template<typename T, int32 T::*myIndex = &T::myIndex>
 	using BinaryHeapMaxIntrusive = BinaryHeap<
-		T*, StaticSize, BinaryHeapMaxPtrIntrusiveMethods<T, myIndex>
+		T*, BinaryHeapMaxPtrIntrusiveMethods<T, myIndex>
 	>;
 
 	// Min-heap (top element is the smallest) storing copies of
 	// elements. Works good for small objects, or for big objects
 	// with low update rate on the heap.
-	template<typename T, uint32 StaticSize = 1>
+	template<typename T>
 	using BinaryHeapMin = BinaryHeap<
-		T, StaticSize, BinaryHeapMinMethods<T>
+		T, BinaryHeapMinMethods<T>
 	>;
 
 	// Max-heap (top element is the greatest) storing copies of
 	// elements. Works good for small objects, or for big objects
 	// with low update rate on the heap.
-	template<typename T, uint32 StaticSize = 1>
+	template<typename T>
 	using BinaryHeapMax = BinaryHeap<
-		T, StaticSize, BinaryHeapMaxMethods<T>
+		T, BinaryHeapMaxMethods<T>
 	>;
 
 	//////////////////////////////////////////////////////////////
 	// Generic heap methods implementation.
 
-	template<typename T, uint32 StaticSize, typename Methods>
+	template<typename T, typename Methods>
 	void
-	BinaryHeap<T, StaticSize, Methods>::Push(
+	BinaryHeap<T, Methods>::Push(
 		const T& aValue)
 	{
-		uint32 index = myData.Add(aValue);
+		int32 index = myData.size();
+		myData.push_back(aValue);
 		Methods::SetIndex(myData[index], index);
 		PrivUpdateUp(index);
 	}
 
-	template<typename T, uint32 StaticSize, typename Methods>
+	template<typename T, typename Methods>
 	inline void
-	BinaryHeap<T, StaticSize, Methods>::UpdateTop()
+	BinaryHeap<T, Methods>::UpdateTop()
 	{
 		PrivUpdateDown(0);
 	}
 
-	template<typename T, uint32 StaticSize, typename Methods>
+	template<typename T, typename Methods>
 	inline void
-	BinaryHeap<T, StaticSize, Methods>::Update(
+	BinaryHeap<T, Methods>::Update(
 		const T& aValue)
 	{
 		int32 index = Methods::GetIndex(aValue);
@@ -375,122 +379,122 @@ namespace common {
 		PrivUpdate(index);
 	}
 
-	template<typename T, uint32 StaticSize, typename Methods>
+	template<typename T, typename Methods>
 	bool
-	BinaryHeap<T, StaticSize, Methods>::RemoveTop()
+	BinaryHeap<T, Methods>::RemoveTop()
 	{
-		uint32 count = myData.Count();
+		uint32 count = myData.size();
 		if (count == 0)
 			return false;
-		T* tree = myData.GetBuffer();
+		T* tree = myData.data();
 		Methods::SetIndex(tree[0], -1);
 		if (count == 1)
 		{
-			myData.RemoveLast();
+			myData.pop_back();
 			return true;
 		}
 		tree[0] = mg::common::Move(tree[count - 1]);
 		Methods::SetIndex(tree[0], 0);
-		myData.RemoveLast();
+		myData.pop_back();
 		PrivUpdateDown(0);
 		return true;
 	}
 
-	template<typename T, uint32 StaticSize, typename Methods>
+	template<typename T, typename Methods>
 	void
-	BinaryHeap<T, StaticSize, Methods>::Remove(
+	BinaryHeap<T, Methods>::Remove(
 		const T& aValue)
 	{
 		int32 iIndex = Methods::GetIndex(aValue);
 		MG_COMMON_ASSERT(iIndex >= 0);
 		uint32 index = (uint32) iIndex;
 
-		uint32 count = myData.Count();
+		uint32 count = myData.size();
 		MG_COMMON_ASSERT(index < count);
-		T* tree = myData.GetBuffer();
+		T* tree = myData.data();
 		// Ensure the index really points at the value it is
 		// referencing.
 		MG_COMMON_ASSERT(Methods::IsSame(aValue, tree[index]));
 		Methods::SetIndex(tree[index], -1);
 		if (index + 1 == count)
-			return myData.RemoveLast();
+			return myData.pop_back();
 		tree[index] = mg::common::Move(tree[count - 1]);
 		Methods::SetIndex(tree[index], index);
-		myData.RemoveLast();
+		myData.pop_back();
 		PrivUpdate(index);
 	}
 
-	template<typename T, uint32 StaticSize, typename Methods>
+	template<typename T, typename Methods>
 	inline bool
-	BinaryHeap<T, StaticSize, Methods>::Pop(
+	BinaryHeap<T, Methods>::Pop(
 		T& aOutValue)
 	{
-		if (myData.Count() == 0)
+		if (myData.empty())
 			return false;
 		aOutValue = mg::common::Move(myData[0]);
 		return RemoveTop();
 	}
 
-	template<typename T, uint32 StaticSize, typename Methods>
+	template<typename T, typename Methods>
 	inline T&
-	BinaryHeap<T, StaticSize, Methods>::GetTop()
+	BinaryHeap<T, Methods>::GetTop()
 	{
 		return myData[0];
 	}
 
-	template<typename T, uint32 StaticSize, typename Methods>
+	template<typename T, typename Methods>
 	inline const T&
-	BinaryHeap<T, StaticSize, Methods>::GetTop() const
+	BinaryHeap<T, Methods>::GetTop() const
 	{
 		return myData[0];
 	}
 
-	template<typename T, uint32 StaticSize, typename Methods>
+	template<typename T, typename Methods>
 	inline uint32
-	BinaryHeap<T, StaticSize, Methods>::Count() const
+	BinaryHeap<T, Methods>::Count() const
 	{
-		return myData.Count();
+		return myData.size();
 	}
 
-	template<typename T, uint32 StaticSize, typename Methods>
+	template<typename T, typename Methods>
 	inline uint32
-	BinaryHeap<T, StaticSize, Methods>::GetCapacity() const
+	BinaryHeap<T, Methods>::GetCapacity() const
 	{
-		return myData.GetCapacity();
+		return myData.capacity();
 	}
 
-	template<typename T, uint32 StaticSize, typename Methods>
+	template<typename T, typename Methods>
 	inline void
-	BinaryHeap<T, StaticSize, Methods>::Reserve(
+	BinaryHeap<T, Methods>::Reserve(
 		uint32 aCount)
 	{
-		myData.Reserve(aCount);
+		myData.reserve(aCount);
 	}
 
-	template<typename T, uint32 StaticSize, typename Methods>
+	template<typename T, typename Methods>
 	inline uint32
-	BinaryHeap<T, StaticSize, Methods>::PrivParentIndex(
+	BinaryHeap<T, Methods>::PrivParentIndex(
 		uint32 aIndex)
 	{
 		return (aIndex - 1) >> 1;
 	}
 
-	template<typename T, uint32 StaticSize, typename Methods>
+	template<typename T, typename Methods>
 	inline uint32
-	BinaryHeap<T, StaticSize, Methods>::PrivLeftChildIndex(
+	BinaryHeap<T, Methods>::PrivLeftChildIndex(
 		uint32 aIndex)
 	{
 		return (aIndex << 1) + 1;
 	}
 
-	template<typename T, uint32 StaticSize, typename Methods>
+	template<typename T, typename Methods>
 	bool
-	BinaryHeap<T, StaticSize, Methods>::PrivUpdateUp(
+	BinaryHeap<T, Methods>::PrivUpdateUp(
 		uint32 aIndex)
 	{
 		if (aIndex == 0)
 			return false;
-		T* tree = myData.GetBuffer();
+		T* tree = myData.data();
 		uint32 parent = PrivParentIndex(aIndex);
 		if (Methods::IsLeftAbove(tree[parent], tree[aIndex]))
 			return false;
@@ -509,16 +513,16 @@ namespace common {
 		return true;
 	}
 
-	template<typename T, uint32 StaticSize, typename Methods>
+	template<typename T, typename Methods>
 	bool
-	BinaryHeap<T, StaticSize, Methods>::PrivUpdateDown(
+	BinaryHeap<T, Methods>::PrivUpdateDown(
 		uint32 aIndex)
 	{
-		uint32 count = myData.Count();
+		uint32 count = myData.size();
 		uint32 leftChild = PrivLeftChildIndex(aIndex);
 		if (leftChild >= count)
 			return false;
-		T* tree = myData.GetBuffer();
+		T* tree = myData.data();
 		uint32 rightChild = leftChild + 1;
 		uint32 topChild;
 		if (rightChild >= count)
@@ -556,9 +560,9 @@ namespace common {
 		return true;
 	}
 
-	template<typename T, uint32 StaticSize, typename Methods>
+	template<typename T, typename Methods>
 	inline void
-	BinaryHeap<T, StaticSize, Methods>::PrivUpdate(
+	BinaryHeap<T, Methods>::PrivUpdate(
 		uint32 aIndex)
 	{
 		// The element either goes up, or stays in place, or

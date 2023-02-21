@@ -2,6 +2,7 @@
 
 #include "mg/common/BinaryHeap.h"
 #include "mg/common/ForwardList.h"
+#include "mg/common/HybridArray.h"
 #include "mg/common/MultiConsumerQueue.h"
 #include "mg/common/MultiProducerQueueIntrusive.h"
 #include "mg/common/Signal.h"

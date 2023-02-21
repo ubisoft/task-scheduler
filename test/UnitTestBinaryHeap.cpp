@@ -9,14 +9,14 @@ namespace unittests {
 
 	struct UTBHeapValue
 	{
-		UTBHeapValue()
+		UTBHeapValue() noexcept
 			: myValue(-1)
 			, myIndex(-1)
 		{
 			++ourConstrCount;
 		}
 
-		~UTBHeapValue()
+		~UTBHeapValue() noexcept
 		{
 			++ourDestrCount;
 			myValue = -2;
@@ -24,7 +24,7 @@ namespace unittests {
 		}
 
 		UTBHeapValue(
-			const UTBHeapValue& aSrc)
+			const UTBHeapValue& aSrc) noexcept
 			: myIndex(-1)
 		{
 			myValue = aSrc.myValue;
@@ -32,7 +32,7 @@ namespace unittests {
 		}
 
 		UTBHeapValue(
-			UTBHeapValue&& aSrc)
+			UTBHeapValue&& aSrc) noexcept
 			: myIndex(-1)
 		{
 			myValue = aSrc.myValue;
@@ -41,7 +41,7 @@ namespace unittests {
 
 		UTBHeapValue&
 		operator=(
-			const UTBHeapValue& aSrc)
+			const UTBHeapValue& aSrc) noexcept
 		{
 			myValue = aSrc.myValue;
 			myIndex = -1;
@@ -51,7 +51,7 @@ namespace unittests {
 
 		UTBHeapValue&
 		operator=(
-			UTBHeapValue&& aSrc)
+			UTBHeapValue&& aSrc) noexcept
 		{
 			myValue = aSrc.myValue;
 			myIndex = -1;
@@ -407,9 +407,10 @@ namespace unittests {
 		{
 			// Check reservation.
 			mg::common::BinaryHeapMaxIntrusive<UTBHeapValue> heap;
-			MG_COMMON_ASSERT(heap.GetCapacity() == 1);
+			heap.Reserve(1);
+			MG_COMMON_ASSERT(heap.GetCapacity() >= 1);
 			heap.Reserve(100);
-			MG_COMMON_ASSERT(heap.GetCapacity() == 100);
+			MG_COMMON_ASSERT(heap.GetCapacity() >= 100);
 		}
 	}
 
@@ -422,13 +423,6 @@ namespace unittests {
 			// No static elements are created.
 		}
 		UTBHeapValue::CheckCounters();
-
-		{
-			mg::common::BinaryHeapMax<UTBHeapValue, 2> heap;
-			// No static elements are created.
-		}
-		UTBHeapValue::CheckCounters();
-
 		{
 			UTBHeapValue v1;
 			UTBHeapValue v2;
@@ -439,7 +433,8 @@ namespace unittests {
 			v2.myValue = 2;
 			v3.myValue = 3;
 			v4.myValue = 4;
-			mg::common::BinaryHeapMax<UTBHeapValue, 10> heap;
+			mg::common::BinaryHeapMax<UTBHeapValue> heap;
+			heap.Reserve(10);
 			UTBHeapValue::UseConstrCount(5);
 
 			heap.Push(v1);
@@ -528,7 +523,8 @@ namespace unittests {
 			v2.myValue = 2;
 			v3.myValue = 3;
 			v4.myValue = 4;
-			mg::common::BinaryHeapMax<UTBHeapValue, 10> heap;
+			mg::common::BinaryHeapMax<UTBHeapValue> heap;
+			heap.Reserve(10);
 			heap.Push(v1);
 			heap.Push(v2);
 			heap.Push(v3);
@@ -585,7 +581,8 @@ namespace unittests {
 	static void
 	UnitTestBinaryHeapUpdateAny()
 	{
-		mg::common::BinaryHeapMinIntrusive<UTBHeapValue, 10> heap;
+		mg::common::BinaryHeapMinIntrusive<UTBHeapValue> heap;
+		heap.Reserve(10);
 
 		UTBHeapValue v1;
 		UTBHeapValue v2;
@@ -678,7 +675,8 @@ namespace unittests {
 			v2.myValue = 2;
 			v3.myValue = 3;
 			v4.myValue = 4;
-			mg::common::BinaryHeapMax<UTBHeapValue, 10> heap;
+			mg::common::BinaryHeapMax<UTBHeapValue> heap;
+			heap.Reserve(10);
 			UTBHeapValue::ResetCounters();
 
 			// NOP on empty.
@@ -721,7 +719,8 @@ namespace unittests {
 	static void
 	UnitTestBinaryHeapRemoveAny()
 	{
-		mg::common::BinaryHeapMinIntrusive<UTBHeapValue, 10> heap;
+		mg::common::BinaryHeapMinIntrusive<UTBHeapValue> heap;
+		heap.Reserve(10);
 
 		UTBHeapValue v1;
 		UTBHeapValue v2;
@@ -797,7 +796,8 @@ namespace unittests {
 			int myValue;
 			int myIdx;
 		};
-		mg::common::BinaryHeapMinIntrusive<TestValue, 10, &TestValue::myIdx> heap;
+		mg::common::BinaryHeapMinIntrusive<TestValue, &TestValue::myIdx> heap;
+		heap.Reserve(10);
 		TestValue v1;
 		v1.myValue = 1;
 		v1.myIdx = -1;
@@ -835,7 +835,7 @@ namespace unittests {
 	UnitTestBinaryHeapRealloc()
 	{
 		{
-			mg::common::BinaryHeapMin<UTBHeapValue, 1> heap;
+			mg::common::BinaryHeapMin<UTBHeapValue> heap;
 			UTBHeapValue v;
 			v.myValue = 1;
 			heap.Push(v);
