@@ -2,13 +2,14 @@
 
 #include "mg/common/BinaryHeap.h"
 #include "mg/common/ForwardList.h"
-#include "mg/common/HybridArray.h"
 #include "mg/common/MultiConsumerQueue.h"
 #include "mg/common/MultiProducerQueueIntrusive.h"
 #include "mg/common/Signal.h"
 #include "mg/common/Thread.h"
 
 #include "mg/serverbox/Task.h"
+
+#include <vector>
 
 namespace mg {
 namespace serverbox {
@@ -268,7 +269,7 @@ namespace serverbox {
 		// separated from the fields below by thread list, which
 		// is almost never updated or read. So can be used as a
 		// barrier.
-		mg::common::HybridArray<TaskSchedulerThread*, 8> myThreads;
+		std::vector<TaskSchedulerThread*> myThreads;
 
 		TaskSchedulerQueuePending myQueuePending;
 		TaskSchedulerQueueWaiting myQueueWaiting;
@@ -368,8 +369,8 @@ namespace serverbox {
 	TaskScheduler::GetThreads(
 		uint32& aOutCount) const
 	{
-		aOutCount = myThreads.Count();
-		return myThreads.GetBuffer();
+		aOutCount = myThreads.size();
+		return myThreads.data();
 	}
 
 	inline uint64
