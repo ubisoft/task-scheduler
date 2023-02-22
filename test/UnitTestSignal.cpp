@@ -1,9 +1,10 @@
 #include "mg/common/Assert.h"
-#include "mg/common/HybridArray.h"
 #include "mg/common/Signal.h"
 #include "mg/common/ThreadFunc.h"
 
 #include "UnitTest.h"
+
+#include <vector>
 
 namespace mg {
 namespace unittests {
@@ -44,12 +45,12 @@ namespace unittests {
 		// interrupted right after setting the new state, but
 		// before unlocking the mutex.
 		const uint32 count = 10000000;
-		mg::common::HybridArray<mg::common::Signal*> signals;
-		signals.Reserve(count);
+		std::vector<mg::common::Signal*> signals;
+		signals.reserve(count);
 		for (uint32 i = 0; i < count; ++i)
-			signals.Add(new mg::common::Signal());
+			signals.push_back(new mg::common::Signal());
 		mg::common::ThreadFunc worker([&]() {
-			uint32 count = signals.Count();
+			uint32 count = signals.size();
 			for (uint32 i = 0; i < count; ++i)
 				signals[i]->Send();
 		});
