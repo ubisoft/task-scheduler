@@ -4,7 +4,6 @@ add_executable(test
 	main.cpp
 	UnitTest.cpp
 	UnitTest.h
-	UnitTestArray.cpp
 	UnitTestBinaryHeap.cpp
 	UnitTestCallback.cpp
 	UnitTestConditionVariable.cpp

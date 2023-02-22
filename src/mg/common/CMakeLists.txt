@@ -1,7 +1,6 @@
 cmake_minimum_required (VERSION 3.8)
 
 set(mgcommon_src
-	Array.h
 	Assert.cpp
 	Assert.h
 	BinaryHeap.h
@@ -10,7 +9,6 @@ set(mgcommon_src
 	ConditionVariable.h
 	Definitions.h
 	ForwardList.h
-	HybridArray.h
 	MultiConsumerQueue.h
 	MultiConsumerQueueBase.cpp
 	MultiConsumerQueueBase.h
