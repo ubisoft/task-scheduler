@@ -1,7 +1,9 @@
 #pragma once
 
 #include "mg/common/Atomic.h"
-#include "mg/common/Callback.h"
+#include "mg/common/TypeTraits.h"
+
+#include <functional>
 
 namespace mg {
 namespace serverbox {
@@ -32,7 +34,7 @@ namespace serverbox {
 		TASK_STATUS_SIGNALED,
 	};
 
-	using TaskCallback = mg::common::Callback<void(Task*)>;
+	using TaskCallback = std::function<void(Task*)>;
 
 	// Task is a callback called in one of the worker threads in a
 	// scheduler. But not just a callback. It also provides some
@@ -46,9 +48,9 @@ namespace serverbox {
 
 		// Can construct from a callback, or create a callback
 		// in-place.
-		template<typename... Args>
+		template<typename Functor>
 		Task(
-			Args&&... aArgs);
+			Functor&& aFunc);
 
 		~Task();
 
@@ -56,9 +58,9 @@ namespace serverbox {
 		// callback in-place.
 		// Can't be called when the task has been posted to the
 		// scheduler waiting for execution.
-		template<typename... Args>
+		template<typename Functor>
 		void SetCallback(
-			Args&&... aArgs);
+			Functor&& aFunc);
 
 		// **You must prefer** Deadline or Wait if you want an
 		// infinite delay. To avoid unnecessary current time get.
@@ -172,11 +174,11 @@ namespace serverbox {
 		PrivCreate();
 	}
 
-	template<typename... Args>
+	template<typename Functor>
 	inline
 	Task::Task(
-		Args&&... aArgs)
-		: myCallback(mg::common::Forward<Args>(aArgs)...)
+		Functor&& aFunc)
+		: myCallback(mg::common::Forward<Functor>(aFunc))
 	{
 		PrivCreate();
 	}
@@ -187,13 +189,13 @@ namespace serverbox {
 		PrivTouch();
 	}
 
-	template<typename... Args>
+	template<typename Functor>
 	inline void
 	Task::SetCallback(
-		Args&&... aArgs)
+		Functor&& aFunc)
 	{
 		PrivTouch();
-		myCallback.Set(mg::common::Forward<Args>(aArgs)...);
+		myCallback = mg::common::Forward<Functor>(aFunc);
 	}
 
 	inline void

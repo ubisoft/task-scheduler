@@ -220,7 +220,9 @@ namespace bench {
 	{
 		myExecuteCount = 0;
 		myCtx = aCtx;
-		SetCallback(this, &BenchTask::ExecuteNano);
+		SetCallback(std::bind(
+			&BenchTask::ExecuteNano, this,
+			std::placeholders::_1));
 	}
 
 	void
@@ -229,7 +231,9 @@ namespace bench {
 	{
 		myExecuteCount = 0;
 		myCtx = aCtx;
-		SetCallback(this, &BenchTask::ExecuteMicro);
+		SetCallback(std::bind(
+			&BenchTask::ExecuteMicro, this,
+			std::placeholders::_1));
 	}
 
 	void
@@ -238,7 +242,9 @@ namespace bench {
 	{
 		myExecuteCount = 0;
 		myCtx = aCtx;
-		SetCallback(this, &BenchTask::ExecuteHeavy);
+		SetCallback(std::bind(
+			&BenchTask::ExecuteHeavy, this,
+			std::placeholders::_1));
 	}
 
 	void

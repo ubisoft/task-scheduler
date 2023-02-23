@@ -21,12 +21,12 @@ namespace unittests {
 
 		// Simple test for a task being executed 3 times.
 		progress = 0;
-		cb.Set([&](mg::serverbox::Task* aTask) {
+		cb = [&](mg::serverbox::Task* aTask) {
 			MG_COMMON_ASSERT(aTask == tp);
 			MG_COMMON_ASSERT(aTask->IsExpired());
 			if (mg::common::AtomicIncrement(&progress) < 3)
 				sched.Post(aTask);
-		});
+		};
 		mg::serverbox::Task t(cb);
 		tp = &t;
 		sched.Post(&t);
@@ -36,12 +36,12 @@ namespace unittests {
 		// Delay should be respected.
 		uint64_t timestamp = mg::common::GetMilliseconds();
 		progress = 0;
-		cb.Set([&](mg::serverbox::Task* aTask) {
+		cb = [&](mg::serverbox::Task* aTask) {
 			MG_COMMON_ASSERT(aTask == tp);
 			MG_COMMON_ASSERT(aTask->IsExpired());
 			MG_COMMON_ASSERT(mg::common::GetMilliseconds() >= timestamp + 5);
 			mg::common::AtomicFlagSet(&progress);
-		});
+		};
 		t.SetCallback(cb);
 		t.SetDelay(5);
 		sched.Post(&t);
@@ -51,7 +51,7 @@ namespace unittests {
 		// Deadline should be respected.
 		timestamp = 0;
 		progress = 0;
-		cb.Set([&](mg::serverbox::Task* aTask) {
+		cb = [&](mg::serverbox::Task* aTask) {
 			MG_COMMON_ASSERT(aTask == tp);
 			MG_COMMON_ASSERT(aTask->IsExpired());
 			if (timestamp == 0)
@@ -61,7 +61,7 @@ namespace unittests {
 			}
 			MG_COMMON_ASSERT(mg::common::GetMilliseconds() >= timestamp);
 			mg::common::AtomicFlagSet(&progress);
-		});
+		};
 		t.SetCallback(cb);
 		sched.Post(&t);
 		while (!mg::common::AtomicFlagTest(&progress))
@@ -70,12 +70,12 @@ namespace unittests {
 		// Task can delete itself before return.
 		progress = 0;
 		tp = new mg::serverbox::Task();
-		cb.Set([&](mg::serverbox::Task* aTask) {
+		cb = [&](mg::serverbox::Task* aTask) {
 			MG_COMMON_ASSERT(aTask == tp);
 			MG_COMMON_ASSERT(aTask->IsExpired());
 			mg::common::AtomicFlagSet(&progress);
 			delete aTask;
-		});
+		};
 		tp->SetCallback(cb);
 		sched.Post(tp);
 		while (!mg::common::AtomicFlagTest(&progress))
@@ -105,25 +105,25 @@ namespace unittests {
 		mg::serverbox::Task t2;
 		mg::serverbox::Task t3;
 		int32_t progress = 0;
-		cb.Set([&](mg::serverbox::Task* aTask) {
+		cb = [&](mg::serverbox::Task* aTask) {
 			MG_COMMON_ASSERT(progress == 0);
 			MG_COMMON_ASSERT(aTask->IsExpired());
 			mg::common::AtomicIncrement(&progress);
-		});
+		};
 		t1.SetCallback(cb);
 
-		cb.Set([&](mg::serverbox::Task* aTask) {
+		cb = [&](mg::serverbox::Task* aTask) {
 			MG_COMMON_ASSERT(progress == 1);
 			MG_COMMON_ASSERT(aTask->IsExpired());
 			mg::common::AtomicIncrement(&progress);
-		});
+		};
 		t2.SetCallback(cb);
 
-		cb.Set([&](mg::serverbox::Task* aTask) {
+		cb = [&](mg::serverbox::Task* aTask) {
 			MG_COMMON_ASSERT(progress == 2);
 			MG_COMMON_ASSERT(aTask->IsExpired());
 			mg::common::AtomicIncrement(&progress);
-		});
+		};
 		t3.SetCallback(cb);
 
 		sched.Post(&t1);
@@ -149,13 +149,13 @@ namespace unittests {
 		mg::serverbox::Task t3;
 		int32_t progres = 0;
 		int32_t finish = 0;
-		cb.Set([&](mg::serverbox::Task* aTask) {
+		cb = [&](mg::serverbox::Task* aTask) {
 			MG_COMMON_ASSERT(aTask->IsExpired());
 			mg::common::AtomicIncrement(&progres);
 			while (!mg::common::AtomicFlagTest(&finish))
 				mg::common::Sleep(1);
 			mg::common::AtomicIncrement(&progres);
-		});
+		};
 		t1.SetCallback(cb);
 		t2.SetCallback(cb);
 		t3.SetCallback(cb);
@@ -181,9 +181,9 @@ namespace unittests {
 		mg::serverbox::TaskCallback cb;
 		mg::serverbox::Task t1;
 		int32_t progress = 0;
-		cb.Set([&](mg::serverbox::Task*) {
+		cb = [&](mg::serverbox::Task*) {
 			mg::common::AtomicFlagSet(&progress);
-		});
+		};
 		t1.SetCallback(cb);
 
 		// Wakeup while the task is in the front queue. Should be
@@ -203,10 +203,10 @@ namespace unittests {
 		// If a task was woken up, it should not reuse the old
 		// deadline after rescheduling.
 		progress = 0;
-		cb.Set([&](mg::serverbox::Task* aTask) {
+		cb = [&](mg::serverbox::Task* aTask) {
 			if (mg::common::AtomicIncrement(&progress) == 1)
 				sched.Post(aTask);
-		});
+		};
 		t1.SetCallback(cb);
 		sched.PostWait(&t1);
 		sched.Wakeup(&t1);
@@ -215,7 +215,7 @@ namespace unittests {
 
 		// Wakeup works even if the task is being executed now.
 		progress = 0;
-		cb.Set([&](mg::serverbox::Task* aTask) {
+		cb = [&](mg::serverbox::Task* aTask) {
 			if (mg::common::AtomicLoad(&progress) == 0)
 			{
 				mg::common::AtomicExchange(&progress, 1);
@@ -226,7 +226,7 @@ namespace unittests {
 				return sched.PostWait(aTask);
 			}
 			mg::common::AtomicExchange(&progress, 3);
-		});
+		};
 		t1.SetCallback(cb);
 		sched.Post(&t1);
 		while (mg::common::AtomicLoad(&progress) != 1)
@@ -238,7 +238,7 @@ namespace unittests {
 
 		// Wakeup for signaled task does not work.
 		progress = 0;
-		cb.Set([&](mg::serverbox::Task* aTask) {
+		cb = [&](mg::serverbox::Task* aTask) {
 			if (aTask->IsSignaled())
 			{
 				mg::common::AtomicExchange(&progress, 1);
@@ -250,7 +250,7 @@ namespace unittests {
 				return sched.PostWait(aTask);
 			}
 			mg::common::AtomicExchange(&progress, 3);
-		});
+		};
 		t1.SetCallback(cb);
 		sched.PostWait(&t1);
 		sched.Signal(&t1);
@@ -400,28 +400,28 @@ namespace unittests {
 		int32_t progress = 0;
 		// A task can schedule another task into the same or
 		// different scheduler.
-		cb.Set([&](mg::serverbox::Task* aTask) {
+		cb = [&](mg::serverbox::Task* aTask) {
 			MG_COMMON_ASSERT(aTask == &t1);
 			MG_COMMON_ASSERT(aTask->IsExpired());
 			sched1.Post(&t2);
 			mg::common::AtomicIncrement(&progress);
-		});
+		};
 		t1.SetCallback(cb);
 
-		cb.Set([&](mg::serverbox::Task* aTask) {
+		cb = [&](mg::serverbox::Task* aTask) {
 			MG_COMMON_ASSERT(aTask == &t2);
 			MG_COMMON_ASSERT(aTask->IsExpired());
 			sched2.Post(&t3);
 			mg::common::AtomicIncrement(&progress);
-		});
+		};
 		t2.SetCallback(cb);
 		t2.SetDelay(3);
 
-		cb.Set([&](mg::serverbox::Task* aTask) {
+		cb = [&](mg::serverbox::Task* aTask) {
 			MG_COMMON_ASSERT(aTask == &t3);
 			MG_COMMON_ASSERT(aTask->IsExpired());
 			mg::common::AtomicIncrement(&progress);
-		});
+		};
 		t3.SetCallback(cb);
 		t3.SetDelay(5);
 
@@ -619,7 +619,9 @@ namespace unittests {
 		{
 			myExecuteCount = 0;
 			myCtx = aCtx;
-			SetCallback(this, &UTTSchedulerTask::ExecuteHeavy);
+			SetCallback(std::bind(
+				&UTTSchedulerTask::ExecuteHeavy,
+				this, std::placeholders::_1));
 		}
 
 		void
@@ -628,7 +630,9 @@ namespace unittests {
 		{
 			myExecuteCount = 0;
 			myCtx = aCtx;
-			SetCallback(this, &UTTSchedulerTask::ExecuteMicro);
+			SetCallback(std::bind(
+				&UTTSchedulerTask::ExecuteMicro,
+				this, std::placeholders::_1));
 		}
 
 		void
@@ -637,7 +641,9 @@ namespace unittests {
 		{
 			myExecuteCount = 0;
 			myCtx = aCtx;
-			SetCallback(this, &UTTSchedulerTask::ExecuteSignaled);
+			SetCallback(std::bind(
+				&UTTSchedulerTask::ExecuteSignaled, this,
+				std::placeholders::_1));
 			SetWait();
 		}
 

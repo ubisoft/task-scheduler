@@ -9,7 +9,6 @@ namespace unittests {
 
 	void UnitTestAtomic();
 	void UnitTestBinaryHeap();
-	void UnitTestCallback();
 	void UnitTestConditionVariable();
 	void UnitTestForwardList();
 	void UnitTestMultiConsumerQueue();
@@ -32,7 +31,6 @@ main()
 
 	UnitTestAtomic();
 	UnitTestBinaryHeap();
-	UnitTestCallback();
 	UnitTestConditionVariable();
 	UnitTestForwardList();
 	UnitTestMultiConsumerQueue();

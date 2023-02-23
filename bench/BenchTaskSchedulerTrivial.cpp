@@ -1,11 +1,12 @@
 #include "Bench.h"
 
 #include "mg/common/Atomic.h"
-#include "mg/common/Callback.h"
 #include "mg/common/ConditionVariable.h"
 #include "mg/common/ForwardList.h"
 #include "mg/common/Mutex.h"
 #include "mg/common/Thread.h"
+
+#include <functional>
 
 namespace mg {
 namespace bench {
@@ -14,17 +15,17 @@ namespace bench {
 	class TaskScheduler;
 	class TaskSchedulerThread;
 
-	using TaskCallback = mg::common::Callback<void(Task*)>;
-	using TaskCallbackOneShot = mg::common::Callback<void()>;
+	using TaskCallback = std::function<void(Task*)>;
+	using TaskCallbackOneShot = std::function<void()>;
 
 	class Task
 	{
 	public:
 		Task();
 
-		template<typename... Args>
+		template<typename Functor>
 		void SetCallback(
-			Args&&... aArgs);
+			Functor&& aFunc);
 
 		bool ReceiveSignal();
 
@@ -59,9 +60,9 @@ namespace bench {
 		void Post(
 			Task* aTask);
 
-		template<typename... Args>
+		template<typename Functor>
 		void PostOneShot(
-			Args&&... aArgs);
+			Functor&& aFunc);
 
 		void PostDelay(
 			Task* aTask,
@@ -117,12 +118,12 @@ namespace bench {
 	{
 	}
 
-	template<typename... Args>
+	template<typename Functor>
 	void
 	Task::SetCallback(
-		Args&&... aArgs)
+		Functor&& aFunc)
 	{
-		myCallback.Set(mg::common::Forward<Args>(aArgs)...);
+		myCallback = mg::common::Forward<Functor>(aFunc);
 	}
 
 	bool
@@ -168,14 +169,14 @@ namespace bench {
 		myMutex.Unlock();
 	}
 
-	template<typename... Args>
+	template<typename Functor>
 	void
 	TaskScheduler::PostOneShot(
-		Args&&... aArgs)
+		Functor&& aFunc)
 	{
 		Task* t = new Task();
-		TaskCallbackOneShot* cb =
-			new TaskCallbackOneShot(mg::common::Forward<Args>(aArgs)...);
+		TaskCallbackOneShot* cb = new TaskCallbackOneShot(
+			mg::common::Forward<Functor>(aFunc));
 		t->SetCallback([cb](Task* aTask) {
 			(*cb)();
 			delete cb;

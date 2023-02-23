@@ -1,5 +1,6 @@
 #include "Task.h"
 
+#include "mg/common/Assert.h"
 #include "mg/common/Time.h"
 
 namespace mg {

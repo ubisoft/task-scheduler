@@ -1,12 +1,13 @@
 #pragma once
 
-#include "mg/common/Callback.h"
 #include "mg/common/Thread.h"
+
+#include <functional>
 
 namespace mg {
 namespace common {
 
-	using ThreadCallback = mg::common::Callback<void()>;
+	using ThreadCallback = std::function<void()>;
 
 	// Wrap a callback into a thread. It is essentially
 	// syntax sugar which allows not to inherit Thread class to
