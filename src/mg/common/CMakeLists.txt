@@ -4,7 +4,6 @@ set(mgcommon_src
 	Assert.cpp
 	Assert.h
 	BinaryHeap.h
-	Callback.h
 	ConditionVariable.cpp
 	ConditionVariable.h
 	Definitions.h

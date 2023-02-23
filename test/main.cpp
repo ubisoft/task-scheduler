@@ -8,7 +8,6 @@ namespace mg {
 namespace unittests {
 
 	void UnitTestBinaryHeap();
-	void UnitTestCallback();
 	void UnitTestConditionVariable();
 	void UnitTestForwardList();
 	void UnitTestMultiConsumerQueue();
@@ -29,7 +28,6 @@ main()
 	Report("======== Unit tests ========");
 
 	UnitTestBinaryHeap();
-	UnitTestCallback();
 	UnitTestConditionVariable();
 	UnitTestForwardList();
 	UnitTestMultiConsumerQueue();

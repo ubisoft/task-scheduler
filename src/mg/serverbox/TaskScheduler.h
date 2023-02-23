@@ -45,7 +45,7 @@ namespace serverbox {
 	// the task object on its own, and it adds +1 virtual call,
 	// because the one-shot callback is called via a normal task
 	// callback. Avoid it for all perf-critical code.
-	using TaskCallbackOneShot = mg::common::Callback<void(void)>;
+	using TaskCallbackOneShot = std::function<void(void)>;
 
 	class TaskSchedulerThread;
 
@@ -95,9 +95,9 @@ namespace serverbox {
 		void PostWait(
 			Task* aTask);
 
-		template<typename... Args>
+		template<typename Functor>
 		void PostOneShot(
-			Args&&... aArgs);
+			Functor&& aFunc);
 
 		// Wakeup guarantees that the task will be executed again
 		// without a delay, at least once.
@@ -329,9 +329,9 @@ namespace serverbox {
 	struct TaskOneShot
 		: public Task
 	{
-		template<typename... Args>
+		template<typename Functor>
 		TaskOneShot(
-			Args&&...);
+			Functor&& aFunc);
 
 		void Execute(
 			Task* aTask);
@@ -385,20 +385,21 @@ namespace serverbox {
 		return myScheduleCount.exchange(0);
 	}
 
-	template<typename... Args>
+	template<typename Functor>
 	inline void
 	TaskScheduler::PostOneShot(
-		Args&&... aArgs)
+		Functor&& aFunc)
 	{
-		Post(new TaskOneShot(mg::common::Forward<Args>(aArgs)...));
+		Post(new TaskOneShot(mg::common::Forward<Functor>(aFunc)));
 	}
 
-	template<typename... Args>
+	template<typename Functor>
 	inline
 	TaskOneShot::TaskOneShot(
-		Args&&... aArgs)
-		: Task(this, &TaskOneShot::Execute)
-		, myCallback(mg::common::Forward<Args>(aArgs)...)
+		Functor&& aFunc)
+		: Task(std::bind(&TaskOneShot::Execute, this,
+			std::placeholders::_1))
+		, myCallback(mg::common::Forward<Functor>(aFunc))
 	{
 	}
 
