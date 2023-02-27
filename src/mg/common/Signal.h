@@ -49,7 +49,7 @@ namespace common {
 		// May return false not only in case of a timeout - also a
 		// spurious wakeup is possible.
 		bool ReceiveTimed(
-			uint32 aTimeout);
+			uint32_t aTimeout);
 
 	private:
 		// State of the signal is a protection against the case

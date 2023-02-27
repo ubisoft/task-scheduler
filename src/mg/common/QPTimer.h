@@ -1,6 +1,6 @@
 #pragma once
 
-#include "mg/common/Types.h"
+#include "mg/common/Definitions.h"
 
 namespace mg {
 namespace common {
@@ -16,9 +16,9 @@ namespace common {
 
 	private:
 #if IS_PLATFORM_POSIX
-		uint64 myStartNs;
+		uint64_t myStartNs;
 #else
-		uint64 myStartQuant;
+		uint64_t myStartQuant;
 #endif
 	};
 

@@ -18,8 +18,8 @@ namespace bench {
 	struct BenchTaskCtl
 	{
 		BenchTaskCtl(
-			uint32 aTaskCount,
-			uint32 aExecuteCount,
+			uint32_t aTaskCount,
+			uint32_t aExecuteCount,
 			TaskScheduler* aScheduler);
 
 		~BenchTaskCtl();
@@ -35,17 +35,17 @@ namespace bench {
 		void WaitAllExecuted();
 
 		void WaitExecuteCount(
-			uint64 aCount);
+			uint64_t aCount);
 
 		void WaitAllStopped();
 
 		void PostAll();
 
 		BenchTask* myTasks;
-		const uint32 myTaskCount;
-		const uint32 myExecuteCount;
-		std::atomic<uint32> myStopCount;
-		std::atomic<uint64> myTotalExecuteCount;
+		const uint32_t myTaskCount;
+		const uint32_t myExecuteCount;
+		std::atomic<uint32_t> myStopCount;
+		std::atomic<uint64_t> myTotalExecuteCount;
 		TaskScheduler* myScheduler;
 	};
 
@@ -74,7 +74,7 @@ namespace bench {
 
 		void Stop();
 
-		uint32 myExecuteCount;
+		uint32_t myExecuteCount;
 		BenchTaskCtl* myCtx;
 	};
 
@@ -84,8 +84,8 @@ namespace bench {
 	{
 		BenchThreadReport();
 
-		uint64 myExecCount;
-		uint64 mySchedCount;
+		uint64_t myExecCount;
+		uint64_t mySchedCount;
 	};
 
 	struct BenchRunReport
@@ -97,10 +97,10 @@ namespace bench {
 
 		void Print() const;
 
-		uint64 myExecPerSec;
-		uint64 myExecPerSecPerThread;
+		uint64_t myExecPerSec;
+		uint64_t myExecPerSecPerThread;
 		double myUsPerExec;
-		uint64 myMutexContentionCount;
+		uint64_t myMutexContentionCount;
 		std::vector<BenchThreadReport> myThreads;
 	};
 
@@ -108,15 +108,15 @@ namespace bench {
 
 	static BenchRunReport BenchTaskSchedulerRun(
 		BenchLoadType aType,
-		uint32 aThreadCount,
-		uint32 aTaskCount,
-		uint32 aExecuteCount);
+		uint32_t aThreadCount,
+		uint32_t aTaskCount,
+		uint32_t aExecuteCount);
 
 	//////////////////////////////////////////////////////////////////////////////////////
 
 	BenchTaskCtl::BenchTaskCtl(
-		uint32 aTaskCount,
-		uint32 aExecuteCount,
+		uint32_t aTaskCount,
+		uint32_t aExecuteCount,
 		TaskScheduler* aScheduler)
 		: myTasks(new BenchTask[aTaskCount])
 		, myTaskCount(aTaskCount)
@@ -130,7 +130,7 @@ namespace bench {
 	void
 	BenchTaskCtl::Warmup()
 	{
-		std::atomic<uint32> execCount(0);
+		std::atomic<uint32_t> execCount(0);
 		for (int i = 0; i < MG_WARMUP_TASK_COUNT; ++i)
 		{
 			myScheduler->PostOneShot([&]() {
@@ -140,9 +140,9 @@ namespace bench {
 		while (execCount.load() != MG_WARMUP_TASK_COUNT)
 			mg::common::Sleep(1);
 		// Cleanup the stats to make the bench's results clean.
-		uint32 count = 0;
+		uint32_t count = 0;
 		TaskSchedulerThread*const* threads = myScheduler->GetThreads(count);
-		for (uint32 i = 0; i < count; ++i)
+		for (uint32_t i = 0; i < count; ++i)
 		{
 			threads[i]->StatPopExecuteCount();
 			threads[i]->StatPopScheduleCount();
@@ -152,35 +152,35 @@ namespace bench {
 	void
 	BenchTaskCtl::CreateNano()
 	{
-		for (uint32 i = 0; i < myTaskCount; ++i)
+		for (uint32_t i = 0; i < myTaskCount; ++i)
 			myTasks[i].CreateNano(this);
 	}
 
 	void
 	BenchTaskCtl::CreateMicro()
 	{
-		for (uint32 i = 0; i < myTaskCount; ++i)
+		for (uint32_t i = 0; i < myTaskCount; ++i)
 			myTasks[i].CreateMicro(this);
 	}
 
 	void
 	BenchTaskCtl::CreateHeavy()
 	{
-		for (uint32 i = 0; i < myTaskCount; ++i)
+		for (uint32_t i = 0; i < myTaskCount; ++i)
 			myTasks[i].CreateHeavy(this);
 	}
 
 	void
 	BenchTaskCtl::WaitAllExecuted()
 	{
-		uint64 total = myExecuteCount * myTaskCount;
+		uint64_t total = myExecuteCount * myTaskCount;
 		WaitExecuteCount(total);
 		MG_COMMON_ASSERT(total == myTotalExecuteCount.load());
 	}
 
 	void
 	BenchTaskCtl::WaitExecuteCount(
-		uint64 aCount)
+		uint64_t aCount)
 	{
 		while (myTotalExecuteCount.load() < aCount)
 			mg::common::Sleep(1);
@@ -191,14 +191,14 @@ namespace bench {
 	{
 		while (myStopCount.load() != myTaskCount)
 			mg::common::Sleep(1);
-		for (uint32 i = 0; i < myTaskCount; ++i)
+		for (uint32_t i = 0; i < myTaskCount; ++i)
 			MG_COMMON_ASSERT(myTasks[i].myExecuteCount == myExecuteCount);
 	}
 
 	void
 	BenchTaskCtl::PostAll()
 	{
-		for (uint32 i = 0; i < myTaskCount; ++i)
+		for (uint32_t i = 0; i < myTaskCount; ++i)
 			myScheduler->Post(&myTasks[i]);
 	}
 
@@ -284,7 +284,7 @@ namespace bench {
 		bool isLast = myExecuteCount >= myCtx->myExecuteCount;
 		if (myExecuteCount % 10 == 0)
 		{
-			uint32 i;
+			uint32_t i;
 			i = mg::common::RandomUniformUInt32(0, myCtx->myTaskCount - 1);
 			myCtx->myScheduler->Wakeup(&myCtx->myTasks[i]);
 			i = mg::common::RandomUniformUInt32(0, myCtx->myTaskCount - 1);
@@ -345,7 +345,7 @@ namespace bench {
 		}
 		Report("Mutex contention count:     %12llu",
 			(unsigned long long)myMutexContentionCount);
-		for (uint32 i = 0; i < myThreads.size(); ++i)
+		for (uint32_t i = 0; i < myThreads.size(); ++i)
 		{
 			const BenchThreadReport& tr = myThreads[i];
 			Report("Thread %2u: exec: %12llu, sched: %9llu", i,
@@ -359,9 +359,9 @@ namespace bench {
 	static BenchRunReport
 	BenchTaskSchedulerRun(
 		BenchLoadType aType,
-		uint32 aThreadCount,
-		uint32 aTaskCount,
-		uint32 aExecuteCount)
+		uint32_t aThreadCount,
+		uint32_t aTaskCount,
+		uint32_t aExecuteCount)
 	{
 		TaskScheduler sched("bench", aThreadCount, 5000);
 		sched.Reserve(aTaskCount);
@@ -396,13 +396,13 @@ namespace bench {
 		timed.Report();
 		double durationMs = timed.GetMilliseconds();
 
-		report.myExecPerSec = (uint64)(ctl.myTotalExecuteCount * 1000 / durationMs);
+		report.myExecPerSec = (uint64_t)(ctl.myTotalExecuteCount * 1000 / durationMs);
 		report.myExecPerSecPerThread = report.myExecPerSec / aThreadCount;
 		report.myUsPerExec = durationMs * 1000 / ctl.myTotalExecuteCount * aThreadCount;
 
 		TaskSchedulerThread*const* threads = sched.GetThreads(aThreadCount);
 		report.myThreads.resize(aThreadCount);
-		for (uint32 i = 0; i < aThreadCount; ++i)
+		for (uint32_t i = 0; i < aThreadCount; ++i)
 		{
 			BenchThreadReport& tr = report.myThreads[i];
 			tr.myExecCount = threads[i]->StatPopExecuteCount();
@@ -423,10 +423,10 @@ main(
 	using namespace mg::bench;
 	CommandLine cmdLine(aArgc - 1, aArgv + 1);
 	BenchLoadType loadType = BenchLoadTypeFromString(cmdLine.GetStr("load"));
-	uint32 threadCount = cmdLine.GetU32("threads");
-	uint32 taskCount = cmdLine.GetU32("tasks");
-	uint32 exeCount = cmdLine.GetU32("exes");
-	uint32 runCount = 1;
+	uint32_t threadCount = cmdLine.GetU32("threads");
+	uint32_t taskCount = cmdLine.GetU32("tasks");
+	uint32_t exeCount = cmdLine.GetU32("exes");
+	uint32_t runCount = 1;
 	if (cmdLine.IsPresent("runs"))
 		runCount = cmdLine.GetU32("runs");
 

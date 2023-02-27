@@ -44,19 +44,19 @@ namespace unittests {
 		// as to catch the moment when the Send() thread is
 		// interrupted right after setting the new state, but
 		// before unlocking the mutex.
-		const uint32 count = 10000000;
+		const uint32_t count = 10000000;
 		std::vector<mg::common::Signal*> signals;
 		signals.reserve(count);
-		for (uint32 i = 0; i < count; ++i)
+		for (uint32_t i = 0; i < count; ++i)
 			signals.push_back(new mg::common::Signal());
 		mg::common::ThreadFunc worker([&]() {
-			uint32 count = signals.size();
-			for (uint32 i = 0; i < count; ++i)
+			uint32_t count = signals.size();
+			for (uint32_t i = 0; i < count; ++i)
 				signals[i]->Send();
 		});
 		worker.Start();
-		uint64 yield = 0;
-		for (uint32 i = 0; i < count; ++i)
+		uint64_t yield = 0;
+		for (uint32_t i = 0; i < count; ++i)
 		{
 			while (!signals[i]->Receive())
 			{

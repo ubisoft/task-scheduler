@@ -2,7 +2,6 @@
 
 #include "mg/common/ConditionVariable.h"
 #include "mg/common/Mutex.h"
-#include "mg/common/Types.h"
 
 #include <atomic>
 #include <string>
@@ -13,7 +12,7 @@
 namespace mg {
 namespace common {
 
-	using ThreadId = uint32;
+	using ThreadId = uint32_t;
 
 	class Thread
 	{
@@ -55,7 +54,7 @@ namespace common {
 	};
 
 	void Sleep(
-		uint32 aTimeMillis);
+		uint32_t aTimeMillis);
 
 	ThreadId GetCurrentThreadId();
 

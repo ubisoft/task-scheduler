@@ -21,8 +21,8 @@ namespace bench {
 		BenchThreadSender(
 			MultiProducerQueue& aQueue,
 			mg::common::Signal* aSignal,
-			std::atomic<uint64>& aSharedQueueSize,
-			uint64 aItemCount,
+			std::atomic<uint64_t>& aSharedQueueSize,
+			uint64_t aItemCount,
 			BenchLoadType aLoadType);
 
 		~BenchThreadSender() override;
@@ -34,9 +34,9 @@ namespace bench {
 
 		MultiProducerQueue& myQueue;
 		MG_BENCH_FALSE_SHARING_BARRIER(myPadding1);
-		std::atomic<uint64>& mySharedQueueSize;
+		std::atomic<uint64_t>& mySharedQueueSize;
 		MG_BENCH_FALSE_SHARING_BARRIER(myPadding2);
-		const uint64 myItemCount;
+		const uint64_t myItemCount;
 		BenchValueList myItems;
 		MG_BENCH_FALSE_SHARING_BARRIER(myPadding3);
 		mg::common::Signal* mySignal;
@@ -51,23 +51,23 @@ namespace bench {
 		BenchThreadReceiver(
 			MultiProducerQueue& aQueue,
 			mg::common::Signal* aSignal,
-			std::atomic<uint64>& aSharedQueueSize,
+			std::atomic<uint64_t>& aSharedQueueSize,
 			BenchLoadType aLoadType);
 
 		~BenchThreadReceiver() override;
 
 		void Begin();
 
-		uint64 StatPopItemCount() const;
+		uint64_t StatPopItemCount() const;
 
 	private:
 		void Run() override;
 
 		MultiProducerQueue& myQueue;
 		MG_BENCH_FALSE_SHARING_BARRIER(myPadding1);
-		std::atomic<uint64>& mySharedQueueSize;
+		std::atomic<uint64_t>& mySharedQueueSize;
 		MG_BENCH_FALSE_SHARING_BARRIER(myPadding2);
-		mutable std::atomic<uint64> myItemCount;
+		mutable std::atomic<uint64_t> myItemCount;
 		BenchValueList myItems;
 		MG_BENCH_FALSE_SHARING_BARRIER(myPadding3);
 		mg::common::Signal* mySignal;
@@ -86,8 +86,8 @@ namespace bench {
 
 		void Print() const;
 
-		uint64 myItemsPerSec;
-		uint64 myMutexContentionCountPerSec;
+		uint64_t myItemsPerSec;
+		uint64_t myMutexContentionCountPerSec;
 	};
 
 	//////////////////////////////////////////////////////////////////////////////////////
@@ -95,16 +95,16 @@ namespace bench {
 	static BenchRunReport BenchQueueRun(
 		BenchLoadType aLoadType,
 		bool aDoUseSignal,
-		uint64 aItemCount,
-		uint32 aSenderCount);
+		uint64_t aItemCount,
+		uint32_t aSenderCount);
 
 	//////////////////////////////////////////////////////////////////////////////////////
 
 	BenchThreadSender::BenchThreadSender(
 		MultiProducerQueue& aQueue,
 		mg::common::Signal* aSignal,
-		std::atomic<uint64>& aSharedQueueSize,
-		uint64 aItemCount,
+		std::atomic<uint64_t>& aSharedQueueSize,
+		uint64_t aItemCount,
 		BenchLoadType aLoadType)
 		: myQueue(aQueue)
 		, mySharedQueueSize(aSharedQueueSize)
@@ -132,7 +132,7 @@ namespace bench {
 	void
 	BenchThreadSender::Run()
 	{
-		for (uint64 i = 0; i < myItemCount; ++i)
+		for (uint64_t i = 0; i < myItemCount; ++i)
 			myItems.Append(new BenchValue());
 		MG_COMMON_ASSERT(!myIsPaused.exchange(true));
 		while (myIsPaused.load());
@@ -163,7 +163,7 @@ namespace bench {
 	BenchThreadReceiver::BenchThreadReceiver(
 		MultiProducerQueue& aQueue,
 		mg::common::Signal* aSignal,
-		std::atomic<uint64>& aSharedQueueSize,
+		std::atomic<uint64_t>& aSharedQueueSize,
 		BenchLoadType aLoadType)
 		: myQueue(aQueue)
 		, mySharedQueueSize(aSharedQueueSize)
@@ -197,7 +197,7 @@ namespace bench {
 		MG_COMMON_ASSERT(myIsPaused.exchange(false));
 	}
 
-	uint64
+	uint64_t
 	BenchThreadReceiver::StatPopItemCount() const
 	{
 		return myItemCount.exchange(0);
@@ -266,8 +266,8 @@ namespace bench {
 	BenchQueueRun(
 		BenchLoadType aLoadType,
 		bool aDoUseSignal,
-		uint64 aItemCount,
-		uint32 aSenderCount)
+		uint64_t aItemCount,
+		uint32_t aSenderCount)
 	{
 		mg::common::Signal signal;
 		mg::common::Signal* signalPtr = nullptr;
@@ -275,7 +275,7 @@ namespace bench {
 			signalPtr = &signal;
 
 		MultiProducerQueue queue;
-		std::atomic<uint64> sharedQueueSize(0);
+		std::atomic<uint64_t> sharedQueueSize(0);
 		BenchThreadReceiver* receiver = new BenchThreadReceiver(queue, signalPtr,
 			sharedQueueSize, aLoadType);
 		std::vector<BenchThreadSender*> senders;
@@ -297,14 +297,14 @@ namespace bench {
 		receiver->Begin();
 		for (BenchThreadSender* s : senders)
 			s->Begin();
-		uint64 progress = 0;
+		uint64_t progress = 0;
 		while (progress < aItemCount)
 		{
 			progress += receiver->StatPopItemCount();
 			mg::common::Sleep(1);
 		}
 		timed.Stop();
-		uint64 mutexContentionCount = mg::common::MutexStatContentionCount();
+		uint64_t mutexContentionCount = mg::common::MutexStatContentionCount();
 		timed.Report();
 		double durationMs = timed.GetMilliseconds();
 
@@ -313,9 +313,9 @@ namespace bench {
 		for (BenchThreadSender* s : senders)
 			delete s;
 
-		report.myItemsPerSec = (uint64)(aItemCount * 1000 / durationMs);
+		report.myItemsPerSec = (uint64_t)(aItemCount * 1000 / durationMs);
 		report.myMutexContentionCountPerSec =
-			(uint64)(mutexContentionCount * 1000 / durationMs);
+			(uint64_t)(mutexContentionCount * 1000 / durationMs);
 		report.Print();
 		return report;
 	}
@@ -331,10 +331,10 @@ main(
 	using namespace mg::bench;
 	CommandLine cmdLine(aArgc - 1, aArgv + 1);
 	BenchLoadType loadType = BenchLoadTypeFromString(cmdLine.GetStr("load"));
-	uint32 senderCount = cmdLine.GetU32("senders");
-	uint32 itemCount = cmdLine.GetU32("items");
+	uint32_t senderCount = cmdLine.GetU32("senders");
+	uint32_t itemCount = cmdLine.GetU32("items");
 	bool doUseSignal = cmdLine.GetU32("signal") != 0;
-	uint32 runCount = 1;
+	uint32_t runCount = 1;
 	if (cmdLine.IsPresent("runs"))
 		runCount = cmdLine.GetU32("runs");
 

@@ -1,7 +1,6 @@
 #pragma once
 
 #include "mg/common/Assert.h"
-#include "mg/common/Types.h"
 
 #include <atomic>
 #include <mutex>
@@ -11,11 +10,11 @@ F_DECLARE_CLASS(mg, common, ConditionVariable)
 namespace mg {
 namespace common {
 
-	extern std::atomic<uint64> theMutexStartContentCount;
+	extern std::atomic<uint64_t> theMutexStartContentCount;
 
 	void MutexStatClear();
 
-	uint64 MutexStatContentionCount();
+	uint64_t MutexStatContentionCount();
 
 	class Mutex
 	{
@@ -33,7 +32,7 @@ namespace common {
 			const Mutex&) = delete;
 
 		std::mutex myHandle;
-		uint32 myOwner;
+		uint32_t myOwner;
 
 		friend class ConditionVariable;
 	};

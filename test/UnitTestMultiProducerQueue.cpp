@@ -255,21 +255,21 @@ namespace unittests {
 		struct Entry
 		{
 			Entry(
-				uint32 aThreadId,
-				uint32 aId)
+				uint32_t aThreadId,
+				uint32_t aId)
 				: myThreadId(aThreadId)
 				, myId(aId)
 				, myNext(nullptr)
 			{
 			}
 
-			uint32 myThreadId;
-			uint32 myId;
+			uint32_t myThreadId;
+			uint32_t myId;
 			Entry* myNext;
 		};
 
-		const uint32 itemCount = 100000;
-		const uint32 threadCount = 10;
+		const uint32_t itemCount = 100000;
+		const uint32_t threadCount = 10;
 
 		mg::common::MultiProducerQueueIntrusive<Entry> queue;
 		std::vector<Entry*> data;
@@ -278,27 +278,27 @@ namespace unittests {
 		std::vector<mg::common::ThreadFunc*> threads;
 		threads.reserve(threadCount);
 
-		std::atomic<uint32> readyCount(0);
-		for (uint32 ti = 0; ti < threadCount; ++ti)
+		std::atomic<uint32_t> readyCount(0);
+		for (uint32_t ti = 0; ti < threadCount; ++ti)
 		{
 			threads.push_back(new mg::common::ThreadFunc([&]() {
 
-				const uint32 packMaxSize = 5;
+				const uint32_t packMaxSize = 5;
 
-				uint32 threadId = readyCount.fetch_add(1);
+				uint32_t threadId = readyCount.fetch_add(1);
 				while (readyCount.load() != threadCount)
 					mg::common::Sleep(1);
 
-				uint32 i = 0;
+				uint32_t i = 0;
 				while (i < itemCount)
 				{
-					uint32 packSize = mg::common::RandomUInt32() % packMaxSize + 1;
+					uint32_t packSize = mg::common::RandomUInt32() % packMaxSize + 1;
 					if (i + packSize > itemCount)
 						packSize = itemCount - i;
 
 					Entry* head = new Entry(threadId, i++);
 					Entry* pos = head;
-					for (uint32 j = 1; j < packSize; ++j)
+					for (uint32_t j = 1; j < packSize; ++j)
 					{
 						pos->myNext = new Entry(threadId, i++);
 						pos = pos->myNext;
@@ -313,7 +313,7 @@ namespace unittests {
 		}
 
 		bool done = false;
-		uint64 yield = 0;
+		uint64_t yield = 0;
 		while (!done)
 		{
 			done = true;
@@ -332,13 +332,13 @@ namespace unittests {
 
 		for (mg::common::ThreadFunc* f : threads)
 			delete f;
-		std::vector<uint32> counters;
+		std::vector<uint32_t> counters;
 		counters.reserve(threadCount);
-		for (uint32 i = 0; i < threadCount; ++i)
+		for (uint32_t i = 0; i < threadCount; ++i)
 			counters.push_back(0);
 		for (Entry* e : data)
 			MG_COMMON_ASSERT(e->myId == counters[e->myThreadId]++);
-		for (uint32 count : counters)
+		for (uint32_t count : counters)
 			MG_COMMON_ASSERT(count == itemCount);
 	}
 

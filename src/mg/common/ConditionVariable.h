@@ -1,7 +1,6 @@
 #pragma once
 
 #include "mg/common/Mutex.h"
-#include "mg/common/Types.h"
 
 #include <condition_variable>
 
@@ -32,7 +31,7 @@ namespace common {
 			Mutex& aMutex);
 		void TimedWait(
 			Mutex& aMutex,
-			uint32 aTimeoutMs,
+			uint32_t aTimeoutMs,
 			bool* aOutIsTimedOut);
 
 		void Signal() { myHandle.notify_one(); }

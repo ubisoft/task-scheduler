@@ -16,7 +16,7 @@ namespace common {
 	{
 	public:
 		MultiConsumerQueue(
-			uint32 aSubQueueSize);
+			uint32_t aSubQueueSize);
 
 		bool Push(
 			T* aItem);
@@ -27,13 +27,13 @@ namespace common {
 		bool FlushPending();
 
 		void Reserve(
-			uint32 aCount);
+			uint32_t aCount);
 
-		uint32 SubQueueCount();
+		uint32_t SubQueueCount();
 
-		uint32 ConsumerCount();
+		uint32_t ConsumerCount();
 
-		uint32 Count();
+		uint32_t Count();
 
 	private:
 		MCQBaseQueue myBase;
@@ -64,7 +64,7 @@ namespace common {
 	template<typename T>
 	inline
 	MultiConsumerQueue<T>::MultiConsumerQueue(
-		uint32 aSubQueueSize)
+		uint32_t aSubQueueSize)
 		: myBase(aSubQueueSize)
 	{
 	}
@@ -95,27 +95,27 @@ namespace common {
 	template<typename T>
 	inline void
 	MultiConsumerQueue<T>::Reserve(
-		uint32 aCount)
+		uint32_t aCount)
 	{
 		myBase.Reserve(aCount);
 	}
 
 	template<typename T>
-	inline uint32
+	inline uint32_t
 	MultiConsumerQueue<T>::SubQueueCount()
 	{
 		return myBase.SubQueueCount();
 	}
 
 	template<typename T>
-	inline uint32
+	inline uint32_t
 	MultiConsumerQueue<T>::ConsumerCount()
 	{
 		return myBase.ConsumerCount();
 	}
 
 	template<typename T>
-	inline uint32
+	inline uint32_t
 	MultiConsumerQueue<T>::Count()
 	{
 		return myBase.Count();

@@ -12,16 +12,16 @@ namespace unittests {
 	UnitTestMutexBasic()
 	{
 		mg::common::Mutex mutex;
-		uint32 counter = 0;
-		const uint32 threadCount = 10;
+		uint32_t counter = 0;
+		const uint32_t threadCount = 10;
 
 		std::vector<mg::common::ThreadFunc*> threads;
 		threads.reserve(threadCount);
-		for (uint32 i = 0; i < threadCount; ++i)
+		for (uint32_t i = 0; i < threadCount; ++i)
 		{
 			threads.push_back(new mg::common::ThreadFunc([&]() {
-				uint64 deadline = mg::common::GetMilliseconds() + 2000;
-				uint64 yield = 0;
+				uint64_t deadline = mg::common::GetMilliseconds() + 2000;
+				uint64_t yield = 0;
 				while (mg::common::GetMilliseconds() < deadline)
 				{
 					mg::common::MutexLock lock(mutex);

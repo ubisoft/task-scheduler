@@ -70,10 +70,10 @@ namespace bench {
 		const char* GetStr(
 			const char* aName) const;
 
-		uint64 GetU64(
+		uint64_t GetU64(
 			const char* aName) const;
 
-		uint32 GetU32(
+		uint32_t GetU32(
 			const char* aName) const;
 
 	private:

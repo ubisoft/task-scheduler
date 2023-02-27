@@ -7,8 +7,8 @@ namespace serverbox {
 
 	TaskScheduler::TaskScheduler(
 		const char* aName,
-		uint32 aThreadCount,
-		uint32 aSubQueueSize)
+		uint32_t aThreadCount,
+		uint32_t aSubQueueSize)
 		: myQueueReady(aSubQueueSize)
 		, myExecBatchSize(aSubQueueSize)
 		, mySchedBatchSize(aSubQueueSize * aThreadCount)
@@ -42,7 +42,7 @@ namespace serverbox {
 
 	void
 	TaskScheduler::Reserve(
-		uint32 aCount)
+		uint32_t aCount)
 	{
 		myQueueReady.Reserve(aCount);
 	}
@@ -118,10 +118,10 @@ namespace serverbox {
 		Task* next;
 		Task* tail;
 		TaskSchedulerQueuePending ready;
-		uint64 deadline;
-		uint64 timestamp = mg::common::GetMilliseconds();
-		uint32 batch;
-		uint32 maxBatch = mySchedBatchSize;
+		uint64_t deadline;
+		uint64_t timestamp = mg::common::GetMilliseconds();
+		uint32_t batch;
+		uint32_t maxBatch = mySchedBatchSize;
 
 	retry:
 		if (PrivIsStopped())
@@ -253,7 +253,7 @@ namespace serverbox {
 				deadline = myQueueWaiting.GetTop()->myDeadline;
 				timestamp = mg::common::GetMilliseconds();
 				if (deadline > timestamp)
-					mySignalFront.ReceiveTimed((uint32) (deadline - timestamp));
+					mySignalFront.ReceiveTimed((uint32_t) (deadline - timestamp));
 			}
 			goto retry;
 		}
@@ -343,8 +343,8 @@ namespace serverbox {
 	void
 	TaskSchedulerThread::Run()
 	{
-		int64 maxBatch = myScheduler->myExecBatchSize;
-		int64 batch;
+		int64_t maxBatch = myScheduler->myExecBatchSize;
+		int64_t batch;
 		while (!myScheduler->PrivIsStopped())
 		{
 			do

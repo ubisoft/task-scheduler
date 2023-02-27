@@ -1,6 +1,6 @@
 #pragma once
 
-#include "mg/common/Types.h"
+#include "mg/common/Definitions.h"
 
 #include <stdarg.h>
 #include <string.h>
@@ -8,11 +8,11 @@
 namespace mg {
 namespace common {
 
-	static inline uint32
+	static inline uint32_t
 	Strlen(
 		const char* aString)
 	{
-		return (uint32) strlen(aString);
+		return (uint32_t) strlen(aString);
 	}
 
 	static inline int
@@ -27,31 +27,31 @@ namespace common {
 	Strncmp(
 		const char* aA,
 		const char* aB,
-		uint32 aCount)
+		uint32_t aCount)
 	{
 		return strncmp(aA, aB, aCount);
 	}
 
 	MG_STRFORMAT_PRINTF(2, 0)
-	uint32 Vsprintf(
+	uint32_t Vsprintf(
 		char* aBuffer,
 		const char* aFmtString,
 		va_list aArgList);
 
 	MG_STRFORMAT_PRINTF(3, 0)
-	uint32 Vsnprintf(
+	uint32_t Vsnprintf(
 		char* aBuffer,
-		uint32 aBufferSize,
+		uint32_t aBufferSize,
 		const char* aFmtString,
 		va_list aArgList);
 
 	bool StringToNumber(
 		const char* aString,
-		uint32& aOutNumber);
+		uint32_t& aOutNumber);
 
 	bool StringToNumber(
 		const char* aString,
-		uint64& aOutNumber);
+		uint64_t& aOutNumber);
 
 }
 }

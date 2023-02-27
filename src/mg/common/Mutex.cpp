@@ -7,7 +7,7 @@
 namespace mg {
 namespace common {
 
-	std::atomic<uint64> theMutexStartContentCount(0);
+	std::atomic<uint64_t> theMutexStartContentCount(0);
 
 	void
 	MutexStatClear()
@@ -15,7 +15,7 @@ namespace common {
 		theMutexStartContentCount.store(0);
 	}
 
-	uint64
+	uint64_t
 	MutexStatContentionCount()
 	{
 		return theMutexStartContentCount.load();

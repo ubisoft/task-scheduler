@@ -1,13 +1,13 @@
 #pragma once
 
-#include "mg/common/Types.h"
+#include "mg/common/Definitions.h"
 
 namespace mg {
 namespace common {
 
 	// Returns the number of milliseconds since some point in the
 	// past. Monotonic, won't go back on clock changes.
-	uint64 GetMilliseconds();
+	uint64_t GetMilliseconds();
 
 }
 }

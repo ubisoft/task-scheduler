@@ -7,7 +7,7 @@
 namespace mg {
 namespace common {
 
-	static uint64
+	static uint64_t
 	QPTimerGetNs()
 	{
 		struct timespec ts;

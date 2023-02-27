@@ -17,7 +17,7 @@ namespace unittests {
 		mg::serverbox::TaskScheduler sched("tst", 1, 5);
 		mg::serverbox::TaskCallback cb;
 		mg::serverbox::Task* tp;
-		std::atomic<uint32> progress;
+		std::atomic<uint32_t> progress;
 
 		// Simple test for a task being executed 3 times.
 		progress.store(0);
@@ -34,7 +34,7 @@ namespace unittests {
 			mg::common::Sleep(1);
 
 		// Delay should be respected.
-		uint64 timestamp = mg::common::GetMilliseconds();
+		uint64_t timestamp = mg::common::GetMilliseconds();
 		progress.store(0);
 		cb = [&](mg::serverbox::Task* aTask) {
 			MG_COMMON_ASSERT(aTask == tp);
@@ -104,7 +104,7 @@ namespace unittests {
 		mg::serverbox::Task t1;
 		mg::serverbox::Task t2;
 		mg::serverbox::Task t3;
-		std::atomic<uint32> progress(0);
+		std::atomic<uint32_t> progress(0);
 		cb = [&](mg::serverbox::Task* aTask) {
 			MG_COMMON_ASSERT(progress == 0);
 			MG_COMMON_ASSERT(aTask->IsExpired());
@@ -147,7 +147,7 @@ namespace unittests {
 		mg::serverbox::Task t1;
 		mg::serverbox::Task t2;
 		mg::serverbox::Task t3;
-		std::atomic<uint32> progres(0);
+		std::atomic<uint32_t> progres(0);
 		std::atomic<bool> finish(false);
 		cb = [&](mg::serverbox::Task* aTask) {
 			MG_COMMON_ASSERT(aTask->IsExpired());
@@ -180,7 +180,7 @@ namespace unittests {
 		mg::serverbox::TaskScheduler sched("tst", 1, 5);
 		mg::serverbox::TaskCallback cb;
 		mg::serverbox::Task t1;
-		std::atomic<uint32> progress(0);
+		std::atomic<uint32_t> progress(0);
 		cb = [&](mg::serverbox::Task*) {
 			progress.store(1);
 		};
@@ -276,7 +276,7 @@ namespace unittests {
 
 		mg::serverbox::TaskScheduler sched("tst", 1, 100);
 		mg::serverbox::Task t1;
-		std::atomic<uint32> progress;
+		std::atomic<uint32_t> progress;
 
 		// Expiration check for non-woken task not having a
 		// deadline.
@@ -397,7 +397,7 @@ namespace unittests {
 		mg::serverbox::Task t1;
 		mg::serverbox::Task t2;
 		mg::serverbox::Task t3;
-		std::atomic<uint32> progress(0);
+		std::atomic<uint32_t> progress(0);
 		// A task can schedule another task into the same or
 		// different scheduler.
 		cb = [&](mg::serverbox::Task* aTask) {
@@ -481,7 +481,7 @@ namespace unittests {
 		mg::serverbox::TaskScheduler sched("tst", 1, 2);
 
 		// Signal works during execution.
-		std::atomic<uint32> progress(0);
+		std::atomic<uint32_t> progress(0);
 		mg::serverbox::Task t([&](mg::serverbox::Task* aTask) {
 			bool isSignaled = aTask->ReceiveSignal();
 			++progress;
@@ -551,7 +551,7 @@ namespace unittests {
 		progress.store(0);
 		t.SetCallback([&](mg::serverbox::Task* aTask) {
 			MG_COMMON_ASSERT(aTask->IsSignaled());
-			uint32 p = ++progress;
+			uint32_t p = ++progress;
 			if (p == 1)
 				return sched.PostWait(aTask);
 			if (p == 2)
@@ -574,8 +574,8 @@ namespace unittests {
 	struct UTTSchedulerTaskCtx
 	{
 		UTTSchedulerTaskCtx(
-			uint32 aTaskCount,
-			uint32 aExecuteCount,
+			uint32_t aTaskCount,
+			uint32_t aExecuteCount,
 			mg::serverbox::TaskScheduler* aScheduler);
 
 		void CreateHeavy();
@@ -587,7 +587,7 @@ namespace unittests {
 		void WaitAllExecuted();
 
 		void WaitExecuteCount(
-			uint64 aCount);
+			uint64_t aCount);
 
 		void WaitAllStopped();
 
@@ -596,12 +596,12 @@ namespace unittests {
 		~UTTSchedulerTaskCtx();
 
 		UTTSchedulerTask* myTasks;
-		const uint32 myTaskCount;
-		const uint32 myExecuteCount;
-		std::atomic<uint32> myCurrentParallel;
-		std::atomic<uint32> myMaxParallel;
-		std::atomic<uint32> myStopCount;
-		std::atomic<uint64> myTotalExecuteCount;
+		const uint32_t myTaskCount;
+		const uint32_t myExecuteCount;
+		std::atomic<uint32_t> myCurrentParallel;
+		std::atomic<uint32_t> myMaxParallel;
+		std::atomic<uint32_t> myStopCount;
+		std::atomic<uint64_t> myTotalExecuteCount;
 		mg::serverbox::TaskScheduler* myScheduler;
 	};
 
@@ -656,11 +656,11 @@ namespace unittests {
 			++myExecuteCount;
 			++myCtx->myTotalExecuteCount;
 
-			uint32 i;
+			uint32_t i;
 			// Tracking max parallel helps to ensure the tasks
 			// really use all the worker threads.
-			uint32 newMax = ++myCtx->myCurrentParallel;
-			uint32 max = myCtx->myMaxParallel.load();
+			uint32_t newMax = ++myCtx->myCurrentParallel;
+			uint32_t max = myCtx->myMaxParallel.load();
 			if (newMax > max)
 				myCtx->myMaxParallel.compare_exchange_strong(max, newMax);
 			// Simulate heavy work.
@@ -720,13 +720,13 @@ namespace unittests {
 			++myCtx->myStopCount;
 		}
 
-		uint32 myExecuteCount;
+		uint32_t myExecuteCount;
 		UTTSchedulerTaskCtx* myCtx;
 	};
 
 	UTTSchedulerTaskCtx::UTTSchedulerTaskCtx(
-		uint32 aTaskCount,
-		uint32 aExecuteCount,
+		uint32_t aTaskCount,
+		uint32_t aExecuteCount,
 		mg::serverbox::TaskScheduler* aScheduler)
 		: myTasks(new UTTSchedulerTask[aTaskCount])
 		, myTaskCount(aTaskCount)
@@ -742,35 +742,35 @@ namespace unittests {
 	void
 	UTTSchedulerTaskCtx::CreateHeavy()
 	{
-		for (uint32 i = 0; i < myTaskCount; ++i)
+		for (uint32_t i = 0; i < myTaskCount; ++i)
 			myTasks[i].CreateHeavy(this);
 	}
 
 	void
 	UTTSchedulerTaskCtx::CreateMicro()
 	{
-		for (uint32 i = 0; i < myTaskCount; ++i)
+		for (uint32_t i = 0; i < myTaskCount; ++i)
 			myTasks[i].CreateMicro(this);
 	}
 
 	void
 	UTTSchedulerTaskCtx::CreateSignaled()
 	{
-		for (uint32 i = 0; i < myTaskCount; ++i)
+		for (uint32_t i = 0; i < myTaskCount; ++i)
 			myTasks[i].CreateSignaled(this);
 	}
 
 	void
 	UTTSchedulerTaskCtx::WaitAllExecuted()
 	{
-		uint64 total = myExecuteCount * myTaskCount;
+		uint64_t total = myExecuteCount * myTaskCount;
 		WaitExecuteCount(total);
 		MG_COMMON_ASSERT(total == myTotalExecuteCount.load());
 	}
 
 	void
 	UTTSchedulerTaskCtx::WaitExecuteCount(
-		uint64 aCount)
+		uint64_t aCount)
 	{
 		while (myTotalExecuteCount.load() < aCount)
 			mg::common::Sleep(1);
@@ -781,14 +781,14 @@ namespace unittests {
 	{
 		while (myStopCount.load() != myTaskCount)
 			mg::common::Sleep(1);
-		for (uint32 i = 0; i < myTaskCount; ++i)
+		for (uint32_t i = 0; i < myTaskCount; ++i)
 			MG_COMMON_ASSERT(myTasks[i].myExecuteCount == myExecuteCount);
 	}
 
 	void
 	UTTSchedulerTaskCtx::PostAll()
 	{
-		for (uint32 i = 0; i < myTaskCount; ++i)
+		for (uint32_t i = 0; i < myTaskCount; ++i)
 			myScheduler->Post(&myTasks[i]);
 	}
 
@@ -801,13 +801,13 @@ namespace unittests {
 	UnitTestTaskSchedulerPrintStat(
 		const mg::serverbox::TaskScheduler* aSched)
 	{
-		uint32 count;
+		uint32_t count;
 		mg::serverbox::TaskSchedulerThread*const* threads = aSched->GetThreads(count);
 		Report("Scheduler stat:");
-		for (uint32 i = 0; i < count; ++i)
+		for (uint32_t i = 0; i < count; ++i)
 		{
-			uint64 execCount = threads[i]->StatPopExecuteCount();
-			uint64 schedCount = threads[i]->StatPopScheduleCount();
+			uint64_t execCount = threads[i]->StatPopExecuteCount();
+			uint64_t schedCount = threads[i]->StatPopScheduleCount();
 			Report("Thread %2u: exec: %12llu, sched: %9llu", i, (unsigned long long)execCount,
 				(unsigned long long)schedCount);
 		}
@@ -816,9 +816,9 @@ namespace unittests {
 
 	static void
 	UnitTestTaskSchedulerBatch(
-		uint32 aThreadCount,
-		uint32 aTaskCount,
-		uint32 aExecuteCount)
+		uint32_t aThreadCount,
+		uint32_t aTaskCount,
+		uint32_t aExecuteCount)
 	{
 		TestCaseGuard guard("Batch");
 
@@ -836,8 +836,8 @@ namespace unittests {
 
 	static void
 	UnitTestTaskSchedulerMicro(
-		uint32 aThreadCount,
-		uint32 aTaskCount)
+		uint32_t aThreadCount,
+		uint32_t aTaskCount)
 	{
 		TestCaseGuard guard("Micro");
 
@@ -862,8 +862,8 @@ namespace unittests {
 
 	static void
 	UnitTestTaskSchedulerMicroNew(
-		uint32 aThreadCount,
-		uint32 aTaskCount)
+		uint32_t aThreadCount,
+		uint32_t aTaskCount)
 	{
 		TestCaseGuard guard("Micro new");
 
@@ -872,7 +872,7 @@ namespace unittests {
 		// tasks.
 		Report("Micro new test: %u threads, %u tasks", aThreadCount, aTaskCount);
 		mg::serverbox::TaskScheduler sched("tst", aThreadCount, 5000);
-		std::atomic<uint64> executeCount(0);
+		std::atomic<uint64_t> executeCount(0);
 		mg::serverbox::TaskCallback cb(
 			[&](mg::serverbox::Task* aTask) {
 				++executeCount;
@@ -882,7 +882,7 @@ namespace unittests {
 		mg::common::QPTimer timer;
 
 		timer.Start();
-		for (uint32 i = 0; i < aTaskCount; ++i)
+		for (uint32_t i = 0; i < aTaskCount; ++i)
 			sched.Post(new mg::serverbox::Task(cb));
 		while (executeCount.load() != aTaskCount)
 			mg::common::Sleep(1);
@@ -894,8 +894,8 @@ namespace unittests {
 
 	static void
 	UnitTestTaskSchedulerMicroOneShot(
-		uint32 aThreadCount,
-		uint32 aTaskCount)
+		uint32_t aThreadCount,
+		uint32_t aTaskCount)
 	{
 		TestCaseGuard guard("Micro one shot");
 
@@ -903,14 +903,14 @@ namespace unittests {
 		// automatically inside of the scheduler.
 		Report("Micro one shot test: %u threads, %u tasks", aThreadCount, aTaskCount);
 		mg::serverbox::TaskScheduler sched("tst", aThreadCount, 5000);
-		std::atomic<uint64> executeCount(0);
+		std::atomic<uint64_t> executeCount(0);
 		mg::serverbox::TaskCallbackOneShot cb([&](void) -> void {
 			++executeCount;
 		});
 		mg::common::QPTimer timer;
 
 		timer.Start();
-		for (uint32 i = 0; i < aTaskCount; ++i)
+		for (uint32_t i = 0; i < aTaskCount; ++i)
 			sched.PostOneShot(cb);
 		while (executeCount.load() != aTaskCount)
 			mg::common::Sleep(1);
@@ -922,9 +922,9 @@ namespace unittests {
 
 	static void
 	UnitTestTaskSchedulerPortions(
-		uint32 aThreadCount,
-		uint32 aTaskCount,
-		uint32 aExecuteCount)
+		uint32_t aThreadCount,
+		uint32_t aTaskCount,
+		uint32_t aExecuteCount)
 	{
 		TestCaseGuard guard("Portions");
 
@@ -936,7 +936,7 @@ namespace unittests {
 		UTTSchedulerTaskCtx ctx(aTaskCount, aExecuteCount, &sched);
 
 		ctx.CreateHeavy();
-		for (uint32 i = 0; i < aTaskCount; ++i)
+		for (uint32_t i = 0; i < aTaskCount; ++i)
 		{
 			sched.Post(&ctx.myTasks[i]);
 			if (i % 10000 == 0)
@@ -950,24 +950,24 @@ namespace unittests {
 
 	static void
 	UnitTestTaskSchedulerMildLoad(
-		uint32 aThreadCount,
-		uint32 aTaskCount,
-		uint32 aExecuteCount,
-		uint32 aDuration)
+		uint32_t aThreadCount,
+		uint32_t aTaskCount,
+		uint32_t aExecuteCount,
+		uint32_t aDuration)
 	{
 		TestCaseGuard guard("Mild load");
 
 		// Try to simulate load close to reality, when RPS may be
 		// relatively stable, and not millions.
 		MG_COMMON_ASSERT(aTaskCount % aDuration == 0);
-		uint32 tasksPer50ms = aTaskCount / aDuration * 50;
+		uint32_t tasksPer50ms = aTaskCount / aDuration * 50;
 		Report("Mild load test: %u threads, %u tasks, %u executes, %u per 50ms",
 			aThreadCount, aTaskCount, aExecuteCount, tasksPer50ms);
 		mg::serverbox::TaskScheduler sched("tst", aThreadCount, 5000);
 		UTTSchedulerTaskCtx ctx(aTaskCount, aExecuteCount, &sched);
 
 		ctx.CreateHeavy();
-		for (uint32 i = 0; i < aTaskCount; ++i)
+		for (uint32_t i = 0; i < aTaskCount; ++i)
 		{
 			sched.Post(&ctx.myTasks[i]);
 			if (i % tasksPer50ms == 0)
@@ -981,7 +981,7 @@ namespace unittests {
 
 	static void
 	UnitTestTaskSchedulerTimeouts(
-		uint32 aTaskCount)
+		uint32_t aTaskCount)
 	{
 		TestCaseGuard guard("Timeouts");
 
@@ -995,7 +995,7 @@ namespace unittests {
 		UTTSchedulerTaskCtx ctx(aTaskCount, 1, &sched);
 
 		ctx.CreateMicro();
-		for (uint32 i = 0; i < aTaskCount; ++i)
+		for (uint32_t i = 0; i < aTaskCount; ++i)
 			ctx.myTasks[i].SetDelay(1000000 + i);
 
 		// Create one special task pushed last, whose execution
@@ -1034,9 +1034,9 @@ namespace unittests {
 
 	static void
 	UnitTestTaskSchedulerSignalStress(
-		uint32 aThreadCount,
-		uint32 aTaskCount,
-		uint32 aExecuteCount)
+		uint32_t aThreadCount,
+		uint32_t aTaskCount,
+		uint32_t aExecuteCount)
 	{
 		TestCaseGuard guard("Signal stress");
 
@@ -1048,11 +1048,11 @@ namespace unittests {
 
 		ctx.CreateSignaled();
 		ctx.PostAll();
-		for (uint32 i = 0; i < aExecuteCount; ++i)
+		for (uint32_t i = 0; i < aExecuteCount; ++i)
 		{
-			for (uint32 j = 0; j < aTaskCount; ++j)
+			for (uint32_t j = 0; j < aTaskCount; ++j)
 				sched.Signal(&ctx.myTasks[j]);
-			uint64 total = aTaskCount * (i + 1);
+			uint64_t total = aTaskCount * (i + 1);
 			ctx.WaitExecuteCount(total);
 		}
 		ctx.WaitAllStopped();

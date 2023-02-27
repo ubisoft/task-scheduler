@@ -185,7 +185,7 @@ namespace unittests {
 				{
 					for (int i = 0; i < counti; ++i)
 						heap.Push(&values[indexes[i]]);
-					MG_COMMON_ASSERT(heap.Count() == (uint32)counti);
+					MG_COMMON_ASSERT(heap.Count() == (uint32_t)counti);
 					for (int i = 0; i < counti; ++i)
 					{
 						pop = nullptr;
@@ -215,7 +215,7 @@ namespace unittests {
 				{
 					for (int i = 0; i < counti; ++i)
 						heap.Push(&values[indexes[i]]);
-					MG_COMMON_ASSERT(heap.Count() == (uint32)counti);
+					MG_COMMON_ASSERT(heap.Count() == (uint32_t)counti);
 					for (int i = 0; i < counti; ++i)
 					{
 						pop = nullptr;
@@ -246,7 +246,7 @@ namespace unittests {
 				{
 					for (int i = 0; i < counti; ++i)
 						heap.Push(values[indexes[i]]);
-					MG_COMMON_ASSERT(heap.Count() == (uint32)counti);
+					MG_COMMON_ASSERT(heap.Count() == (uint32_t)counti);
 					for (int i = 0; i < counti; ++i)
 					{
 						pop.myValue = INT_MAX;
@@ -277,7 +277,7 @@ namespace unittests {
 				{
 					for (int i = 0; i < counti; ++i)
 						heap.Push(values[indexes[i]]);
-					MG_COMMON_ASSERT(heap.Count() == (uint32)counti);
+					MG_COMMON_ASSERT(heap.Count() == (uint32_t)counti);
 					for (int i = 0; i < counti; ++i)
 					{
 						pop.myValue = INT_MAX;
@@ -314,7 +314,7 @@ namespace unittests {
 						heap.GetTop().myValue = indexes[i];
 						heap.UpdateTop();
 					}
-					MG_COMMON_ASSERT(heap.Count() == (uint32)counti);
+					MG_COMMON_ASSERT(heap.Count() == (uint32_t)counti);
 					for (int i = 0; i < counti; ++i)
 					{
 						pop.myValue = INT_MAX;

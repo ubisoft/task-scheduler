@@ -3,7 +3,7 @@
 namespace mg {
 namespace common {
 
-	static_assert(sizeof(LARGE_INTEGER) == sizeof(uint64), "LARGE_INTEGER is 64 bit");
+	static_assert(sizeof(LARGE_INTEGER) == sizeof(uint64_t), "LARGE_INTEGER is 64 bit");
 
 	static LONGLONG
 	QPTimerCalcFrequency()

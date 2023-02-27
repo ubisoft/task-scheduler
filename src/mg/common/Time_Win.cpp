@@ -3,7 +3,7 @@
 namespace mg {
 namespace common {
 
-	uint64
+	uint64_t
 	GetMilliseconds()
 	{
 		return ::GetTickCount64();

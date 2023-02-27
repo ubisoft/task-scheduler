@@ -64,6 +64,9 @@
 #define MG_NOINLINE __declspec(noinline)
 #endif
 
+#include <climits>
+#include <cstdint>
+
 // Use this value when need an infinite deadline. It can be
 // handled in a special cheap way in some subsystems, and is
 // more explicit than inlined UINT64_MAX.

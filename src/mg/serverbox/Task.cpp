@@ -8,7 +8,7 @@ namespace serverbox {
 
 	void
 	Task::SetDelay(
-		uint32 aDelay)
+		uint32_t aDelay)
 	{
 		PrivTouch();
 		myDeadline = mg::common::GetMilliseconds() + aDelay;
@@ -16,14 +16,14 @@ namespace serverbox {
 
 	void
 	Task::AdjustDelay(
-		uint32 aDelay)
+		uint32_t aDelay)
 	{
 		AdjustDeadline(mg::common::GetMilliseconds() + aDelay);
 	}
 
 	void
 	Task::SetDeadline(
-		uint64 aDeadline)
+		uint64_t aDeadline)
 	{
 		PrivTouch();
 		myDeadline = aDeadline;
@@ -31,7 +31,7 @@ namespace serverbox {
 
 	void
 	Task::AdjustDeadline(
-		uint64 aDeadline)
+		uint64_t aDeadline)
 	{
 		PrivTouch();
 		if (aDeadline < myDeadline)
@@ -45,7 +45,7 @@ namespace serverbox {
 		return myIsExpired;
 	}
 
-	uint64
+	uint64_t
 	Task::GetDeadline() const
 	{
 		PrivTouch();

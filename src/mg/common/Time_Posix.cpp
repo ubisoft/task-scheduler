@@ -5,7 +5,7 @@
 namespace mg {
 namespace common {
 
-	uint64
+	uint64_t
 	GetMilliseconds()
 	{
 		timespec ts;

@@ -52,13 +52,13 @@ namespace common {
 		// The check is for him.
 		if (theThreadID == 0) {
 #if IS_PLATFORM_APPLE
-			uint64 tid = 0;
+			uint64_t tid = 0;
 			int rc = pthread_threadid_np(pthread_self(), &tid);
 			MG_DEV_ASSERT(rc == 0);
 #else
-			uint64 tid = syscall(SYS_gettid);
+			uint64_t tid = syscall(SYS_gettid);
 #endif
-			MG_DEV_ASSERT((uint64)(ThreadId)tid == tid);
+			MG_DEV_ASSERT((uint64_t)(ThreadId)tid == tid);
 			theThreadID = (ThreadId)tid;
 		}
 		return theThreadID;
@@ -66,9 +66,9 @@ namespace common {
 
 	void
 	Sleep(
-		uint32 aTimeMillis)
+		uint32_t aTimeMillis)
 	{
-		uint32 seconds = aTimeMillis / 1000;
+		uint32_t seconds = aTimeMillis / 1000;
 		if (seconds != 0)
 			sleep(seconds);
 		usleep((aTimeMillis % 1000) * 1000);

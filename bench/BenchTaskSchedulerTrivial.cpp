@@ -52,8 +52,8 @@ namespace bench {
 	public:
 		TaskScheduler(
 			const char* aName,
-			uint32 aThreadCount,
-			uint32 aSubQueueSize);
+			uint32_t aThreadCount,
+			uint32_t aSubQueueSize);
 
 		~TaskScheduler();
 
@@ -66,7 +66,7 @@ namespace bench {
 
 		void PostDelay(
 			Task* aTask,
-			uint32 aDelay);
+			uint32_t aDelay);
 
 		void Wakeup(
 			Task* aTask);
@@ -75,10 +75,10 @@ namespace bench {
 			Task* aTask);
 
 		void Reserve(
-			uint32 aCount);
+			uint32_t aCount);
 
 		TaskSchedulerThread* const* GetThreads(
-			uint32& aOutCount) const;
+			uint32_t& aOutCount) const;
 
 	private:
 		mg::common::Mutex myMutex;
@@ -100,15 +100,15 @@ namespace bench {
 
 		~TaskSchedulerThread() override;
 
-		uint64 StatPopExecuteCount();
+		uint64_t StatPopExecuteCount();
 
-		uint64 StatPopScheduleCount();
+		uint64_t StatPopScheduleCount();
 
 	private:
 		void Run() override;
 
 		TaskScheduler* myScheduler;
-		std::atomic<uint64> myExecuteCount;
+		std::atomic<uint64_t> myExecuteCount;
 	};
 
 	//////////////////////////////////////////////////////////////////////////////////////
@@ -135,8 +135,8 @@ namespace bench {
 
 	TaskScheduler::TaskScheduler(
 		const char* aName,
-		uint32 aThreadCount,
-		uint32 /*aSubQueueSize*/)
+		uint32_t aThreadCount,
+		uint32_t /*aSubQueueSize*/)
 		: myIsStopped(false)
 	{
 		myWorkers.resize(aThreadCount);
@@ -188,7 +188,7 @@ namespace bench {
 	void
 	TaskScheduler::PostDelay(
 		Task* /*aTask*/,
-		uint32 /*aDelay*/)
+		uint32_t /*aDelay*/)
 	{
 		MG_COMMON_ASSERT(!"Not implemented");
 	}
@@ -209,13 +209,13 @@ namespace bench {
 
 	void
 	TaskScheduler::Reserve(
-		uint32 /*aCount*/)
+		uint32_t /*aCount*/)
 	{
 	}
 
 	TaskSchedulerThread* const*
 	TaskScheduler::GetThreads(
-		uint32& aOutCount) const
+		uint32_t& aOutCount) const
 	{
 		aOutCount = myWorkers.size();
 		return myWorkers.data();
@@ -236,13 +236,13 @@ namespace bench {
 		BlockingStop();
 	}
 
-	uint64
+	uint64_t
 	TaskSchedulerThread::StatPopExecuteCount()
 	{
 		return myExecuteCount.exchange(0);
 	}
 
-	uint64
+	uint64_t
 	TaskSchedulerThread::StatPopScheduleCount()
 	{
 		return 0;
@@ -259,7 +259,7 @@ namespace bench {
 		mutex.Lock();
 		while (true)
 		{
-			uint64 batch = 0;
+			uint64_t batch = 0;
 			while (!queue.IsEmpty())
 			{
 				Task* t = queue.PopFirst();

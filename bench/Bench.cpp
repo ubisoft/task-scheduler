@@ -109,7 +109,7 @@ namespace bench {
 					"Argument %d has invalid chars", i);
 				++pos;
 			}
-			uint32 argi = myArgs.size();
+			uint32_t argi = myArgs.size();
 			myArgs.resize(argi + 1);
 			Pair& p = myArgs[argi];
 			p.myKey = arg;
@@ -135,25 +135,25 @@ namespace bench {
 		return PrivGet(aName).myValue.c_str();
 	}
 
-	uint64
+	uint64_t
 	CommandLine::GetU64(
 		const char* aName) const
 	{
-		uint64 res = 0;
+		uint64_t res = 0;
 		MG_COMMON_ASSERT_F(mg::common::StringToNumber(
 			PrivGet(aName).myValue.c_str(), res),
-		"Couldn't convert arg %s to uint64", aName);
+		"Couldn't convert arg %s to uint64_t", aName);
 		return res;
 	}
 
-	uint32
+	uint32_t
 	CommandLine::GetU32(
 		const char* aName) const
 	{
-		uint32 res = 0;
+		uint32_t res = 0;
 		MG_COMMON_ASSERT_F(mg::common::StringToNumber(
 			PrivGet(aName).myValue.c_str(), res),
-			"Couldn't convert arg %s to uint64", aName);
+			"Couldn't convert arg %s to uint64_t", aName);
 		return res;
 	}
 

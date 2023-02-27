@@ -66,8 +66,8 @@ namespace serverbox {
 		// thousands (1-5) usually is fine.
 		TaskScheduler(
 			const char* aName,
-			uint32 aThreadCount,
-			uint32 aSubQueueSize);
+			uint32_t aThreadCount,
+			uint32_t aSubQueueSize);
 
 		~TaskScheduler();
 
@@ -75,7 +75,7 @@ namespace serverbox {
 		// in its internal queues without making any additional
 		// memory allocations.
 		void Reserve(
-			uint32 aCount);
+			uint32_t aCount);
 
 		// Post as is. The task can be configured using its Set
 		// methods before the Post.
@@ -86,11 +86,11 @@ namespace serverbox {
 		// infinite delay. To avoid unnecessary current time get.
 		void PostDelay(
 			Task* aTask,
-			uint32 aDelay);
+			uint32_t aDelay);
 
 		void PostDeadline(
 			Task* aTask,
-			uint64 aDeadline);
+			uint64_t aDeadline);
 
 		void PostWait(
 			Task* aTask);
@@ -241,7 +241,7 @@ namespace serverbox {
 
 		// For statistics collection only.
 		TaskSchedulerThread*const* GetThreads(
-			uint32& aOutCount) const;
+			uint32_t& aOutCount) const;
 
 	private:
 		void PrivPost(
@@ -278,13 +278,13 @@ namespace serverbox {
 		// Threads try to execute not just all ready tasks in a row - periodically they
 		// try to take care of the scheduling too. It helps to prevent the front-queue
 		// from growing too much.
-		const uint32 myExecBatchSize;
+		const uint32_t myExecBatchSize;
 		// The waiting and front tasks not always are handled by the scheduler all at
 		// once. They are processed in limited batches. This is done to prevent
 		// the bottleneck when the scheduling takes too long time while the other threads
 		// are idle and the ready-queue is empty. For example, processing of a million of
 		// front queue tasks might take ~100-200ms.
-		const uint32 mySchedBatchSize;
+		const uint32_t mySchedBatchSize;
 
 		// The pending and waiting tasks must be dispatched
 		// somehow to be moved to the ready queue. For that there
@@ -313,17 +313,17 @@ namespace serverbox {
 			const char* aSchedulerName,
 			TaskScheduler* aScheduler);
 
-		uint64 StatPopExecuteCount();
+		uint64_t StatPopExecuteCount();
 
-		uint64 StatPopScheduleCount();
+		uint64_t StatPopScheduleCount();
 
 	private:
 		void Run() override;
 
 		TaskScheduler* myScheduler;
 		TaskSchedulerQueueReadyConsumer myConsumer;
-		std::atomic<uint64> myExecuteCount;
-		std::atomic<uint64> myScheduleCount;
+		std::atomic<uint64_t> myExecuteCount;
+		std::atomic<uint64_t> myScheduleCount;
 	};
 
 	struct TaskOneShot
@@ -342,7 +342,7 @@ namespace serverbox {
 	inline void
 	TaskScheduler::PostDelay(
 		Task* aTask,
-		uint32 aDelay)
+		uint32_t aDelay)
 	{
 		aTask->SetDelay(aDelay);
 		Post(aTask);
@@ -351,7 +351,7 @@ namespace serverbox {
 	inline void
 	TaskScheduler::PostDeadline(
 		Task* aTask,
-		uint64 aDeadline)
+		uint64_t aDeadline)
 	{
 		aTask->SetDeadline(aDeadline);
 		Post(aTask);
@@ -367,19 +367,19 @@ namespace serverbox {
 
 	inline TaskSchedulerThread*const*
 	TaskScheduler::GetThreads(
-		uint32& aOutCount) const
+		uint32_t& aOutCount) const
 	{
 		aOutCount = myThreads.size();
 		return myThreads.data();
 	}
 
-	inline uint64
+	inline uint64_t
 	TaskSchedulerThread::StatPopExecuteCount()
 	{
 		return myExecuteCount.exchange(0);
 	}
 
-	inline uint64
+	inline uint64_t
 	TaskSchedulerThread::StatPopScheduleCount()
 	{
 		return myScheduleCount.exchange(0);

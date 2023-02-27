@@ -91,7 +91,7 @@ namespace common {
 
 	bool
 	Signal::ReceiveTimed(
-		uint32 aTimeout)
+		uint32_t aTimeout)
 	{
 		if (Receive())
 			return true;

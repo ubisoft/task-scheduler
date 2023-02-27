@@ -4,11 +4,12 @@
 
 #include <cctype>
 #include <cstdio>
+#include <errno.h>
 
 namespace mg {
 namespace common {
 
-	uint32
+	uint32_t
 	Vsprintf(
 		char* aBuffer,
 		const char* aFmtString,
@@ -16,25 +17,25 @@ namespace common {
 	{
 		int rc = vsprintf(aBuffer, aFmtString, aArgList);
 		MG_DEV_ASSERT(rc >= 0);
-		return (uint32) rc;
+		return (uint32_t) rc;
 	}
 
-	uint32
+	uint32_t
 	Vsnprintf(
 		char* aBuffer,
-		uint32 aBufferSize,
+		uint32_t aBufferSize,
 		const char* aFmtString,
 		va_list aArgList)
 	{
 		int rc = vsnprintf(aBuffer, aBufferSize, aFmtString, aArgList);
 		MG_DEV_ASSERT(rc >= 0);
-		return (uint32) rc;
+		return (uint32_t) rc;
 	}
 
 	bool
 	StringToNumber(
 		const char* aString,
-		uint64&	aOutNumber)
+		uint64_t&	aOutNumber)
 	{
 		// Need to check for minus manually, because strtoull()
 		// applies negation to the result. Despite the fact it
@@ -52,12 +53,12 @@ namespace common {
 	bool
 	StringToNumber(
 		const char* aString,
-		uint32& aOutNumber)
+		uint32_t& aOutNumber)
 	{
-		uint64 res;
+		uint64_t res;
 		if (StringToNumber(aString, res) && res <= UINT32_MAX)
 		{
-			aOutNumber = (uint32) res;
+			aOutNumber = (uint32_t) res;
 			return true;
 		}
 		return false;
