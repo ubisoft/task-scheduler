@@ -14,7 +14,6 @@ set(mgcommon_src
 	MultiProducerQueueIntrusive.h
 	Mutex.cpp
 	Mutex.h
-	PseudoVirtual.h
 	QPTimer.h
 	Random.cpp
 	Random.h
