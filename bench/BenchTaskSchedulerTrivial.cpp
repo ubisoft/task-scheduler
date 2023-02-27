@@ -6,6 +6,7 @@
 #include "mg/common/Thread.h"
 
 #include <functional>
+#include <utility>
 
 namespace mg {
 namespace bench {
@@ -122,7 +123,7 @@ namespace bench {
 	Task::SetCallback(
 		Functor&& aFunc)
 	{
-		myCallback = mg::common::Forward<Functor>(aFunc);
+		myCallback = std::forward<Functor>(aFunc);
 	}
 
 	bool
@@ -175,7 +176,7 @@ namespace bench {
 	{
 		Task* t = new Task();
 		TaskCallbackOneShot* cb = new TaskCallbackOneShot(
-			mg::common::Forward<Functor>(aFunc));
+			std::forward<Functor>(aFunc));
 		t->SetCallback([cb](Task* aTask) {
 			(*cb)();
 			delete cb;

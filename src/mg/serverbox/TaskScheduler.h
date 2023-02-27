@@ -390,7 +390,7 @@ namespace serverbox {
 	TaskScheduler::PostOneShot(
 		Functor&& aFunc)
 	{
-		Post(new TaskOneShot(mg::common::Forward<Functor>(aFunc)));
+		Post(new TaskOneShot(std::forward<Functor>(aFunc)));
 	}
 
 	template<typename Functor>
@@ -399,7 +399,7 @@ namespace serverbox {
 		Functor&& aFunc)
 		: Task(std::bind(&TaskOneShot::Execute, this,
 			std::placeholders::_1))
-		, myCallback(mg::common::Forward<Functor>(aFunc))
+		, myCallback(std::forward<Functor>(aFunc))
 	{
 	}
 

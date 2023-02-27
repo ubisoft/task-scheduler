@@ -5,6 +5,7 @@
 
 #include <atomic>
 #include <functional>
+#include <utility>
 
 namespace mg {
 namespace serverbox {
@@ -179,7 +180,7 @@ namespace serverbox {
 	inline
 	Task::Task(
 		Functor&& aFunc)
-		: myCallback(mg::common::Forward<Functor>(aFunc))
+		: myCallback(std::forward<Functor>(aFunc))
 	{
 		PrivCreate();
 	}
@@ -196,7 +197,7 @@ namespace serverbox {
 		Functor&& aFunc)
 	{
 		PrivTouch();
-		myCallback = mg::common::Forward<Functor>(aFunc);
+		myCallback = std::forward<Functor>(aFunc);
 	}
 
 	inline void
