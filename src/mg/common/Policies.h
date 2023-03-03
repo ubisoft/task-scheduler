@@ -33,7 +33,7 @@ namespace common {
 		Copy(
 			T* aDst,
 			const T* aSrc,
-			uint32 aCount)
+			uint32_t aCount)
 		{
 			MG_DEV_ASSERT(aDst >= aSrc + aCount || aSrc >= aDst + aCount);
 			// Locations don't intersect - can use memcpy().
@@ -54,7 +54,7 @@ namespace common {
 		MoveForward(
 			T* aDst,
 			T* aSrc,
-			uint32 aCount)
+			uint32_t aCount)
 		{
 			MG_DEV_ASSERT(aDst > aSrc);
 			memmove(aDst, aSrc, aCount * sizeof(T));
@@ -64,7 +64,7 @@ namespace common {
 		MoveBack(
 			T* aDst,
 			T* aSrc,
-			uint32 aCount)
+			uint32_t aCount)
 		{
 			memmove(aDst, aSrc, aCount * sizeof(T));
 		}
@@ -73,7 +73,7 @@ namespace common {
 		Move(
 			T* aDst,
 			T* aSrc,
-			uint32 aCount)
+			uint32_t aCount)
 		{
 			Copy(aDst, aSrc, aCount);
 		}
@@ -90,7 +90,7 @@ namespace common {
 		MoveConstruct(
 			T* aDst,
 			T* aSrc,
-			uint32 aCount)
+			uint32_t aCount)
 		{
 			Copy(aDst, aSrc, aCount);
 		}
@@ -107,7 +107,7 @@ namespace common {
 		CopyConstruct(
 			T* aDst,
 			const T* aSrc,
-			uint32 aCount)
+			uint32_t aCount)
 		{
 			Copy(aDst, aSrc, aCount);
 		}
@@ -128,7 +128,7 @@ namespace common {
 		Copy(
 			T* aDst,
 			const T* aSrc,
-			uint32 aCount)
+			uint32_t aCount)
 		{
 			for (T* dstEnd = aDst + aCount; aDst < dstEnd; ++aDst, ++aSrc)
 				*aDst = *aSrc;
@@ -138,7 +138,7 @@ namespace common {
 		MoveForward(
 			T* aDst,
 			T* aSrc,
-			uint32 aCount)
+			uint32_t aCount)
 		{
 			// MoveForward and MoveBack exist separately, because
 			// in all cases it is always known to which direction
@@ -161,7 +161,7 @@ namespace common {
 		MoveBack(
 			T* aDst,
 			T* aSrc,
-			uint32 aCount)
+			uint32_t aCount)
 		{
 			// MoveForward and MoveBack exist separately, because
 			// in all cases it is always known to which direction
@@ -176,7 +176,7 @@ namespace common {
 		Move(
 			T* aDst,
 			T* aSrc,
-			uint32 aCount)
+			uint32_t aCount)
 		{
 			MG_DEV_ASSERT(aDst >= aSrc + aCount || aSrc >= aDst + aCount);
 			T* dstEnd = aDst + aCount;
@@ -197,7 +197,7 @@ namespace common {
 		MoveConstruct(
 			T* aDst,
 			T* aSrc,
-			uint32 aCount)
+			uint32_t aCount)
 		{
 			MG_DEV_ASSERT(aDst >= aSrc + aCount || aSrc >= aDst + aCount);
 			T* dstEnd = aDst + aCount;
@@ -218,7 +218,7 @@ namespace common {
 		CopyConstruct(
 			T* aDst,
 			const T* aSrc,
-			uint32 aCount)
+			uint32_t aCount)
 		{
 			MG_DEV_ASSERT(aDst >= aSrc + aCount || aSrc >= aDst + aCount);
 			T* dstEnd = aDst + aCount;
@@ -241,7 +241,7 @@ namespace common {
 	ItemsCopy(
 		T* aDst,
 		const T* aSrc,
-		uint32 aCount)
+		uint32_t aCount)
 	{
 		ItemsRelocation<T>::Copy(aDst, aSrc, aCount);
 	}
@@ -260,7 +260,7 @@ namespace common {
 	ItemsMoveBack(
 		T* aDst,
 		T* aSrc,
-		uint32 aCount)
+		uint32_t aCount)
 	{
 		ItemsRelocation<T>::MoveBack(aDst, aSrc, aCount);
 	}
@@ -270,7 +270,7 @@ namespace common {
 	ItemsMoveForward(
 		T* aDst,
 		T* aSrc,
-		uint32 aCount)
+		uint32_t aCount)
 	{
 		ItemsRelocation<T>::MoveForward(aDst, aSrc, aCount);
 	}
@@ -280,7 +280,7 @@ namespace common {
 	ItemsMove(
 		T* aDst,
 		T* aSrc,
-		uint32 aCount)
+		uint32_t aCount)
 	{
 		ItemsRelocation<T>::Move(aDst, aSrc, aCount);
 	}
@@ -299,7 +299,7 @@ namespace common {
 	ItemsMoveConstruct(
 		T* aDst,
 		T* aSrc,
-		uint32 aCount)
+		uint32_t aCount)
 	{
 		ItemsRelocation<T>::MoveConstruct(aDst, aSrc, aCount);
 	}
@@ -318,7 +318,7 @@ namespace common {
 	ItemsCopyConstruct(
 		T* aDst,
 		const T* aSrc,
-		uint32 aCount)
+		uint32_t aCount)
 	{
 		ItemsRelocation<T>::CopyConstruct(aDst, aSrc, aCount);
 	}
@@ -346,7 +346,7 @@ namespace common {
 		static inline void
 		Do(
 			T*,
-			uint32)
+			uint32_t)
 		{
 		}
 
@@ -363,7 +363,7 @@ namespace common {
 		static inline void
 		Do(
 			T* aData,
-			uint32 aCount)
+			uint32_t aCount)
 		{
 			for (T* end = aData + aCount; aData < end; ++aData)
 				aData->~T();
@@ -381,7 +381,7 @@ namespace common {
 	inline void
 	ItemsDestroy(
 		T* aData,
-		uint32 aCount)
+		uint32_t aCount)
 	{
 		ItemsDestruction<T>::Do(aData, aCount);
 	}
@@ -401,7 +401,7 @@ namespace common {
 	inline void
 	ItemsDelete(
 		T* aData,
-		uint32 aCount)
+		uint32_t aCount)
 	{
 		// The assertion and 'delete' won't fail the compilation
 		// for non-pointer types as long as the function is
@@ -441,7 +441,7 @@ namespace common {
 		static inline void
 		Do(
 			T*,
-			uint32)
+			uint32_t)
 		{
 		}
 
@@ -458,7 +458,7 @@ namespace common {
 		static inline void
 		Do(
 			T* aData,
-			uint32 aCount)
+			uint32_t aCount)
 		{
 			for (T* end = aData + aCount; aData < end; ++aData)
 				new (aData) T();
@@ -476,7 +476,7 @@ namespace common {
 	inline void
 	ItemsConstruct(
 		T* aData,
-		uint32 aCount)
+		uint32_t aCount)
 	{
 		ItemsConstruction<T>::Do(aData, aCount);
 	}
@@ -545,7 +545,7 @@ namespace common {
 	ItemsSwap(
 		T* aItems1,
 		T* aItems2,
-		uint32 aCount)
+		uint32_t aCount)
 	{
 		// Check first iteration separately to avoid the temporary
 		// object creation.

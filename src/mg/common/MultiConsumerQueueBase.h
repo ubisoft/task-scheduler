@@ -76,7 +76,7 @@ namespace common {
 	{
 	public:
 		MCQBaseQueue(
-			uint32 aSubQueueSize);
+			uint32_t aSubQueueSize);
 
 		~MCQBaseQueue();
 
@@ -115,13 +115,13 @@ namespace common {
 		// interesting to see pure performance not affected by the
 		// queue warm up.
 		void Reserve(
-			uint32 aCount);
+			uint32_t aCount);
 
-		uint32 SubQueueCount();
+		uint32_t SubQueueCount();
 
-		uint32 ConsumerCount();
+		uint32_t ConsumerCount();
 
-		uint32 Count();
+		uint32_t Count();
 
 	private:
 		void PrivNextWpos();
@@ -130,9 +130,9 @@ namespace common {
 			MCQBaseSubQueue* aItem);
 
 		mg::common::Mutex myLock;
-		int32 mySubQueueCount;
-		int32 myCount;
-		int32 myPendingCount;
+		int32_t mySubQueueCount;
+		int32_t myCount;
+		int32_t myPendingCount;
 
 		// Fields above are accessed from all participants - from
 		// consumer threads and from producer thread. So their
@@ -144,7 +144,7 @@ namespace common {
 		// chances to stay in the cache for longer time, than for
 		// the fields above.
 
-		int32 myConsumerCount;
+		int32_t myConsumerCount;
 		MCQBaseSubQueue* myHead;
 		MCQBaseSubQueue* myWpos;
 		MCQBaseSubQueue* myTail;
@@ -152,19 +152,19 @@ namespace common {
 		friend MCQBaseConsumer;
 	};
 
-	inline uint32
+	inline uint32_t
 	MCQBaseQueue::SubQueueCount()
 	{
 		return mg::common::AtomicLoad(&mySubQueueCount);
 	}
 
-	inline uint32
+	inline uint32_t
 	MCQBaseQueue::ConsumerCount()
 	{
 		return mg::common::AtomicLoad(&myConsumerCount);
 	}
 
-	inline uint32
+	inline uint32_t
 	MCQBaseQueue::Count()
 	{
 		return mg::common::AtomicLoad(&myCount);

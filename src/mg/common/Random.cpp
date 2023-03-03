@@ -27,25 +27,25 @@ namespace common {
 		return res;
 	}
 
-	uint32
-	RandomUInt32()
+	uint32_t
+	Randomuint32_t()
 	{
-		return RandomUniformUInt32(0, UINT32_MAX);
+		return RandomUniformuint32_t(0, UINT32_MAX);
 	}
 
-	uint32
-	RandomUniformUInt32(
-		uint32 aMin,
-		uint32 aMax)
+	uint32_t
+	RandomUniformuint32_t(
+		uint32_t aMin,
+		uint32_t aMax)
 	{
-		std::uniform_int_distribution<uint32> dist(aMin, aMax);
+		std::uniform_int_distribution<uint32_t> dist(aMin, aMax);
 		return dist(*RandomGeneratorGetLocal());
 	}
 
 	bool
 	RandomBool()
 	{
-		std::uniform_int_distribution<int16> dist(0, 1);
+		std::uniform_int_distribution<uint16_t> dist(0, 1);
 		return dist(*RandomGeneratorGetLocal()) == 1;
 	}
 }

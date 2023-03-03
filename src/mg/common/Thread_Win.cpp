@@ -40,7 +40,7 @@ namespace common {
 
 	void
 	Sleep(
-		uint32 aTimeMillis)
+		uint32_t aTimeMillis)
 	{
 		::Sleep(aTimeMillis);
 	}

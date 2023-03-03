@@ -5,11 +5,11 @@
 namespace mg {
 namespace common {
 
-	uint32 RandomUInt32();
+	uint32_t Randomuint32_t();
 
-	uint32 RandomUniformUInt32(
-		uint32 aMin,
-		uint32 aMax);
+	uint32_t RandomUniformuint32_t(
+		uint32_t aMin,
+		uint32_t aMax);
 
 	bool RandomBool();
 }

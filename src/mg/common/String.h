@@ -9,7 +9,7 @@ namespace common {
 
 	// IString is an interface, it can't have an instance. Only
 	// children. However compiler still adds padding for members
-	// of this class. It has one pointer (8 byte), one uint32
+	// of this class. It has one pointer (8 byte), one uint32_t
 	// (4 bytes). Therefore its alignment is 8 and total member
 	// size 12. Compiler adds 4 byte padding in the end to make
 	// the size aligned by 8.
@@ -38,7 +38,7 @@ namespace common {
 		// inherited.
 		IString(
 			char* aData,
-			uint32 aSize);
+			uint32_t aSize);
 
 		// Destructor is not virtual to avoid vtable creation. The
 		// string can't be deleted by the base pointer - it would
@@ -56,9 +56,9 @@ namespace common {
 
 		const char* GetBuffer() const;
 
-		uint32 GetBufferSize() const;
+		uint32_t GetBufferSize() const;
 
-		uint32 GetLength() const;
+		uint32_t GetLength() const;
 
 		operator const char* () const;
 
@@ -85,17 +85,17 @@ namespace common {
 		void Clear();
 
 		void Reserve(
-			uint32 aLength);
+			uint32_t aLength);
 
 		void SetLength(
-			uint32 aLength);
+			uint32_t aLength);
 
 		void Set(
 			const char* aString);
 
 		void Set(
 			const char* aString,
-			uint32 aLength);
+			uint32_t aLength);
 
 		void Append(
 			const char* aString);
@@ -131,7 +131,7 @@ namespace common {
 
 	private:
 		void PrivRealloc(
-			uint32 aNewSize);
+			uint32_t aNewSize);
 
 		// IString does not have virtual methods, and therefore
 		// does not have vtable - its layout is strictly defined.
@@ -154,11 +154,11 @@ namespace common {
 
 	protected:
 		char* myData;
-		uint32 mySize;
+		uint32_t mySize;
 		// In case it will be ever needed to inherit a new class
 		// from IString, with no static buffer, or with a static
 		// buffer as not a first member, it is possible to add a
-		// new member 'const uint32 myStaticDataOffset;', which
+		// new member 'const uint32_t myStaticDataOffset;', which
 		// would be initialized in the constructor, and would be
 		// a byte offset from IString's address to the static
 		// buffer location, or 0 when no static buffer. Another
@@ -207,7 +207,7 @@ namespace common {
 	inline
 	IString::IString(
 		char* aData,
-		uint32 aSize)
+		uint32_t aSize)
 		: myData(aData)
 		, mySize(aSize)
 	{
@@ -234,13 +234,13 @@ namespace common {
 		return myData;
 	}
 
-	inline uint32
+	inline uint32_t
 	IString::GetBufferSize() const
 	{
 		return mySize;
 	}
 
-	inline uint32
+	inline uint32_t
 	IString::GetLength() const
 	{
 		return mg::common::Strlen(myData);
@@ -272,16 +272,16 @@ namespace common {
 
 	inline void
 	IString::Reserve(
-		uint32 aLength)
+		uint32_t aLength)
 	{
-		uint32 sizeWithTermination = aLength + 1;
+		uint32_t sizeWithTermination = aLength + 1;
 		if (mySize < sizeWithTermination)
 			PrivRealloc(sizeWithTermination);
 	}
 
 	inline void
 	IString::SetLength(
-		uint32 aLength)
+		uint32_t aLength)
 	{
 		Reserve(aLength);
 		myData[aLength] = 0;

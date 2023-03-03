@@ -12,7 +12,7 @@
 namespace mg {
 namespace common {
 
-	using ThreadId = uint32;
+	using ThreadId = uint32_t;
 
 	class Thread
 	{
@@ -48,13 +48,13 @@ namespace common {
 		ConditionVariable myCond;
 		std::thread* myHandle;
 		HybridString<64> myName;
-		int32 myIsStopRequested;
-		int32 myIsRunning;
+		int32_t myIsStopRequested;
+		int32_t myIsRunning;
 		bool myWasStarted;
 	};
 
 	void Sleep(
-		uint32 aTimeMillis);
+		uint32_t aTimeMillis);
 
 	ThreadId GetCurrentThreadId();
 

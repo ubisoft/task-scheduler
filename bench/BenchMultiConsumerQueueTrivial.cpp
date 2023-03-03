@@ -23,7 +23,7 @@ namespace bench {
 	{
 	public:
 		BenchQueue(
-			uint32 aSubQueueSize);
+			uint32_t aSubQueueSize);
 
 		void Push(
 			BenchValue* aValue);
@@ -31,7 +31,7 @@ namespace bench {
 		BenchValue* Pop();
 
 		void Reserve(
-			uint32 aCount);
+			uint32_t aCount);
 
 	private:
 		mg::common::Mutex myMutex;
@@ -61,7 +61,7 @@ namespace bench {
 	}
 
 	BenchQueue::BenchQueue(
-		uint32 /*aSubQueueSize*/)
+		uint32_t /*aSubQueueSize*/)
 	{
 	}
 
@@ -87,7 +87,7 @@ namespace bench {
 
 	void
 	BenchQueue::Reserve(
-		uint32 /*aCount*/)
+		uint32_t /*aCount*/)
 	{
 	}
 

@@ -39,7 +39,7 @@ namespace common {
 
 		void TimedWait(
 			Mutex& aMutex,
-			uint32 aTimeoutMs,
+			uint32_t aTimeoutMs,
 			bool* aOutIsTimedOut);
 
 		void Signal();
@@ -52,7 +52,7 @@ namespace common {
 
 		void PrivTimedWait(
 			MutexHandle& aMutex,
-			uint32 aTimeoutMs,
+			uint32_t aTimeoutMs,
 			bool* aOutIsTimedOut);
 
 		ConditionVariable(

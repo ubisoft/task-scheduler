@@ -14,7 +14,7 @@ namespace common {
 	{
 	public:
 		MCQBaseSubQueue(
-			uint32 aSize);
+			uint32_t aSize);
 
 		~MCQBaseSubQueue();
 
@@ -35,18 +35,18 @@ namespace common {
 
 		// Read-index. This is where the next consumer will try to
 		// read.
-		int32 myReadIndex;
+		int32_t myReadIndex;
 		// Flush-index. This is the latest index visible to the
 		// readers. It always points at nullptr, and the element
 		// under it must be updated atomically. Consumers see data
 		// [rindex, findex], and all elements here should be
 		// updated atomically.
-		uint32 myFlushIndex;
+		uint32_t myFlushIndex;
 		// Write-index. It can be beyond flush index in case the
 		// sub-queue contains pending elements. Elements
 		// (findex, windex] are visible only to the producer, so
 		// can be updated non-atomically.
-		uint32 myWriteIndex;
+		uint32_t myWriteIndex;
 		// Order of the indexes is always the following:
 		//
 		//     rindex <= findex <= windex.
@@ -106,14 +106,14 @@ namespace common {
 		//
 		//
 		void* myFirstPending;
-		const uint32 mySize;
-		uint32 myConsumerCount;
+		const uint32_t mySize;
+		uint32_t myConsumerCount;
 		MCQBaseSubQueue* myPrev;
 		MCQBaseSubQueue* myNext;
 	};
 
 	MCQBaseSubQueue::MCQBaseSubQueue(
-		uint32 aSize)
+		uint32_t aSize)
 		: myReadIndex(aSize)
 		, myFlushIndex(aSize)
 		, myWriteIndex(aSize)
@@ -143,7 +143,7 @@ namespace common {
 		MG_COMMON_ASSERT(myConsumerCount == 0);
 		MG_COMMON_ASSERT(myPrev == nullptr);
 		MG_COMMON_ASSERT(myNext == nullptr);
-		MG_COMMON_ASSERT((uint32)myReadIndex == mySize);
+		MG_COMMON_ASSERT((uint32_t)myReadIndex == mySize);
 		MG_COMMON_ASSERT(myWriteIndex == mySize);
 		MG_COMMON_ASSERT(myFlushIndex == mySize);
 		MG_COMMON_ASSERT(myFirstPending == nullptr);
@@ -164,7 +164,7 @@ namespace common {
 		// can just do the same, if wants kind of a special value.
 		MG_COMMON_ASSERT(aItem != nullptr);
 
-		uint32 windex = myWriteIndex;
+		uint32_t windex = myWriteIndex;
 		if (windex == mySize)
 			return false;
 
@@ -182,8 +182,8 @@ namespace common {
 		// element in the end exactly for this. That allows not to
 		// do sub-queue-size 'if' checks in exchange on one excess
 		// 'store' instruction.
-		uint32 nextWindex = windex + 1;
-		uint32 findex = myFlushIndex;
+		uint32_t nextWindex = windex + 1;
+		uint32_t findex = myFlushIndex;
 		myQueue[nextWindex] = nullptr;
 		myWriteIndex = nextWindex;
 		myFlushIndex = nextWindex;
@@ -218,7 +218,7 @@ namespace common {
 		// can just do the same, if wants kind of a special value.
 		MG_COMMON_ASSERT(aItem != nullptr);
 
-		uint32 windex = myWriteIndex;
+		uint32_t windex = myWriteIndex;
 		if (windex == mySize)
 			return false;
 
@@ -239,8 +239,8 @@ namespace common {
 	{
 		if (myFirstPending == nullptr)
 			return false;
-		uint32 windex = myWriteIndex;
-		uint32 findex = myFlushIndex;
+		uint32_t windex = myWriteIndex;
+		uint32_t findex = myFlushIndex;
 		MG_DEV_ASSERT(windex > findex);
 		// Similar to normal push, here one atomic exchange will
 		// 'commit' multiple pending elements, in
@@ -265,10 +265,10 @@ namespace common {
 		// thread simultaneously read the same element and already
 		// returned it. In this case the current thread will
 		// retry.
-		uint32 rindex;
+		uint32_t rindex;
 		// It is enough to make just one load. All the next loads
 		// are done implicitly by cmpxchg.
-		uint32 oldRindex = (uint32) mg::common::AtomicLoad(&myReadIndex);
+		uint32_t oldRindex = (uint32_t)mg::common::AtomicLoad(&myReadIndex);
 		// The cycle is not a busy loop, is not a lock, and is not
 		// a 'waiting'. Because lock or waiting would mean the
 		// thread is blocked onto something not yet done by
@@ -283,7 +283,7 @@ namespace common {
 			aOutItem = mg::common::AtomicLoadPtr(&myQueue[rindex]);
 			if (aOutItem == nullptr)
 				return true;
-		} while ((oldRindex = (uint32) mg::common::AtomicCompareExchange(
+		} while ((oldRindex = (uint32_t)mg::common::AtomicCompareExchange(
 			&myReadIndex, rindex + 1, rindex
 		)) != rindex);
 
@@ -407,7 +407,7 @@ namespace common {
 	}
 
 	MCQBaseQueue::MCQBaseQueue(
-		uint32 aSubQueueSize)
+		uint32_t aSubQueueSize)
 		: mySubQueueCount(0)
 		, myCount(0)
 		, myPendingCount(0)
@@ -424,7 +424,7 @@ namespace common {
 	{
 		myLock.Lock();
 		MG_COMMON_ASSERT(myConsumerCount == 0);
-		uint32 subQueueCount = 0;
+		uint32_t subQueueCount = 0;
 		while (myHead != nullptr)
 		{
 			MCQBaseSubQueue* next = myHead->myNext;
@@ -434,7 +434,7 @@ namespace common {
 			myHead = next;
 			++subQueueCount;
 		}
-		MG_COMMON_ASSERT(subQueueCount == (uint32)mySubQueueCount);
+		MG_COMMON_ASSERT(subQueueCount == (uint32_t)mySubQueueCount);
 		myLock.Unlock();
 	}
 
@@ -442,7 +442,7 @@ namespace common {
 	MCQBaseQueue::Push(
 		void* aItem)
 	{
-		int32 count = myPendingCount + 1;
+		int32_t count = myPendingCount + 1;
 		myPendingCount = 0;
 		// It is very important to update the count before pushing
 		// the element. Otherwise a consumer may pop it, decrement
@@ -497,15 +497,15 @@ namespace common {
 
 	void
 	MCQBaseQueue::Reserve(
-		uint32 aCount)
+		uint32_t aCount)
 	{
 		// The reservation is used for testing only. Out of
 		// testing it could only be used once before the load
 		// comes. So does not make sense to optimize it much.
 		myLock.Lock();
-		uint32 size = myTail->mySize;
+		uint32_t size = myTail->mySize;
 		aCount = aCount / size + (aCount % size != 0);
-		uint32 count = (uint32) mg::common::AtomicLoad(&mySubQueueCount);
+		uint32_t count = (uint32_t)mg::common::AtomicLoad(&mySubQueueCount);
 		if (count >= aCount)
 		{
 			myLock.Unlock();
@@ -514,14 +514,14 @@ namespace common {
 		count = aCount - count;
 		MCQBaseSubQueue* head = new MCQBaseSubQueue(size);
 		MCQBaseSubQueue* tail = head;
-		for (uint32 i = 1; i < count; ++i)
+		for (uint32_t i = 1; i < count; ++i)
 		{
 			MCQBaseSubQueue* next = new MCQBaseSubQueue(size);
 			tail->myNext = next;
 			next->myPrev = tail;
 			tail = next;
 		}
-		mg::common::AtomicAdd(&mySubQueueCount, (int32)count);
+		mg::common::AtomicAdd(&mySubQueueCount, (int32_t)count);
 
 		head->myPrev = myTail;
 		myTail->myNext = head;
@@ -571,7 +571,7 @@ namespace common {
 		// Note, that it is safe to read rindex here. Because the
 		// sub-queue is not referenced by any consumer, and
 		// therefore rindex can't change here concurrently.
-		if ((uint32)aItem->myReadIndex < aItem->mySize)
+		if ((uint32_t)aItem->myReadIndex < aItem->mySize)
 			return;
 		// Can't be last - wpos is always ahead and this item is not wpos.
 		MCQBaseSubQueue* next = aItem->myNext;

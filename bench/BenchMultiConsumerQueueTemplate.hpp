@@ -30,14 +30,14 @@ namespace bench {
 
 		void StatClear();
 
-		uint64 StatGetCount() const;
+		uint64_t StatGetCount() const;
 
 	private:
 		void Run() override;
 
 		BenchQueueConsumer myConsumer;
-		int64 myCount;
-		int32 myPauseState;
+		int64_t myCount;
+		int32_t myPauseState;
 		BenchLoadType myLoadType;
 	};
 
@@ -47,7 +47,7 @@ namespace bench {
 	{
 		BenchThreadReport();
 
-		uint64 myPopCount;
+		uint64_t myPopCount;
 	};
 
 	struct BenchRunReport
@@ -59,9 +59,9 @@ namespace bench {
 
 		void Print() const;
 
-		uint64 myItemsPerSec;
-		uint64 myItemsPerSecPerThread;
-		uint64 myMutexContentionCount;
+		uint64_t myItemsPerSec;
+		uint64_t myItemsPerSecPerThread;
+		uint64_t myMutexContentionCount;
 		mg::common::HybridArray<BenchThreadReport, 10> myThreads;
 	};
 
@@ -75,20 +75,20 @@ namespace bench {
 		CommandLine& aCmdLine);
 
 	static BenchRunReport BenchQueueRunPush(
-		uint32 aItemCount,
-		uint32 aSubQueueSize);
+		uint32_t aItemCount,
+		uint32_t aSubQueueSize);
 
 	static BenchRunReport BenchQueueRunPop(
 		BenchLoadType aLoadType,
-		uint32 aItemCount,
-		uint32 aThreadCount,
-		uint32 aSubQueueSize);
+		uint32_t aItemCount,
+		uint32_t aThreadCount,
+		uint32_t aSubQueueSize);
 
 	static BenchRunReport BenchQueueRunPushPop(
 		BenchLoadType aLoadType,
-		uint32 aItemCount,
-		uint32 aThreadCount,
-		uint32 aSubQueueSize);
+		uint32_t aItemCount,
+		uint32_t aThreadCount,
+		uint32_t aSubQueueSize);
 
 	//////////////////////////////////////////////////////////////////////////////////////
 
@@ -112,7 +112,7 @@ namespace bench {
 	void
 	BenchConsumerThread::Pause()
 	{
-		int32 old = mg::common::AtomicExchange(&myPauseState, 1);
+		int32_t old = mg::common::AtomicExchange(&myPauseState, 1);
 		MG_COMMON_ASSERT(old == 0);
 		while (mg::common::AtomicLoad(&myPauseState) != 2)
 			mg::common::Sleep(1);
@@ -121,7 +121,7 @@ namespace bench {
 	void
 	BenchConsumerThread::Continue()
 	{
-		int32 old = mg::common::AtomicExchange(&myPauseState, 0);
+		int32_t old = mg::common::AtomicExchange(&myPauseState, 0);
 		MG_COMMON_ASSERT(old == 2);
 	}
 
@@ -131,10 +131,10 @@ namespace bench {
 		mg::common::AtomicExchange64(&myCount, 0);
 	}
 
-	uint64
+	uint64_t
 	BenchConsumerThread::StatGetCount() const
 	{
-		return (uint64) mg::common::AtomicLoad64((int64*)&myCount);
+		return (uint64_t)mg::common::AtomicLoad64((int64_t*)&myCount);
 	}
 
 	void
@@ -148,7 +148,7 @@ namespace bench {
 				if (myLoadType == BENCH_LOAD_MICRO)
 					BenchMakeMicroWork();
 			}
-			int32 pause = mg::common::AtomicLoad(&myPauseState);
+			int32_t pause = mg::common::AtomicLoad(&myPauseState);
 			if (pause != 0)
 			{
 				MG_COMMON_ASSERT(pause == 1);
@@ -192,7 +192,7 @@ namespace bench {
 		}
 		Report("Mutex contention count:   %12llu",
 			(unsigned long long)myMutexContentionCount);
-		for (uint32 i = 0; i < myThreads.Count(); ++i)
+		for (uint32_t i = 0; i < myThreads.Count(); ++i)
 		{
 			const BenchThreadReport& r = myThreads[i];
 			Report("Thread %2u: pop: %12llu", i, (unsigned long long)r.myPopCount);
@@ -208,9 +208,9 @@ namespace bench {
 		mg::common::IArray<BenchConsumerThread*>& aWorkers)
 	{
 		BenchValue* vals = new BenchValue[MG_WARMUP_ITEM_COUNT];
-		for (uint32 i = 0; i < MG_WARMUP_ITEM_COUNT; ++i)
+		for (uint32_t i = 0; i < MG_WARMUP_ITEM_COUNT; ++i)
 			aQueue.Push(&vals[i]);
-		uint64 popCount = 0;
+		uint64_t popCount = 0;
 		while (popCount < MG_WARMUP_ITEM_COUNT)
 		{
 			mg::common::Sleep(1);
@@ -229,16 +229,16 @@ namespace bench {
 		CommandLine& aCmdLine)
 	{
 		const char* operation = aCmdLine.GetStr("op");
-		uint32 itemCount = aCmdLine.GetU32("items");
+		uint32_t itemCount = aCmdLine.GetU32("items");
 		// It is optional for non-block-based queues.
-		uint32 subQueueSize = 0;
+		uint32_t subQueueSize = 0;
 		if (aCmdLine.IsPresent("subqsize"))
 			subQueueSize = aCmdLine.GetU32("subqsize");
 		if (mg::common::Strcmp(operation, "push") == 0)
 			return BenchQueueRunPush(itemCount, subQueueSize);
 
 		BenchLoadType loadType = BenchLoadTypeFromString(aCmdLine.GetStr("load"));
-		uint32 threadCount = aCmdLine.GetU32("threads");
+		uint32_t threadCount = aCmdLine.GetU32("threads");
 		if (mg::common::Strcmp(operation, "pop") == 0)
 			return BenchQueueRunPop(loadType, itemCount, threadCount, subQueueSize);
 		else if (mg::common::Strcmp(operation, "push-pop") == 0)
@@ -250,8 +250,8 @@ namespace bench {
 
 	static BenchRunReport
 	BenchQueueRunPush(
-		uint32 aItemCount,
-		uint32 aSubQueueSize)
+		uint32_t aItemCount,
+		uint32_t aSubQueueSize)
 	{
 		BenchCaseGuard guard("Operation push, item=%u, subq=%u", aItemCount,
 			aSubQueueSize);
@@ -262,14 +262,14 @@ namespace bench {
 		{
 			mg::common::MutexStatClear();
 			TimedGuard timed("Populate");
-			for (uint32 i = 0; i < aItemCount; ++i)
+			for (uint32_t i = 0; i < aItemCount; ++i)
 				queue.Push(&vals[i]);
 			timed.Stop();
 			report.myMutexContentionCount = mg::common::MutexStatContentionCount();
 			timed.Report();
 
 			double durationMs = timed.GetMilliseconds();
-			report.myItemsPerSec = (uint64) ((uint64) aItemCount * 1000 / durationMs);
+			report.myItemsPerSec = (uint64_t)((uint64_t)aItemCount * 1000 / durationMs);
 		}
 		delete[] vals;
 		report.Print();
@@ -279,9 +279,9 @@ namespace bench {
 	static BenchRunReport
 	BenchQueueRunPop(
 		BenchLoadType aLoadType,
-		uint32 aItemCount,
-		uint32 aThreadCount,
-		uint32 aSubQueueSize)
+		uint32_t aItemCount,
+		uint32_t aThreadCount,
+		uint32_t aSubQueueSize)
 	{
 		BenchCaseGuard guard("Operation pop, item=%u, thread=%u, subq=%u, load=%s",
 			aItemCount, aThreadCount, aSubQueueSize, BenchLoadTypeToString(aLoadType));
@@ -297,7 +297,7 @@ namespace bench {
 		for (BenchConsumerThread*& w : workers)
 			w->Pause();
 		BenchValue* vals = new BenchValue[aItemCount];
-		for (uint32 i = 0; i < aItemCount; ++i)
+		for (uint32_t i = 0; i < aItemCount; ++i)
 			queue.Push(&vals[i]);
 
 		BenchRunReport report;
@@ -308,7 +308,7 @@ namespace bench {
 			// start takes a lot of time. Better pause + continue existing threads.
 			for (BenchConsumerThread*& w : workers)
 				w->Continue();
-			uint64 popCount = 0;
+			uint64_t popCount = 0;
 			while (popCount != aItemCount)
 			{
 				mg::common::Sleep(1);
@@ -322,10 +322,10 @@ namespace bench {
 
 			double durationMs = timed.GetMilliseconds();
 
-			report.myItemsPerSec = (uint64)((uint64)aItemCount * 1000 / durationMs);
+			report.myItemsPerSec = (uint64_t)((uint64_t)aItemCount * 1000 / durationMs);
 			report.myItemsPerSecPerThread = report.myItemsPerSec / aThreadCount;
 			report.myThreads.SetCount(aThreadCount);
-			for (uint32 i = 0; i < aThreadCount; ++i)
+			for (uint32_t i = 0; i < aThreadCount; ++i)
 			{
 				BenchThreadReport& r = report.myThreads[i];
 				const BenchConsumerThread* w = workers[i];
@@ -341,9 +341,9 @@ namespace bench {
 	static BenchRunReport
 	BenchQueueRunPushPop(
 		BenchLoadType aLoadType,
-		uint32 aItemCount,
-		uint32 aThreadCount,
-		uint32 aSubQueueSize)
+		uint32_t aItemCount,
+		uint32_t aThreadCount,
+		uint32_t aSubQueueSize)
 	{
 		BenchCaseGuard guard("Operation push-pop, item=%u, thread=%u, subq=%u, load=%s",
 			aItemCount, aThreadCount, aSubQueueSize, BenchLoadTypeToString(aLoadType));
@@ -360,9 +360,9 @@ namespace bench {
 		{
 			mg::common::MutexStatClear();
 			TimedGuard timed("Push and pop");
-			for (uint32 i = 0; i < aItemCount; ++i)
+			for (uint32_t i = 0; i < aItemCount; ++i)
 				queue.Push(&vals[i]);
-			uint64 popCount = 0;
+			uint64_t popCount = 0;
 			while (popCount != aItemCount)
 			{
 				mg::common::Sleep(1);
@@ -376,10 +376,10 @@ namespace bench {
 
 			double durationMs = timed.GetMilliseconds();
 
-			report.myItemsPerSec = (uint64)((uint64)aItemCount * 1000 / durationMs);
+			report.myItemsPerSec = (uint64_t)((uint64_t)aItemCount * 1000 / durationMs);
 			report.myItemsPerSecPerThread = report.myItemsPerSec / aThreadCount;
 			report.myThreads.SetCount(aThreadCount);
-			for (uint32 i = 0; i < aThreadCount; ++i)
+			for (uint32_t i = 0; i < aThreadCount; ++i)
 			{
 				BenchThreadReport& r = report.myThreads[i];
 				const BenchConsumerThread* w = workers[i];
@@ -402,7 +402,7 @@ main(
 {
 	using namespace mg::bench;
 	CommandLine cmdLine(aArgc - 1, aArgv + 1);
-	uint32 runCount = 1;
+	uint32_t runCount = 1;
 	if (cmdLine.IsPresent("runs"))
 		runCount = cmdLine.GetU32("runs");
 

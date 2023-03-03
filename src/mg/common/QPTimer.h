@@ -16,9 +16,9 @@ namespace common {
 
 	private:
 #if IS_PLATFORM_POSIX
-		uint64 myStartNs;
+		uint64_t myStartNs;
 #else
-		uint64 myStartQuant;
+		uint64_t myStartQuant;
 #endif
 	};
 

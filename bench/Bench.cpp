@@ -107,7 +107,7 @@ namespace bench {
 					"Argument %d has invalid chars", i);
 				++pos;
 			}
-			uint32 argi = myArgs.Count();
+			uint32_t argi = myArgs.Count();
 			myArgs.SetCount(argi + 1);
 			Pair& p = myArgs[argi];
 			p.myKey = arg;
@@ -133,21 +133,21 @@ namespace bench {
 		return PrivGet(aName).myValue;
 	}
 
-	uint64
+	uint64_t
 	CommandLine::GetU64(
 		const char* aName) const
 	{
-		uint64 res = 0;
+		uint64_t res = 0;
 		MG_COMMON_ASSERT_F(mg::common::StringToNumber(PrivGet(aName).myValue, res),
 			"Couldn't convert arg %s to uint64", aName);
 		return res;
 	}
 
-	uint32
+	uint32_t
 	CommandLine::GetU32(
 		const char* aName) const
 	{
-		uint32 res = 0;
+		uint32_t res = 0;
 		MG_COMMON_ASSERT_F(mg::common::StringToNumber(PrivGet(aName).myValue, res),
 			"Couldn't convert arg %s to uint64", aName);
 		return res;
@@ -210,7 +210,7 @@ namespace bench {
 	{
 		for (int i = 0; i < aCount; ++i)
 		{
-			int32 flag = mg::common::RandomBool();
+			int32_t flag = mg::common::RandomBool();
 			mg::common::AtomicFlagSet(&flag);
 		}
 	}

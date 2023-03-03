@@ -17,11 +17,11 @@ namespace common {
 	using MutexHandle = CRITICAL_SECTION;
 #endif
 
-	extern int64 theMutexStartContentCount;
+	extern int64_t theMutexStartContentCount;
 
 	void MutexStatClear();
 
-	uint64 MutexStatContentionCount();
+	uint64_t MutexStatContentionCount();
 
 	class Mutex
 	{
@@ -43,7 +43,7 @@ namespace common {
 			const Mutex&) = delete;
 
 		MutexHandle myHandle;
-		uint32 myOwner;
+		uint32_t myOwner;
 		int myLockCount;
 
 		friend class ConditionVariable;

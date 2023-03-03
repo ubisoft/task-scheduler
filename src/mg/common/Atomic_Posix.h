@@ -29,55 +29,55 @@ namespace common {
 	// on hardware level provides acquire for all loads and
 	// release for all stores.
 
-	static inline int32
+	static inline int32_t
 	AtomicIncrement(
-		int32* aValue)
+		int32_t* aValue)
 	{
 		return __atomic_add_fetch(aValue, 1, __ATOMIC_SEQ_CST);
 	}
 
-	static inline int64
+	static inline int64_t
 	AtomicIncrement64(
-		int64* aValue)
+		int64_t* aValue)
 	{
 		return __atomic_add_fetch(aValue, 1, __ATOMIC_SEQ_CST);
 	}
 
-	static inline int32
+	static inline int32_t
 	AtomicDecrement(
-		int32* aValue)
+		int32_t* aValue)
 	{
 		return __atomic_sub_fetch(aValue, 1, __ATOMIC_SEQ_CST);
 	}
 
-	static inline int32
+	static inline int32_t
 	AtomicExchange(
-		int32* aDest,
-		int32 aExchange)
+		int32_t* aDest,
+		int32_t aExchange)
 	{
 		return __atomic_exchange_n(aDest, aExchange, __ATOMIC_SEQ_CST);
 	}
 
-	static inline uint32
+	static inline uint32_t
 	AtomicExchangeU32(
-		uint32* aDest,
-		uint32 aExchange)
+		uint32_t* aDest,
+		uint32_t aExchange)
 	{
 		return __atomic_exchange_n(aDest, aExchange, __ATOMIC_SEQ_CST);
 	}
 
-	static inline int64
+	static inline int64_t
 	AtomicExchange64(
-		int64* aDest,
-		int64 aExchange)
+		int64_t* aDest,
+		int64_t aExchange)
 	{
 		return __atomic_exchange_n(aDest, aExchange, __ATOMIC_SEQ_CST);
 	}
 
-	static inline uint64
+	static inline uint64_t
 	AtomicExchangeU64(
-		uint64* aDest,
-		uint64 aExchange)
+		uint64_t* aDest,
+		uint64_t aExchange)
 	{
 		return __atomic_exchange_n(aDest, aExchange, __ATOMIC_SEQ_CST);
 	}
@@ -91,11 +91,11 @@ namespace common {
 		return __atomic_exchange_n(aDest, aExchange, __ATOMIC_SEQ_CST);
 	}
 
-	static inline int32
+	static inline int32_t
 	AtomicCompareExchange(
-		int32* aDest,
-		int32 aExchange,
-		int32 aCompare)
+		int32_t* aDest,
+		int32_t aExchange,
+		int32_t aCompare)
 	{
 		__atomic_compare_exchange(aDest, &aCompare, &aExchange, false, __ATOMIC_SEQ_CST,
 			__ATOMIC_SEQ_CST);
@@ -107,11 +107,11 @@ namespace common {
 		return aCompare;
 	}
 
-	static inline int64
+	static inline int64_t
 	AtomicCompareExchange64(
-		int64* aDest,
-		int64 aExchange,
-		int64 aCompare)
+		int64_t* aDest,
+		int64_t aExchange,
+		int64_t aCompare)
 	{
 		__atomic_compare_exchange(aDest, &aCompare, &aExchange, false, __ATOMIC_SEQ_CST,
 			__ATOMIC_SEQ_CST);
@@ -130,26 +130,26 @@ namespace common {
 		return aCompare;
 	}
 
-	static inline int32
+	static inline int32_t
 	AtomicAdd(
-		int32* aDest,
-		int32 aValue)
+		int32_t* aDest,
+		int32_t aValue)
 	{
 		return __atomic_fetch_add(aDest, aValue, __ATOMIC_SEQ_CST);
 	}
 
-	static inline uint32
+	static inline uint32_t
 	AtomicAddU32(
-		uint32* aDest,
-		uint32 aValue)
+		uint32_t* aDest,
+		uint32_t aValue)
 	{
 		return __atomic_fetch_add(aDest, aValue, __ATOMIC_SEQ_CST);
 	}
 
-	static inline int64
+	static inline int64_t
 	AtomicAdd64(
-		int64* aDest,
-		int64 aValue)
+		int64_t* aDest,
+		int64_t aValue)
 	{
 		return __atomic_fetch_add(aDest, aValue, __ATOMIC_SEQ_CST);
 	}
@@ -207,18 +207,18 @@ namespace common {
 	// are propagated to cache of all other cores. Even writes,
 	// not related to the accessed memory.
 	//
-	static inline int32
+	static inline int32_t
 	AtomicFlagTest(
-		const int32* aDest)
+		const int32_t* aDest)
 	{
 		// Acquire means that all loads and stores following this
 		// instruction won't be reordered before.
 		return __atomic_load_n(aDest, __ATOMIC_ACQUIRE);
 	}
 
-	static inline int32
+	static inline int32_t
 	AtomicFlagClear(
-		int32* aDest)
+		int32_t* aDest)
 	{
 		// Both Acquire and Release are needed, because usually
 		// when a flag is explicitly cleared, it is going to be
@@ -229,9 +229,9 @@ namespace common {
 		return __atomic_exchange_n(aDest, 0, __ATOMIC_ACQ_REL);
 	}
 
-	static inline int32
+	static inline int32_t
 	AtomicFlagSet(
-		int32* aDest)
+		int32_t* aDest)
 	{
 		// Why both Acquire and Release here? Why not only
 		// Release. Because there are two usage cases for Set():
@@ -253,30 +253,30 @@ namespace common {
 		return __atomic_exchange_n(aDest, 1, __ATOMIC_ACQ_REL);
 	}
 
-	static inline int32
+	static inline int32_t
 	AtomicLoad(
-		int32* aSrc)
+		int32_t* aSrc)
 	{
 		return __atomic_load_n(aSrc, __ATOMIC_SEQ_CST);
 	}
 
-	static inline uint32
+	static inline uint32_t
 	AtomicLoadU32(
-		uint32* aSrc)
+		uint32_t* aSrc)
 	{
 		return __atomic_load_n(aSrc, __ATOMIC_SEQ_CST);
 	}
 
-	static inline int64
+	static inline int64_t
 	AtomicLoad64(
-		int64* aSrc)
+		int64_t* aSrc)
 	{
 		return __atomic_load_n(aSrc, __ATOMIC_SEQ_CST);
 	}
 
-	static inline uint64
+	static inline uint64_t
 	AtomicLoadU64(
-		uint64* aSrc)
+		uint64_t* aSrc)
 	{
 		return __atomic_load_n(aSrc, __ATOMIC_SEQ_CST);
 	}

@@ -8,60 +8,60 @@ namespace common {
 	static_assert(sizeof(LONG) == 4, "long size");
 	static_assert(sizeof(LONGLONG) == 8, "longlong size");
 
-	static inline int32
+	static inline int32_t
 	AtomicIncrement(
-		int32* aValue)
+		int32_t* aValue)
 	{
 		return InterlockedIncrement((LONG*) aValue);
 	}
 
-	static inline int32
+	static inline int32_t
 	AtomicDecrement(
-		int32* aValue)
+		int32_t* aValue)
 	{
 		return InterlockedDecrement((LONG*) aValue);
 	}
 
-	static inline int32
+	static inline int32_t
 	AtomicCompareExchange(
-		int32* aDest,
-		int32 aExchange,
-		int32 aCompare)
+		int32_t* aDest,
+		int32_t aExchange,
+		int32_t aCompare)
 	{
 		return InterlockedCompareExchange((LONG*) aDest, (LONG) aExchange,
 			(LONG) aCompare);
 	}
 
-	static inline int32
+	static inline int32_t
 	AtomicExchange(
-		int32* aDest,
-		int32 aValue)
+		int32_t* aDest,
+		int32_t aValue)
 	{
 		return InterlockedExchange((LONG*) aDest, (LONG) aValue);
 	}
 
-	static inline uint32
+	static inline uint32_t
 	AtomicExchangeU32(
-		uint32* aDest,
-		uint32 aValue)
+		uint32_t* aDest,
+		uint32_t aValue)
 	{
 		return InterlockedExchange((LONG*) aDest, (LONG) aValue);
 	}
 
-	static inline int64
+	static inline int64_t
 	AtomicExchange64(
-		int64* aDest,
-		int64 aValue)
+		int64_t* aDest,
+		int64_t aValue)
 	{
 		return InterlockedExchange64((LONG64*) aDest, aValue);
 	}
 
-	static inline uint64
+	static inline uint64_t
 	AtomicExchangeU64(
-		uint64* aDest,
-		uint64 aValue)
+		uint64_t* aDest,
+		uint64_t aValue)
 	{
-		union { int64 i64; uint64 u64; };
+		union { int64_t i64; uint64_t u64; };
 		u64 = aValue;
 		i64 = InterlockedExchange64((LONG64*) aDest, i64);
 		return u64;
@@ -76,11 +76,11 @@ namespace common {
 		return (T*)InterlockedExchangePointer((void**)aDest, (void*)aExchange);
 	}
 
-	static inline int64
+	static inline int64_t
 	AtomicCompareExchange64(
-		int64* aDest,
-		int64 aExchange,
-		int64 aCompare)
+		int64_t* aDest,
+		int64_t aExchange,
+		int64_t aCompare)
 	{
 		return InterlockedCompareExchange64(aDest, aExchange, aCompare);
 	}
@@ -96,49 +96,49 @@ namespace common {
 			(void*) aCompare);
 	}
 
-	static inline int64
+	static inline int64_t
 	AtomicIncrement64(
-		int64* aValue)
+		int64_t* aValue)
 	{
 		return InterlockedIncrement64(aValue);
 	}
 
-	static inline int32
+	static inline int32_t
 	AtomicAdd(
-		int32* aDest,
-		int32 aValue)
+		int32_t* aDest,
+		int32_t aValue)
 	{
 		return InterlockedExchangeAdd((LONG*) aDest, aValue);
 	}
 
-	static inline uint32
+	static inline uint32_t
 	AtomicAddU32(
-		uint32* aDest,
-		uint32 aValue)
+		uint32_t* aDest,
+		uint32_t aValue)
 	{
 		return InterlockedExchangeAdd((LONG*) aDest, (LONG)aValue);
 	}
 
-	static inline int64
+	static inline int64_t
 	AtomicAdd64(
-		int64* aDest,
-		int64 aValue)
+		int64_t* aDest,
+		int64_t aValue)
 	{
 		return InterlockedExchangeAdd64((LONG64*) aDest, aValue);
 	}
 
 	// See a big comment on how to use these functions in Posix
 	// version of this.
-	static inline int32
+	static inline int32_t
 	AtomicFlagTest(
-		const int32* aDest)
+		const int32_t* aDest)
 	{
 		return InterlockedCompareExchangeAcquire((LONG*) aDest, 1, 1);
 	}
 
-	static inline int32
+	static inline int32_t
 	AtomicFlagClear(
-		int32* aDest)
+		int32_t* aDest)
 	{
 		// Msvc does not provide a command to emit combined
 		// Acquire+Release barrier. So a full one is used here
@@ -146,39 +146,39 @@ namespace common {
 		return InterlockedExchange((LONG*) aDest, 0);
 	}
 
-	static inline int32
+	static inline int32_t
 	AtomicFlagSet(
-		int32* aDest)
+		int32_t* aDest)
 	{
 		return InterlockedCompareExchange((LONG*) aDest, 1, 0);
 	}
 
-	static inline int32
+	static inline int32_t
 	AtomicLoad(
-		int32* aSrc)
+		int32_t* aSrc)
 	{
 		return InterlockedOr((LONG*) aSrc, 0);
 	}
 
-	static inline uint32
+	static inline uint32_t
 	AtomicLoadU32(
-		uint32* aSrc)
+		uint32_t* aSrc)
 	{
 		return InterlockedOr((LONG*) aSrc, 0);
 	}
 
-	static inline int64
+	static inline int64_t
 	AtomicLoad64(
-		int64* aSrc)
+		int64_t* aSrc)
 	{
 		return InterlockedOr64(aSrc, 0);
 	}
 
-	static inline uint64
+	static inline uint64_t
 	AtomicLoadU64(
-		uint64* aSrc)
+		uint64_t* aSrc)
 	{
-		union { int64 i64; uint64 u64; };
+		union { int64_t i64; uint64_t u64; };
 		i64 = InterlockedOr64((LONG64*) aSrc, 0);
 		return u64;
 	}

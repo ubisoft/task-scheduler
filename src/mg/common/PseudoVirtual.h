@@ -20,7 +20,7 @@ namespace common {
 	// non-virtual destructor leads to undefined behaviour. But it
 	// is not so for malloc()/free() or if allocation of the
 	// underlying buffer is done manually using new[]/delete[] for
-	// uint8 or char, for instance. With manual allocation it does
+	// uint8_t or char, for instance. With manual allocation it does
 	// not matter whether it is a base pointer or not - it just
 	// needs to be the same pointer as returned by a corresponding
 	// malloc()/new[] earlier.
@@ -36,7 +36,7 @@ namespace common {
 			// Use new[]/delete[], not free/malloc. Because
 			// new/delete may be redefined on an upper level for
 			// memory accounting.
-			return new uint8[aSize];
+			return new uint8_t[aSize];
 		}
 
 		inline void*
@@ -52,7 +52,7 @@ namespace common {
 		operator delete(
 			void* aPtr)
 		{
-			delete[] (uint8*)aPtr;
+			delete[] (uint8_t*)aPtr;
 		}
 
 		inline void

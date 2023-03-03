@@ -25,7 +25,7 @@ namespace common {
 	void
 	Signal::Send()
 	{
-		int32 oldState = mg::common::AtomicCompareExchange(&myState, SIGNAL_STATE_PROBE,
+		int32_t oldState = mg::common::AtomicCompareExchange(&myState, SIGNAL_STATE_PROBE,
 			SIGNAL_STATE_EMPTY);
 		// If it was already set, then no need to proceed. The
 		// condition variable is signaled by another thread. That
@@ -93,7 +93,7 @@ namespace common {
 
 	bool
 	Signal::ReceiveTimed(
-		uint32 aTimeout)
+		uint32_t aTimeout)
 	{
 		if (Receive())
 			return true;

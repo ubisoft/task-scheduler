@@ -10,7 +10,7 @@ namespace common {
 		int aIndex)
 	{
 		MG_COMMON_ASSERT(aIndex >= 0);
-		MG_COMMON_ASSERT(aIndex == 0 || (uint32)aIndex < mySize);
+		MG_COMMON_ASSERT(aIndex == 0 || (uint32_t)aIndex < mySize);
 		return myData[aIndex];
 	}
 
@@ -27,7 +27,7 @@ namespace common {
 		int aIndex) const
 	{
 		MG_COMMON_ASSERT(aIndex >= 0);
-		MG_COMMON_ASSERT(aIndex == 0 || (uint32)aIndex < mySize);
+		MG_COMMON_ASSERT(aIndex == 0 || (uint32_t)aIndex < mySize);
 		return myData[aIndex];
 	}
 
@@ -49,7 +49,7 @@ namespace common {
 		}
 		else
 		{
-			uint32 len = mg::common::Strlen(aString);
+			uint32_t len = mg::common::Strlen(aString);
 			SetLength(len);
 			memcpy(myData, aString, len);
 		}
@@ -58,7 +58,7 @@ namespace common {
 	void
 	IString::Set(
 		const char* aString,
-		uint32 aLength)
+		uint32_t aLength)
 	{
 		SetLength(aLength);
 		memcpy(myData, aString, aLength);
@@ -68,8 +68,8 @@ namespace common {
 	IString::Append(
 		const char* aString)
 	{
-		uint32 len = mg::common::Strlen(aString);
-		uint32 oldLen = GetLength();
+		uint32_t len = mg::common::Strlen(aString);
+		uint32_t oldLen = GetLength();
 		SetLength(len + oldLen);
 		memcpy(myData + oldLen, aString, len);
 	}
@@ -81,11 +81,11 @@ namespace common {
 	{
 		va_list savepoint;
 		va_copy(savepoint, aParams);
-		uint32 oldLen = GetLength();
-		uint32 bufferSize = mySize - oldLen;
-		uint32 newLen = mg::common::Vsnprintf(myData + oldLen, bufferSize,
+		uint32_t oldLen = GetLength();
+		uint32_t bufferSize = mySize - oldLen;
+		uint32_t newLen = mg::common::Vsnprintf(myData + oldLen, bufferSize,
 			aFormatString, aParams);
-		uint32 newSize = newLen + 1;
+		uint32_t newSize = newLen + 1;
 		SetLength(newLen + oldLen);
 		if (newSize > bufferSize)
 		{
@@ -98,7 +98,7 @@ namespace common {
 
 	void
 	IString::PrivRealloc(
-		uint32 aNewSize)
+		uint32_t aNewSize)
 	{
 		if (aNewSize <= mySize)
 			return;

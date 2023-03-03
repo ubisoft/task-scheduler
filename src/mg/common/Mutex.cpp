@@ -6,7 +6,7 @@
 namespace mg {
 namespace common {
 
-	int64 theMutexStartContentCount = 0;
+	int64_t theMutexStartContentCount = 0;
 
 	void
 	MutexStatClear()
@@ -14,10 +14,10 @@ namespace common {
 		mg::common::AtomicExchange64(&theMutexStartContentCount, 0);
 	}
 
-	uint64
+	uint64_t
 	MutexStatContentionCount()
 	{
-		return (uint64) mg::common::AtomicLoad64(&theMutexStartContentCount);
+		return (uint64_t)mg::common::AtomicLoad64(&theMutexStartContentCount);
 	}
 
 	bool

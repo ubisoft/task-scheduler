@@ -13,7 +13,7 @@ namespace serverbox {
 
 	// The status is an internal thing, not supposed to be used by
 	// the external code.
-	enum TaskStatus : int32
+	enum TaskStatus : int32_t
 	{
 		// Task is pending if it not known yet if it has a
 		// deadline in the future. The task can be anywhere except
@@ -66,7 +66,7 @@ namespace serverbox {
 		// Can't be called when the task has been posted to the
 		// scheduler waiting for execution.
 		void SetDelay(
-			uint32 aDelay);
+			uint32_t aDelay);
 
 		// Set deadline to a minimal value between the current
 		// deadline and the current time + the given delay. It
@@ -80,7 +80,7 @@ namespace serverbox {
 		// Can't be called when the task has been posted to the
 		// scheduler waiting for execution.
 		void AdjustDelay(
-			uint32 aDelay);
+			uint32_t aDelay);
 
 		// Setting a deadline may be useful when it is known in
 		// advance - allows to avoid at least one call to get the
@@ -88,7 +88,7 @@ namespace serverbox {
 		// Can't be called when the task has been posted to the
 		// scheduler waiting for execution.
 		void SetDeadline(
-			uint64 aDeadline);
+			uint64_t aDeadline);
 
 		// The same as delay adjustment but the deadline is passed
 		// by the user. Not calculated inside. This is faster when
@@ -96,7 +96,7 @@ namespace serverbox {
 		// Can't be called when the task has been posted to the
 		// scheduler waiting for execution.
 		void AdjustDeadline(
-			uint64 aDeadline);
+			uint64_t aDeadline);
 
 		// The task won't be executed again until an explicit
 		// wakeup or signal.
@@ -124,7 +124,7 @@ namespace serverbox {
 		// deadline is set.
 		// Can't be called when the task has been posted to the
 		// scheduler waiting for execution.
-		uint64 GetDeadline() const;
+		uint64_t GetDeadline() const;
 
 		// Atomically try to receive a signal. In case of success
 		// the signal is cleared, and true is returned. If the
@@ -153,10 +153,10 @@ namespace serverbox {
 		Task* myNext;
 		// Index is public so as it could be used by the intrusive
 		// waiting queue.
-		int32 myIndex;
+		int32_t myIndex;
 	private:
-		int32 myStatus;
-		uint64 myDeadline;
+		int32_t myStatus;
+		uint64_t myDeadline;
 		TaskCallback myCallback;
 		// True if the task is inside the scheduler in one of its
 		// queues. It means it can't be altered anyhow. Only for

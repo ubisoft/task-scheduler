@@ -189,7 +189,7 @@ namespace unittests {
 
 		int myValue;
 		UTAValue* myPtr;
-		uint32 myMagic;
+		uint32_t myMagic;
 
 		static int ourCopyConstrCount;
 		static int ourCopyAssignCount;
@@ -970,7 +970,7 @@ namespace unittests {
 			{
 				int newCount = count - 1;
 				arr.RemoveLast();
-				MG_COMMON_ASSERT(arr.Count() == (uint32)newCount);
+				MG_COMMON_ASSERT(arr.Count() == (uint32_t)newCount);
 				MG_COMMON_ASSERT(arr.GetCapacity() == 8);
 				for (int j = 0; j < newCount; ++j)
 					MG_COMMON_ASSERT(arr[j].myValue == j + 1);
@@ -996,7 +996,7 @@ namespace unittests {
 			{
 				int newCount = count - 1;
 				arr.RemoveLast();
-				MG_COMMON_ASSERT(arr.Count() == (uint32)newCount);
+				MG_COMMON_ASSERT(arr.Count() == (uint32_t)newCount);
 				MG_COMMON_ASSERT(arr.GetCapacity() == 8);
 				for (int j = 0; j < newCount; ++j)
 					MG_COMMON_ASSERT(arr[j] == j + 1);
@@ -1028,7 +1028,7 @@ namespace unittests {
 			{
 				int newCount = count - 1;
 				arr.DeleteLast();
-				MG_COMMON_ASSERT(arr.Count() == (uint32) newCount);
+				MG_COMMON_ASSERT(arr.Count() == (uint32_t)newCount);
 				MG_COMMON_ASSERT(arr.GetCapacity() == 8);
 				for (int j = 0; j < newCount; ++j)
 					MG_COMMON_ASSERT(arr[j]->myValue == j + 1);
@@ -1055,7 +1055,7 @@ namespace unittests {
 			{
 				int newCount = count - 1;
 				arr.DeleteLast();
-				MG_COMMON_ASSERT(arr.Count() == (uint32) newCount);
+				MG_COMMON_ASSERT(arr.Count() == (uint32_t)newCount);
 				MG_COMMON_ASSERT(arr.GetCapacity() == 8);
 				for (int j = 0; j < newCount; ++j)
 					MG_COMMON_ASSERT(*arr[j] == j + 1);
@@ -2309,14 +2309,14 @@ namespace unittests {
 				mg::common::Array<UTAValue>* arr1 = vars->Get(i)();
 				mg::common::Array<UTAValue>* arr2 = vars->Get(j)();
 
-				uint32 cap1 = arr1->GetCapacity();
-				uint32 stat1 = arr1->GetStaticCapacity();
+				uint32_t cap1 = arr1->GetCapacity();
+				uint32_t stat1 = arr1->GetStaticCapacity();
 				UTAValue* buf1 = arr1->GetBuffer();
 				bool isDyn1 = arr1->IsDynamic();
 
-				uint32 cnt2 = arr2->Count();
-				uint32 cap2 = arr2->GetCapacity();
-				uint32 stat2 = arr2->GetStaticCapacity();
+				uint32_t cnt2 = arr2->Count();
+				uint32_t cap2 = arr2->GetCapacity();
+				uint32_t stat2 = arr2->GetStaticCapacity();
 				UTAValue* buf2 = arr2->GetBuffer();
 				bool isDyn2 = arr2->IsDynamic();
 
@@ -2346,9 +2346,9 @@ namespace unittests {
 					MG_COMMON_ASSERT(arr1->GetCapacity() >= cnt2);
 				}
 
-				for (uint32 k = 0; k < cnt2; ++k)
+				for (uint32_t k = 0; k < cnt2; ++k)
 					MG_COMMON_ASSERT(arr1->Get(k).myValue == (int)k);
-				for (uint32 k = 0; k < cnt2; ++k)
+				for (uint32_t k = 0; k < cnt2; ++k)
 					MG_COMMON_ASSERT(arr2->Get(k).myValue == (int)k);
 
 				const int count = 10;
@@ -2767,15 +2767,15 @@ namespace unittests {
 				mg::common::Array<UTAValue>* arr1 = vars->Get(i)();
 				mg::common::Array<UTAValue>* arr2 = vars->Get(j)();
 
-				uint32 cnt1 = arr1->Count();
-				uint32 cap1 = arr1->GetCapacity();
-				uint32 stat1 = arr1->GetStaticCapacity();
+				uint32_t cnt1 = arr1->Count();
+				uint32_t cap1 = arr1->GetCapacity();
+				uint32_t stat1 = arr1->GetStaticCapacity();
 				UTAValue* buf1 = arr1->GetBuffer();
 				bool isDyn1 = arr1->IsDynamic();
 
-				uint32 cnt2 = arr2->Count();
-				uint32 cap2 = arr2->GetCapacity();
-				uint32 stat2 = arr2->GetStaticCapacity();
+				uint32_t cnt2 = arr2->Count();
+				uint32_t cap2 = arr2->GetCapacity();
+				uint32_t stat2 = arr2->GetStaticCapacity();
 				UTAValue* buf2 = arr2->GetBuffer();
 				bool isDyn2 = arr2->IsDynamic();
 
@@ -2831,7 +2831,7 @@ namespace unittests {
 					MG_COMMON_ASSERT(false);
 				}
 
-				for (uint32 k = 0; k < cnt2; ++k)
+				for (uint32_t k = 0; k < cnt2; ++k)
 					MG_COMMON_ASSERT(arr1->Get(k).myValue == (int)k);
 
 				const int count = 10;
@@ -3199,7 +3199,7 @@ namespace unittests {
 			{
 				v.myValue = i + 1;
 				arr.Add(v);
-				MG_COMMON_ASSERT(arr.Count() == (uint32)(i + 1));
+				MG_COMMON_ASSERT(arr.Count() == (uint32_t)(i + 1));
 				MG_COMMON_ASSERT(arr.GetCapacity() == 3);
 				MG_COMMON_ASSERT(arr.GetBuffer() == staticBuf);
 				UTAValue::UseCopyConstrCount(1);

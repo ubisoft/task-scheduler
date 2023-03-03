@@ -17,16 +17,16 @@ namespace unittests {
 
 	static inline void
 	UnitTestCondVarSend(
-		int32* aCounter,
-		int32* aNextCounter)
+		int32_t* aCounter,
+		int32_t* aNextCounter)
 	{
 		*aNextCounter = mg::common::AtomicIncrement(aCounter) + 1;
 	}
 
 	static inline void
 	UnitTestCondVarReceive(
-		int32* aCounter,
-		int32* aNextCounter)
+		int32_t* aCounter,
+		int32_t* aNextCounter)
 	{
 		while (mg::common::AtomicCompareExchange(aCounter, *aNextCounter,
 			*aNextCounter) != *aNextCounter);
@@ -38,10 +38,10 @@ namespace unittests {
 	{
 		mg::common::ConditionVariable var;
 		mg::common::Mutex mutex;
-		int32 stepCounter = 0;
-		int32 next = 0;
+		int32_t stepCounter = 0;
+		int32_t next = 0;
 		mg::common::ThreadFunc worker([&]() {
-			int32 workerNext = 1;
+			int32_t workerNext = 1;
 
 			// Test that simple lock/unlock work correct.
 			UnitTestCondVarReceive(&stepCounter, &workerNext);

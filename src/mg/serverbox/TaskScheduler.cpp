@@ -8,8 +8,8 @@ namespace serverbox {
 
 	TaskScheduler::TaskScheduler(
 		const char* aName,
-		uint32 aThreadCount,
-		uint32 aSubQueueSize)
+		uint32_t aThreadCount,
+		uint32_t aSubQueueSize)
 		: myQueueReady(aSubQueueSize)
 		, myExecBatchSize(aSubQueueSize)
 		, mySchedBatchSize(aSubQueueSize * aThreadCount)
@@ -17,7 +17,7 @@ namespace serverbox {
 		, myIsStopped(0)
 	{
 		myThreads.SetCount(aThreadCount);
-		for (uint32 i = 0; i < aThreadCount; ++i)
+		for (uint32_t i = 0; i < aThreadCount; ++i)
 		{
 			myThreads[i] = new TaskSchedulerThread(aName, this);
 			myThreads[i]->Start();
@@ -43,7 +43,7 @@ namespace serverbox {
 
 	void
 	TaskScheduler::Reserve(
-		uint32 aCount)
+		uint32_t aCount)
 	{
 		myQueueReady.Reserve(aCount);
 	}
@@ -64,8 +64,8 @@ namespace serverbox {
 		// Don't do the load inside of the cycle. It is needed
 		// only first time. On next iterations the cmpxchg returns
 		// the old value anyway.
-		int32 old;
-		int32 oldNext = mg::common::AtomicLoad(&aTask->myStatus);
+		int32_t old;
+		int32_t oldNext = mg::common::AtomicLoad(&aTask->myStatus);
 		// Note, that the loop is not a busy loop nor a spin-lock.
 		// Because it would mean the thread couldn't progress
 		// until some other thread does something. Here, on the
@@ -94,7 +94,7 @@ namespace serverbox {
 	TaskScheduler::Signal(
 		Task* aTask)
 	{
-		int32 old = mg::common::AtomicExchange(&aTask->myStatus, TASK_STATUS_SIGNALED);
+		int32_t old = mg::common::AtomicExchange(&aTask->myStatus, TASK_STATUS_SIGNALED);
 		// WAITING - the task was in the waiting queue. Need to
 		// re-push it to let the scheduler know the task must be
 		// removed from the queue earlier.
@@ -117,15 +117,15 @@ namespace serverbox {
 		if (mg::common::AtomicFlagSet(&myIsSchedulerWorking) != 0)
 			return false;
 
-		int32 old;
+		int32_t old;
 		Task* t;
 		Task* next;
 		Task* tail;
 		TaskSchedulerQueuePending ready;
-		uint64 deadline;
-		uint64 timestamp = mg::common::GetMilliseconds();
-		uint32 batch;
-		uint32 maxBatch = mySchedBatchSize;
+		uint64_t deadline;
+		uint64_t timestamp = mg::common::GetMilliseconds();
+		uint32_t batch;
+		uint32_t maxBatch = mySchedBatchSize;
 
 	retry:
 		if (PrivIsStopped())
@@ -265,7 +265,7 @@ namespace serverbox {
 				deadline = myQueueWaiting.GetTop()->myDeadline;
 				timestamp = mg::common::GetMilliseconds();
 				if (deadline > timestamp)
-					mySignalFront.ReceiveTimed((uint32) (deadline - timestamp));
+					mySignalFront.ReceiveTimed((uint32_t)(deadline - timestamp));
 			}
 			goto retry;
 		}
@@ -313,7 +313,7 @@ namespace serverbox {
 			return false;
 		MG_COMMON_ASSERT(aTask->myIsInQueues);
 		aTask->myIsInQueues = false;
-		int32 old = mg::common::AtomicCompareExchange(&aTask->myStatus,
+		int32_t old = mg::common::AtomicCompareExchange(&aTask->myStatus,
 			TASK_STATUS_PENDING, TASK_STATUS_READY);
 		MG_COMMON_ASSERT(old == TASK_STATUS_READY || old == TASK_STATUS_SIGNALED);
 		// The task object shall not be accessed anyhow after
@@ -354,8 +354,8 @@ namespace serverbox {
 	void
 	TaskSchedulerThread::Run()
 	{
-		int64 maxBatch = myScheduler->myExecBatchSize;
-		int64 batch;
+		int64_t maxBatch = myScheduler->myExecBatchSize;
+		int64_t batch;
 		while (!myScheduler->PrivIsStopped())
 		{
 			do

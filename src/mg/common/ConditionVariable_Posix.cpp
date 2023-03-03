@@ -33,7 +33,7 @@ namespace common {
 	void
 	ConditionVariable::PrivTimedWait(
 		MutexHandle& aMutex,
-		uint32 aTimeoutMs,
+		uint32_t aTimeoutMs,
 		bool* aOutIsTimedOut)
 	{
 		struct timespec ts;

@@ -5,7 +5,7 @@
 namespace mg {
 namespace common {
 
-	template<typename T, uint32 aStaticSize = 1>
+	template<typename T, uint32_t aStaticSize = 1>
 	class HybridArray
 		: public Array<T>
 	{
@@ -37,12 +37,12 @@ namespace common {
 			HybridArray&& aOther);
 
 	private:
-		alignas(alignof(T)) uint8 myBuffer[aStaticSize * sizeof(T)];
+		alignas(alignof(T)) uint8_t myBuffer[aStaticSize * sizeof(T)];
 	};
 
 	//////////////////////////////////////////////////////////////
 
-	template <typename T, uint32 aStaticSize>
+	template <typename T, uint32_t aStaticSize>
 	inline
 	HybridArray<T, aStaticSize>::HybridArray()
 		: Array<T>(aStaticSize, myBuffer)
@@ -53,7 +53,7 @@ namespace common {
 		);
 	}
 
-	template <typename T, uint32 aStaticSize>
+	template <typename T, uint32_t aStaticSize>
 	inline
 	HybridArray<T, aStaticSize>::HybridArray(
 		const Array<T>& aOther)
@@ -61,7 +61,7 @@ namespace common {
 	{
 	}
 
-	template <typename T, uint32 aStaticSize>
+	template <typename T, uint32_t aStaticSize>
 	inline
 	HybridArray<T, aStaticSize>::HybridArray(
 		const HybridArray& aOther)
@@ -69,7 +69,7 @@ namespace common {
 	{
 	}
 
-	template <typename T, uint32 aStaticSize>
+	template <typename T, uint32_t aStaticSize>
 	inline
 	HybridArray<T, aStaticSize>::HybridArray(
 		Array<T>&& aOther)
@@ -77,7 +77,7 @@ namespace common {
 	{
 	}
 
-	template <typename T, uint32 aStaticSize>
+	template <typename T, uint32_t aStaticSize>
 	inline
 	HybridArray<T, aStaticSize>::HybridArray(
 		HybridArray&& aOther)
@@ -85,7 +85,7 @@ namespace common {
 	{
 	}
 
-	template <typename T, uint32 aStaticSize>
+	template <typename T, uint32_t aStaticSize>
 	inline HybridArray<T, aStaticSize>&
 	HybridArray<T, aStaticSize>::operator=(
 		const Array<T>& aOther)
@@ -93,7 +93,7 @@ namespace common {
 		return (HybridArray&)Array<T>::operator=(aOther);
 	}
 
-	template <typename T, uint32 aStaticSize>
+	template <typename T, uint32_t aStaticSize>
 	inline HybridArray<T, aStaticSize>&
 	HybridArray<T, aStaticSize>::operator=(
 		const HybridArray& aOther)
@@ -101,7 +101,7 @@ namespace common {
 		return (HybridArray&)Array<T>::operator=(aOther);
 	}
 
-	template <typename T, uint32 aStaticSize>
+	template <typename T, uint32_t aStaticSize>
 	inline HybridArray<T, aStaticSize>&
 	HybridArray<T, aStaticSize>::operator=(
 		Array<T>&& aOther)
@@ -109,7 +109,7 @@ namespace common {
 		return (HybridArray&)Array<T>::operator=(Move(aOther));
 	}
 
-	template <typename T, uint32 aStaticSize>
+	template <typename T, uint32_t aStaticSize>
 	inline HybridArray<T, aStaticSize>&
 	HybridArray<T, aStaticSize>::operator=(
 		HybridArray&& aOther)

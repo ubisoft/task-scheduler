@@ -602,7 +602,7 @@ namespace unittests {
 		void
 		Create(
 			UTMCQueueLocked* aQueue,
-			int32* aTotalPopCount)
+			int32_t* aTotalPopCount)
 		{
 			myQueue = aQueue;
 			myPopCount = 0;
@@ -620,7 +620,7 @@ namespace unittests {
 		Run() override
 		{
 			UTMCQValue* v;
-			uint64 yield = 0;
+			uint64_t yield = 0;
 			while (!StopRequested())
 			{
 				while ((v = myQueue->Pop()) != nullptr)
@@ -638,8 +638,8 @@ namespace unittests {
 		}
 
 		UTMCQueueLocked* myQueue;
-		int32 myPopCount;
-		int32* myTotalPopCount;
+		int32_t myPopCount;
+		int32_t* myTotalPopCount;
 	};
 
 	static void
@@ -648,7 +648,7 @@ namespace unittests {
 		int aThreadCount)
 	{
 		UTMCQueueLocked queue;
-		int32 popCount = 0;
+		int32_t popCount = 0;
 		UTMCQValue* values = new UTMCQValue[aElementCount];
 		for (int i = 0; i < aElementCount; ++i)
 			values[i].myValue = i;
@@ -663,7 +663,7 @@ namespace unittests {
 		mg::common::QPTimer timer;
 		timer.Start();
 
-		uint64 yield = 0;
+		uint64_t yield = 0;
 		for (int i = 0; i < aElementCount; ++i)
 		{
 			queue.Push(&values[i]);
@@ -700,7 +700,7 @@ namespace unittests {
 		void
 		Create(
 			UTMCQueue* aQueue,
-			int32* aTotalPopCount)
+			int32_t* aTotalPopCount)
 		{
 			myConsumer.Attach(aQueue);
 			myPopCount = 0;
@@ -718,7 +718,7 @@ namespace unittests {
 		Run() override
 		{
 			UTMCQValue* v;
-			uint64 yield = 0;
+			uint64_t yield = 0;
 			while (!StopRequested())
 			{
 				while ((v = myConsumer.Pop()) != nullptr)
@@ -736,8 +736,8 @@ namespace unittests {
 		}
 
 		UTMCQueueConsumer myConsumer;
-		int32 myPopCount;
-		int32* myTotalPopCount;
+		int32_t myPopCount;
+		int32_t* myTotalPopCount;
 	};
 
 	static void
@@ -752,7 +752,7 @@ namespace unittests {
 		if (aReserve)
 			queue.Reserve(aElementCount);
 
-		int32 popCount = 0;
+		int32_t popCount = 0;
 		UTMCQValue* values = new UTMCQValue[aElementCount];
 		for (int i = 0; i < aElementCount; ++i)
 			values[i].myValue = i;
@@ -791,7 +791,7 @@ namespace unittests {
 		for (int i = 0; i < aElementCount; ++i)
 			MG_COMMON_ASSERT(values[i].myValue == -i);
 
-		uint32 subQueueCountMax =
+		uint32_t subQueueCountMax =
 			aElementCount / aSubQueueSize + (aElementCount % aSubQueueSize != 0);
 		MG_COMMON_ASSERT(queue.SubQueueCount() <= subQueueCountMax);
 

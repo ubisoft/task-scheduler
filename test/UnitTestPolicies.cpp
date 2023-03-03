@@ -16,7 +16,7 @@ namespace unittests {
 	static void
 	CompilerBarrier()
 	{
-		int32 flag = 0;
+		int32_t flag = 0;
 		mg::common::AtomicFlagSet(&flag);
 	}
 

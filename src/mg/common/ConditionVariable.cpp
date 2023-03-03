@@ -11,7 +11,7 @@ namespace common {
 	{
 		MG_COMMON_ASSERT(aMutex.IsOwnedByThisThread());
 		MG_COMMON_ASSERT(aMutex.myLockCount == 1);
-		uint32 tid = aMutex.myOwner;
+		uint32_t tid = aMutex.myOwner;
 		aMutex.myOwner = 0;
 		aMutex.myLockCount = 0;
 
@@ -26,12 +26,12 @@ namespace common {
 	void
 	ConditionVariable::TimedWait(
 		Mutex& aMutex,
-		uint32 aTimeoutMs,
+		uint32_t aTimeoutMs,
 		bool* aOutIsTimedOut)
 	{
 		MG_COMMON_ASSERT(aMutex.IsOwnedByThisThread());
 		MG_COMMON_ASSERT(aMutex.myLockCount == 1);
-		uint32 tid = aMutex.myOwner;
+		uint32_t tid = aMutex.myOwner;
 		aMutex.myOwner = 0;
 		aMutex.myLockCount = 0;
 

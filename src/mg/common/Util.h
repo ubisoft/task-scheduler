@@ -48,7 +48,7 @@ namespace common {
 	// actively uses 8 byte registers and instructions. Assume
 	// there is a pointer at a variable, not aligned by 8 bytes.
 	// For example something like 8x + 4, where 'x' is some
-	// number. And assume it is a uint64 number. To read these 8
+	// number. And assume it is a uint64_t number. To read these 8
 	// bytes CPU will need to do multiple fetches from memory,
 	// because typically it works in words of a fixed size aligned
 	// by a certain value. And then merge them into one register.

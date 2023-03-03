@@ -115,7 +115,7 @@ namespace common {
 		// The size is limited so as not to use the heap. If a
 		// callable object is bigger than 32 bytes, there is
 		// likely something wrong with it.
-		uint8 myBuffer[sizeof(void*) * 4];
+		uint8_t myBuffer[sizeof(void*) * 4];
 	};
 
 	//////////////////////////////////////////////////////////////
@@ -127,7 +127,7 @@ namespace common {
 	// just cast from a raw buffer safely. For example, this may
 	// not compile depending on compiler:
 	//
-	//     uint8 myBuffer[sizeof(void*) * 4];
+	//     uint8_t myBuffer[sizeof(void*) * 4];
 	//     Method* meth = (Method*)myBuffer;
 	//
 	// This is why the mutable method storage wrapper exists. So

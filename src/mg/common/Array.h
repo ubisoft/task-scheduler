@@ -32,13 +32,13 @@ namespace common {
 		// Modification //////////////////////////////////////////
 
 		void Reserve(
-			uint32 aSize);
+			uint32_t aSize);
 
 		void SetCount(
-			uint32 aCount);
+			uint32_t aCount);
 
 		void Truncate(
-			uint32 aCount);
+			uint32_t aCount);
 
 		Array& operator=(
 			const Array& aOther);
@@ -48,29 +48,29 @@ namespace common {
 
 		// Modification: addition ////////////////////////////////
 
-		uint32 Add(
+		uint32_t Add(
 			const T& aItem);
 
-		uint32 Add(
+		uint32_t Add(
 			T&& aItem);
 
-		uint32 AddAtIndex(
+		uint32_t AddAtIndex(
 			const T& aItem,
-			uint32 aIndex);
+			uint32_t aIndex);
 
 		// Modification: removal /////////////////////////////////
 
 		void RemoveAtIndex(
-			uint32 aIndex);
+			uint32_t aIndex);
 
 		void DeleteAtIndex(
-			uint32 aIndex);
+			uint32_t aIndex);
 
 		void RemoveCyclicAtIndex(
-			uint32 aIndex);
+			uint32_t aIndex);
 
 		void DeleteCyclicAtIndex(
-			uint32 aIndex);
+			uint32_t aIndex);
 
 		void RemoveLast();
 
@@ -94,30 +94,30 @@ namespace common {
 
 		// Access ////////////////////////////////////////////////
 
-		int32 IndexOf(
+		int32_t IndexOf(
 			const T& aItem) const;
 
 		T& operator[](
-			uint32 aIndex);
+			uint32_t aIndex);
 
 		const T& operator[](
-			uint32 aIndex) const;
+			uint32_t aIndex) const;
 
 		T& Get(
-			uint32 aIndex);
+			uint32_t aIndex);
 
 		const T& Get(
-			uint32 aIndex) const;
+			uint32_t aIndex) const;
 
 		T& Last();
 
 		const T& Last() const;
 
-		uint32 Count() const;
+		uint32_t Count() const;
 
-		uint32 GetCapacity() const;
+		uint32_t GetCapacity() const;
 
-		uint32 GetStaticCapacity() const;
+		uint32_t GetStaticCapacity() const;
 
 		T* GetBuffer();
 
@@ -137,17 +137,17 @@ namespace common {
 		// These constructors are protected, because are intended
 		// to be used by HybridArray only.
 		Array(
-			uint32 aTailCapacity,
-			uint8* aTail);
+			uint32_t aTailCapacity,
+			uint8_t* aTail);
 
 		Array(
-			uint32 aTailCapacity,
-			uint8* aTail,
+			uint32_t aTailCapacity,
+			uint8_t* aTail,
 			const Array& aOther);
 
 		Array(
-			uint32 aTailCapacity,
-			uint8* aTail,
+			uint32_t aTailCapacity,
+			uint8_t* aTail,
 			Array&& aOther);
 
 	private:
@@ -182,13 +182,13 @@ namespace common {
 		T* PrivGetBufferStatic();
 
 		T* myData;
-		uint32 myCount;
-		uint32 myCapacity;
-		uint32 myTailCapacity;
+		uint32_t myCount;
+		uint32_t myCapacity;
+		uint32_t myTailCapacity;
 		// Never used now. But can be used for something later.
 		// It does not increase the object size, because otherwise
 		// is turned into natural padding by the compiler.
-		uint8 myPadding[4];
+		uint8_t myPadding[4];
 	};
 
 	// The same as Array, but looks more explicit as an out
@@ -205,7 +205,7 @@ namespace common {
 		, myTailCapacity(0)
 	{
 		// 8 bytes - sizeof(myData).
-		// 12 bytes - 3 * sizeof(uint32).
+		// 12 bytes - 3 * sizeof(uint32_t).
 		// 4 bytes - padding.
 		static_assert(sizeof(Array) == 24, "Array should not have vtable");
 		// Can be fixed when have aligned allocation functions.
@@ -239,8 +239,8 @@ namespace common {
 	template <typename T>
 	inline
 	Array<T>::Array(
-		uint32 aTailCapacity,
-		uint8* aTail)
+		uint32_t aTailCapacity,
+		uint8_t* aTail)
 		: myData((T*)aTail)
 		, myCount(0)
 		, myCapacity(aTailCapacity)
@@ -253,8 +253,8 @@ namespace common {
 	template <typename T>
 	inline
 	Array<T>::Array(
-		uint32 aTailCapacity,
-		uint8* aTail,
+		uint32_t aTailCapacity,
+		uint8_t* aTail,
 		const Array& aOther)
 		: myData((T*)aTail)
 		, myCount(0)
@@ -269,8 +269,8 @@ namespace common {
 	template <typename T>
 	inline
 	Array<T>::Array(
-		uint32 aTailCapacity,
-		uint8* aTail,
+		uint32_t aTailCapacity,
+		uint8_t* aTail,
 		Array&& aOther)
 		: myData((T*)aTail)
 		, myCount(0)
@@ -288,7 +288,7 @@ namespace common {
 	{
 		ItemsDestroy(myData, myCount);
 		if (IsDynamic())
-			delete[] (uint8*)myData;
+			delete[] (uint8_t*)myData;
 	}
 
 	// Modification //////////////////////////////////////////////
@@ -296,14 +296,14 @@ namespace common {
 	template <typename T>
 	void
 	Array<T>::Reserve(
-		uint32 aSize)
+		uint32_t aSize)
 	{
-		uint32 oldCapacity = myCapacity;
+		uint32_t oldCapacity = myCapacity;
 		if (aSize <= oldCapacity)
 			return;
 		T* newData;
-		uint32 tailCapacity = myTailCapacity;
-		uint32 newCapacity;
+		uint32_t tailCapacity = myTailCapacity;
+		uint32_t newCapacity;
 		if (aSize <= tailCapacity)
 		{
 			// This can happen if this array got the dynamic data
@@ -320,13 +320,13 @@ namespace common {
 			// Use new[]/delete[], not free/malloc. Because
 			// new/delete may be redefined on an upper level for
 			// memory accounting.
-			newData = (T*) new uint8[newCapacity * sizeof(T)];
+			newData = (T*)new uint8_t[newCapacity * sizeof(T)];
 		}
 		T* oldData = myData;
 		ItemsMoveConstruct(newData, oldData, myCount);
 		ItemsDestroy(oldData, myCount);
 		if (IsDynamic())
-			delete[] (uint8*)oldData;
+			delete[] (uint8_t*)oldData;
 		myData = newData;
 		myCapacity = newCapacity;
 	}
@@ -334,7 +334,7 @@ namespace common {
 	template <typename T>
 	void
 	Array<T>::SetCount(
-		uint32 aCount)
+		uint32_t aCount)
 	{
 		Reserve(aCount);
 		if (aCount < myCount)
@@ -347,7 +347,7 @@ namespace common {
 	template <typename T>
 	inline void
 	Array<T>::Truncate(
-		uint32 aCount)
+		uint32_t aCount)
 	{
 		if (aCount < myCount)
 		{
@@ -364,8 +364,8 @@ namespace common {
 		if (this == &aOther)
 			return *this;
 
-		uint32 dstCount = myCount;
-		uint32 srcCount = aOther.myCount;
+		uint32_t dstCount = myCount;
+		uint32_t srcCount = aOther.myCount;
 		Reserve(srcCount);
 		const T* src = aOther.myData;
 		T* dst = myData;
@@ -399,15 +399,15 @@ namespace common {
 			// buffer.
 			ItemsDestroy(myData, myCount);
 			if (IsDynamic())
-				delete[] (uint8*)myData;
+				delete[] (uint8_t*)myData;
 			myData = aOther.myData;
 			myCount = aOther.myCount;
 			myCapacity = aOther.myCapacity;
 		}
 		else
 		{
-			uint32 srcCount = aOther.myCount;
-			uint32 dstCount = myCount;
+			uint32_t srcCount = aOther.myCount;
+			uint32_t dstCount = myCount;
 			Reserve(srcCount);
 			T* src = aOther.myData;
 			T* dst = myData;
@@ -433,12 +433,12 @@ namespace common {
 	// Modification: addition ////////////////////////////////////
 
 	template <typename T>
-	uint32
+	uint32_t
 	Array<T>::Add(
 		const T& aItem)
 	{
-		uint32 idx = myCount;
-		uint32 newCount = idx + 1;
+		uint32_t idx = myCount;
+		uint32_t newCount = idx + 1;
 		Reserve(newCount);
 		ItemsCopyConstruct(&myData[idx], &aItem);
 		myCount = newCount;
@@ -446,12 +446,12 @@ namespace common {
 	}
 
 	template <typename T>
-	uint32
+	uint32_t
 	Array<T>::Add(
 		T&& aItem)
 	{
-		uint32 idx = myCount;
-		uint32 newCount = idx + 1;
+		uint32_t idx = myCount;
+		uint32_t newCount = idx + 1;
 		Reserve(newCount);
 		ItemsMoveConstruct(&myData[idx], &aItem);
 		myCount = newCount;
@@ -459,17 +459,17 @@ namespace common {
 	}
 
 	template <typename T>
-	uint32
+	uint32_t
 	Array<T>::AddAtIndex(
 		const T& aItem,
-		uint32 aIndex)
+		uint32_t aIndex)
 	{
-		uint32 count = myCount;
+		uint32_t count = myCount;
 		if (aIndex >= count)
 			return Add(aItem);
 
 		MG_COMMON_ASSERT(aIndex < count);
-		uint32 newCount = count + 1;
+		uint32_t newCount = count + 1;
 		Reserve(newCount);
 		ItemsMoveConstruct(&myData[count], &myData[count - 1]);
 		ItemsMoveForward(&myData[aIndex + 1], &myData[aIndex], count - aIndex - 1);
@@ -483,10 +483,10 @@ namespace common {
 	template <typename T>
 	void
 	Array<T>::RemoveAtIndex(
-		uint32 aIndex)
+		uint32_t aIndex)
 	{
 		MG_COMMON_ASSERT(aIndex < myCount);
-		uint32 count = --myCount;
+		uint32_t count = --myCount;
 		T* point = &myData[aIndex];
 		ItemsMoveBack(point, point + 1, count - aIndex);
 		ItemsDestroy(&myData[count]);
@@ -495,7 +495,7 @@ namespace common {
 	template <typename T>
 	void
 	Array<T>::DeleteAtIndex(
-		uint32 aIndex)
+		uint32_t aIndex)
 	{
 		MG_COMMON_ASSERT(aIndex < myCount);
 		ItemsDelete(&myData[aIndex]);
@@ -505,10 +505,10 @@ namespace common {
 	template <typename T>
 	void
 	Array<T>::RemoveCyclicAtIndex(
-		uint32 aIndex)
+		uint32_t aIndex)
 	{
 		MG_COMMON_ASSERT(aIndex < myCount);
-		uint32 count = --myCount;
+		uint32_t count = --myCount;
 		if (count != aIndex)
 			ItemsMove(&myData[aIndex], &myData[count]);
 		ItemsDestroy(&myData[count]);
@@ -517,7 +517,7 @@ namespace common {
 	template <typename T>
 	void
 	Array<T>::DeleteCyclicAtIndex(
-		uint32 aIndex)
+		uint32_t aIndex)
 	{
 		MG_COMMON_ASSERT(aIndex < myCount);
 		ItemsDelete(&myData[aIndex]);
@@ -561,7 +561,7 @@ namespace common {
 	Array<T>::PopLast()
 	{
 		MG_COMMON_ASSERT(myCount > 0);
-		uint32 count = --myCount;
+		uint32_t count = --myCount;
 		T res = mg::common::Move(myData[count]);
 		ItemsDestroy(&myData[count]);
 		return res;
@@ -581,7 +581,7 @@ namespace common {
 	Array<T>::operator==(
 		const Array& aOther) const
 	{
-		uint32 count = myCount;
+		uint32_t count = myCount;
 		if (aOther.myCount != count)
 			return false;
 		T* ldata = myData;
@@ -606,11 +606,11 @@ namespace common {
 	// Access ////////////////////////////////////////////////////
 
 	template <typename T>
-	int32
+	int32_t
 	Array<T>::IndexOf(
 		const T& aItem) const
 	{
-		for (uint32 i = 0; i < myCount; ++i)
+		for (uint32_t i = 0; i < myCount; ++i)
 		{
 			if (ItemsAreEq(myData[i], aItem))
 				return i;
@@ -621,7 +621,7 @@ namespace common {
 	template <typename T>
 	inline T&
 	Array<T>::operator[](
-		uint32 aIndex)
+		uint32_t aIndex)
 	{
 		return Get(aIndex);
 	}
@@ -629,7 +629,7 @@ namespace common {
 	template <typename T>
 	inline const T&
 	Array<T>::operator[](
-		uint32 aIndex) const
+		uint32_t aIndex) const
 	{
 		return Get(aIndex);
 	}
@@ -637,7 +637,7 @@ namespace common {
 	template <typename T>
 	inline T&
 	Array<T>::Get(
-		uint32 aIndex)
+		uint32_t aIndex)
 	{
 		MG_COMMON_ASSERT(aIndex < myCount);
 		return myData[aIndex];
@@ -646,7 +646,7 @@ namespace common {
 	template <typename T>
 	inline const T&
 	Array<T>::Get(
-		uint32 aIndex) const
+		uint32_t aIndex) const
 	{
 		MG_COMMON_ASSERT(aIndex < myCount);
 		return myData[aIndex];
@@ -669,21 +669,21 @@ namespace common {
 	}
 
 	template <typename T>
-	inline uint32
+	inline uint32_t
 	Array<T>::Count() const
 	{
 		return myCount;
 	}
 
 	template <typename T>
-	inline uint32
+	inline uint32_t
 	Array<T>::GetCapacity() const
 	{
 		return myCapacity;
 	}
 
 	template <typename T>
-	inline uint32
+	inline uint32_t
 	Array<T>::GetStaticCapacity() const
 	{
 		return myTailCapacity;
