@@ -1,6 +1,6 @@
 #pragma once
 
-#include "mg/common/Types.h"
+#include "mg/common/Definitions.h"
 
 #if !defined(_DEBUG) || IS_ORBIS_PLATFORM
 #define MG_TEST(X) (mg::common::PassThrough(X))

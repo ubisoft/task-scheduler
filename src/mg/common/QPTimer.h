@@ -1,6 +1,6 @@
 #pragma once
 
-#include "mg/common/Types.h"
+#include "mg/common/Definitions.h"
 
 namespace mg {
 namespace common {

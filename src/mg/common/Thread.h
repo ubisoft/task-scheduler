@@ -3,7 +3,6 @@
 #include "mg/common/ConditionVariable.h"
 #include "mg/common/Mutex.h"
 #include "mg/common/String.h"
-#include "mg/common/Types.h"
 
 #include <thread>
 

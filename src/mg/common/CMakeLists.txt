@@ -34,7 +34,6 @@ set(mgcommon_src
 	Thread.h
 	ThreadFunc.h
 	Time.h
-	Types.h
 	TypeTraits.h
 	Util.cpp
 	Util.h

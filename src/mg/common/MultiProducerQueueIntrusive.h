@@ -1,7 +1,6 @@
 #pragma once
 
 #include "mg/common/Atomic.h"
-#include "mg/common/Types.h"
 
 namespace mg {
 namespace common {

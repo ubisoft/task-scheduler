@@ -1,6 +1,6 @@
 #pragma once
 
-#include "mg/common/Types.h"
+#include "mg/common/Definitions.h"
 
 #if IS_PLATFORM_POSIX
 #include <pthread.h>

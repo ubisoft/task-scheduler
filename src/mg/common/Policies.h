@@ -1,7 +1,6 @@
 #pragma once
 
 #include "mg/common/Assert.h"
-#include "mg/common/Types.h"
 #include "mg/common/TypeTraits.h"
 
 namespace mg {
