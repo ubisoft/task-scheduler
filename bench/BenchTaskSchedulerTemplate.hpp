@@ -175,7 +175,8 @@ namespace bench {
 	{
 		uint64_t total = myExecuteCount * myTaskCount;
 		WaitExecuteCount(total);
-		MG_COMMON_ASSERT((int64_t)total == mg::common::AtomicLoad64(&myTotalExecuteCount));
+		int64_t exeCount = mg::common::AtomicLoad64(&myTotalExecuteCount);
+		MG_COMMON_ASSERT((int64_t)total == exeCount);
 	}
 
 	void

@@ -1,6 +1,20 @@
 #pragma once
 
 #include "mg/common/QPTimer.h"
+#include "mg/common/Assert.h"
+
+#undef MG_COMMON_ASSERT
+#undef MG_COMMON_ASSERT_F
+
+#define MG_COMMON_ASSERT_F(X, ...) do {														\
+	if (MG_TEST(!(X)))																		\
+		mg::common::AssertF(#X, __FILE__, __LINE__, __VA_ARGS__);							\
+} while(false)
+
+#define MG_COMMON_ASSERT(X) do {															\
+	if (MG_TEST(!(X)))																		\
+		mg::common::AssertS(#X, __FILE__, __LINE__);										\
+} while(false)
 
 #include <cstdarg>
 

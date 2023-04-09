@@ -11,7 +11,8 @@ namespace common {
 	QPTimerGetNs()
 	{
 		struct timespec ts;
-		MG_COMMON_ASSERT(clock_gettime(CLOCK_MONOTONIC_RAW, &ts) == 0);
+		int rc = clock_gettime(CLOCK_MONOTONIC_RAW, &ts);
+		MG_COMMON_ASSERT(rc == 0);
 		return ts.tv_sec * 1000000000 + ts.tv_nsec;
 	}
 

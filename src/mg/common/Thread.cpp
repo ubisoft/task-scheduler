@@ -51,7 +51,8 @@ namespace common {
 		MG_COMMON_ASSERT(!myWasStarted);
 		MG_COMMON_ASSERT(!StopRequested());
 		myWasStarted = true;
-		MG_COMMON_ASSERT(mg::common::AtomicFlagSet(&myIsRunning) == 0);
+		int32_t old = mg::common::AtomicFlagSet(&myIsRunning);
+		MG_COMMON_ASSERT(old == 0);
 		myHandle = new std::thread(&Thread::PrivTrampoline, this);
 	}
 
@@ -105,7 +106,8 @@ namespace common {
 		ThreadSetCurrentName(myName.c_str());
 		Run();
 		myLock.Lock();
-		MG_COMMON_ASSERT(mg::common::AtomicFlagClear(&myIsRunning) != 0);
+		int32_t old = mg::common::AtomicFlagClear(&myIsRunning);
+		MG_COMMON_ASSERT(old != 0);
 		myCond.Broadcast();
 		myLock.Unlock();
 	}

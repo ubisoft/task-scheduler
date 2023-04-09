@@ -2,15 +2,18 @@
 
 #include "mg/common/Util.h"
 
-#define MG_COMMON_ASSERT_F(X, ...) do {														\
-	if (MG_TEST(!(X)))																		\
-		mg::common::AssertF(#X, __FILE__, __LINE__, __VA_ARGS__);							\
-} while(false)
+// #define MG_COMMON_ASSERT_F(X, ...) do {														\
+// 	if (MG_TEST(!(X)))																		\
+// 		mg::common::AssertF(#X, __FILE__, __LINE__, __VA_ARGS__);							\
+// } while(false)
 
-#define MG_COMMON_ASSERT(X) do {															\
-	if (MG_TEST(!(X)))																		\
-		mg::common::AssertS(#X, __FILE__, __LINE__);										\
-} while(false)
+// #define MG_COMMON_ASSERT(X) do {															\
+// 	if (MG_TEST(!(X)))																		\
+// 		mg::common::AssertS(#X, __FILE__, __LINE__);										\
+// } while(false)
+
+#define MG_COMMON_ASSERT MG_UNUSED
+#define MG_COMMON_ASSERT_F MG_UNUSED
 
 #if IS_BUILD_DEBUG
 #define MG_DEV_ASSERT MG_COMMON_ASSERT

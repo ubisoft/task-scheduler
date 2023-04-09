@@ -139,9 +139,10 @@ namespace bench {
 		const char* aName) const
 	{
 		uint64_t res = 0;
-		MG_COMMON_ASSERT_F(mg::common::StringToNumber(
-			PrivGet(aName).myValue.c_str(), res),
-			"Couldn't convert arg %s to uint64", aName);
+		bool rc = mg::common::StringToNumber(
+			PrivGet(aName).myValue.c_str(), res);
+		MG_COMMON_ASSERT_F(rc, "Couldn't convert arg %s to uint64",
+			aName);
 		return res;
 	}
 
@@ -150,9 +151,10 @@ namespace bench {
 		const char* aName) const
 	{
 		uint32_t res = 0;
-		MG_COMMON_ASSERT_F(mg::common::StringToNumber(
-			PrivGet(aName).myValue.c_str(), res),
-			"Couldn't convert arg %s to uint64", aName);
+		bool rc = mg::common::StringToNumber(
+			PrivGet(aName).myValue.c_str(), res);
+		MG_COMMON_ASSERT_F(rc, "Couldn't convert arg %s to uint64",
+			aName);
 		return res;
 	}
 

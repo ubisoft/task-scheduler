@@ -127,7 +127,8 @@ namespace bench {
 	void
 	BenchThreadSender::Begin()
 	{
-		MG_COMMON_ASSERT(mg::common::AtomicFlagClear(&myIsPaused) == 1);
+		int32_t old = mg::common::AtomicFlagClear(&myIsPaused);
+		MG_COMMON_ASSERT(old == 1);
 	}
 
 	void
@@ -135,7 +136,8 @@ namespace bench {
 	{
 		for (uint64_t i = 0; i < myItemCount; ++i)
 			myItems.Append(new BenchValue());
-		MG_COMMON_ASSERT(mg::common::AtomicFlagSet(&myIsPaused) == 0);
+		int32_t old = mg::common::AtomicFlagSet(&myIsPaused);
+		MG_COMMON_ASSERT(old == 0);
 		while (mg::common::AtomicFlagTest(&myIsPaused) != 0);
 
 		while (!StopRequested() && !myItems.IsEmpty())
@@ -195,7 +197,8 @@ namespace bench {
 	void
 	BenchThreadReceiver::Begin()
 	{
-		MG_COMMON_ASSERT(mg::common::AtomicFlagClear(&myIsPaused) == 1);
+		int32_t old = mg::common::AtomicFlagClear(&myIsPaused);
+		MG_COMMON_ASSERT(old == 1);
 	}
 
 	uint64_t
@@ -207,7 +210,8 @@ namespace bench {
 	void
 	BenchThreadReceiver::Run()
 	{
-		MG_COMMON_ASSERT(mg::common::AtomicFlagSet(&myIsPaused) == 0);
+		int32_t old = mg::common::AtomicFlagSet(&myIsPaused);
+		MG_COMMON_ASSERT(old == 0);
 		while (mg::common::AtomicFlagTest(&myIsPaused) != 0);
 
 		while (!StopRequested())
