@@ -47,6 +47,15 @@ target_link_libraries(bench_mcspqueue_trivial
 	bench
 )
 
+add_executable(bench_mcspqueue_moody
+	BenchMultiConsumerQueueMoody.cpp
+	BenchMultiConsumerQueueTemplate.hpp
+)
+target_link_libraries(bench_mcspqueue_moody
+	mgcommon
+	bench
+)
+
 add_executable(bench_mpscqueue
 	BenchMultiProducerQueue.cpp
 	BenchMultiProducerQueueTemplate.hpp

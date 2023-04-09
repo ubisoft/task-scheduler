@@ -2,19 +2,19 @@
 	"os": "Operating system name and version",
 	"cpu": "Processor details",
 	"versions": {
-		"canon": {
-			"name": "Canon MCSP queue",
-			"short_name": "canon queue",
+		"mg": {
+			"name": "MG MCSP queue",
+			"short_name": "mg queue",
 			"exe": "bench_mcspqueue",
-			"cmd": "-subqsize 5000"
+			"cmd": "-subqsize 128"
 		},
-		"trivial": {
-			"name": "Trivial MCSP queue",
-			"short_name": "trivial queue",
-			"exe": "bench_mcspqueue_trivial"
+		"moody": {
+			"name": "Moody MCSP queue",
+			"short_name": "moody queue",
+			"exe": "bench_mcspqueue_moody"
 		}
 	},
-	"main_version": "canon",
+	"main_version": "mg",
 	"metric_key": "Items per sec",
 	"metric_name": "pops per second",
 	"precision": 0.01,
@@ -32,20 +32,10 @@
 			"cmd": "-op push-pop -load empty -threads 1 -items 10000000",
 			"count": 5
 		},
-		{
-			"name": "Operation push-pop, 1 thread, 1 000 000 items, each is processed",
-			"cmd": "-op push-pop -load micro -threads 1 -items 1000000",
-			"count": 5
-		},
 
 		{
 			"name": "Operation push-pop, 2 threads, 10 000 000 items",
 			"cmd": "-op push-pop -load empty -threads 2 -items 10000000",
-			"count": 5
-		},
-		{
-			"name": "Operation push-pop, 2 threads, 1 000 000 items, each is processed",
-			"cmd": "-op push-pop -load micro -threads 2 -items 1000000",
 			"count": 5
 		},
 
@@ -54,31 +44,16 @@
 			"cmd": "-op push-pop -load empty -threads 3 -items 5000000",
 			"count": 5
 		},
-		{
-			"name": "Operation push-pop, 3 threads, 3 000 000 items, each is processed",
-			"cmd": "-op push-pop -load micro -threads 3 -items 3000000",
-			"count": 5
-		},
 
 		{
 			"name": "Operation push-pop, 5 threads, 5 000 000 items",
 			"cmd": "-op push-pop -load empty -threads 5 -items 5000000",
 			"count": 5
 		},
-		{
-			"name": "Operation push-pop, 5 threads, 5 000 000 items, each is processed",
-			"cmd": "-op push-pop -load micro -threads 5 -items 5000000",
-			"count": 5
-		},
 
 		{
 			"name": "Operation push-pop, 10 threads, 2 000 000 items",
 			"cmd": "-op push-pop -load empty -threads 10 -items 2000000",
-			"count": 5
-		},
-		{
-			"name": "Operation push-pop, 10 threads, 5 000 000 items, each is processed",
-			"cmd": "-op push-pop -load micro -threads 10 -items 5000000",
 			"count": 5
 		},
 
@@ -89,20 +64,10 @@
 			"cmd": "-op pop -load empty -threads 1 -items 50000000",
 			"count": 5
 		},
-		{
-			"name": "Operation pop, 1 thread, 1 000 000 items, each is processed",
-			"cmd": "-op pop -load micro -threads 1 -items 1000000",
-			"count": 5
-		},
 
 		{
 			"name": "Operation pop, 2 threads, 10 000 000 items",
 			"cmd": "-op pop -load empty -threads 2 -items 10000000",
-			"count": 5
-		},
-		{
-			"name": "Operation pop, 2 threads, 1 000 000 items, each is processed",
-			"cmd": "-op pop -load micro -threads 2 -items 1000000",
 			"count": 5
 		},
 
@@ -111,31 +76,16 @@
 			"cmd": "-op pop -load empty -threads 3 -items 10000000",
 			"count": 5
 		},
-		{
-			"name": "Operation pop, 3 threads, 3 000 000 items, each is processed",
-			"cmd": "-op pop -load micro -threads 3 -items 3000000",
-			"count": 5
-		},
 
 		{
 			"name": "Operation pop, 5 threads, 10 000 000 items",
 			"cmd": "-op pop -load empty -threads 5 -items 10000000",
 			"count": 5
 		},
-		{
-			"name": "Operation pop, 5 threads, 5 000 000 items, each is processed",
-			"cmd": "-op pop -load micro -threads 5 -items 5000000",
-			"count": 5
-		},
 
 		{
 			"name": "Operation pop, 10 threads, 10 000 000 items",
 			"cmd": "-op pop -load empty -threads 10 -items 10000000",
-			"count": 5
-		},
-		{
-			"name": "Operation pop, 10 threads, 5 000 000 items, each is processed",
-			"cmd": "-op pop -load micro -threads 10 -items 5000000",
 			"count": 5
 		}
 	]
