@@ -6,7 +6,7 @@
 			"name": "MG MCSP queue",
 			"short_name": "mg queue",
 			"exe": "bench_mcspqueue",
-			"cmd": "-subqsize 128"
+			"cmd": "-subqsize 10000"
 		},
 		"moody": {
 			"name": "Moody MCSP queue",

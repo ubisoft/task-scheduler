@@ -20,7 +20,6 @@ namespace bench {
 
 	using BenchValueList = mg::common::ForwardList<BenchValue>;
 	using MoodyQueue = moodycamel::ConcurrentQueue<BenchValue*>;
-	using MoodyToken = moodycamel::ConsumerToken;
 
 	// Trivial queue takes a mutex lock on each operation. The simplest possible
 	// implementation and the most typical one. And most of the time it is enough.
@@ -58,7 +57,6 @@ namespace bench {
 		void Detach();
 	private:
 		MoodyQueue* myQueue;
-		MoodyToken* myToken;
 	};
 
 	//////////////////////////////////////////////////////////////////////////////////////
@@ -70,6 +68,7 @@ namespace bench {
 
 	BenchQueue::BenchQueue(
 		uint32_t /*aSubQueueSize*/)
+		: myQueue(32)
 	{
 	}
 
@@ -77,7 +76,8 @@ namespace bench {
 	BenchQueue::Push(
 		BenchValue* aValue)
 	{
-		myQueue.enqueue(aValue);
+		bool rc = myQueue.enqueue(aValue);
+		MG_COMMON_ASSERT(rc);
 	}
 
 	void
@@ -88,20 +88,18 @@ namespace bench {
 
 	BenchQueueConsumer::BenchQueueConsumer()
 		: myQueue(nullptr)
-		, myToken(nullptr)
 	{
 	}
 
 	BenchQueueConsumer::~BenchQueueConsumer()
 	{
-		delete myToken;
 	}
 
 	BenchValue*
 	BenchQueueConsumer::Pop()
 	{
 		BenchValue* res = nullptr;
-		if (myQueue->try_dequeue(*myToken, res))
+		if (myQueue->try_dequeue(res))
 			return res;
 		return nullptr;
 	}
@@ -112,7 +110,6 @@ namespace bench {
 	{
 		MG_COMMON_ASSERT(myQueue == nullptr);
 		myQueue = &aQueue->myQueue;
-		myToken = new MoodyToken(*myQueue);
 
 	}
 
