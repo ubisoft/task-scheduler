@@ -36,6 +36,7 @@ namespace common {
 		// Read-index. This is where the next consumer will try to
 		// read.
 		int32_t myReadIndex;
+		char myFalseSharingProtection1[64];
 		// Flush-index. This is the latest index visible to the
 		// readers. It always points at nullptr, and the element
 		// under it must be updated atomically. Consumers see data
@@ -54,7 +55,7 @@ namespace common {
 		// Fields above are accessed from all participants - from
 		// consumer threads and from producer thread. So their
 		// separation from each other won't help much anyway.
-		char myFalseSharingProtection[64];
+		char myFalseSharingProtection2[64];
 		// Fields below are accessed *also* from all participants,
 		// but changed much rarer or are not changed at all. So
 		// their cache line has more chances to stay in the cache
