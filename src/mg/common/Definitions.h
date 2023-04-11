@@ -76,6 +76,9 @@
 #define MG_NOINLINE __declspec(noinline)
 #endif
 
+// Change this depending on the processor. Normally 64 fits anything.
+#define MG_CACHE_LINE_SIZE 64
+
 // Use this value when need an infinite deadline. It can be
 // handled in a special cheap way in some subsystems, and is
 // more explicit than inlined UINT64_MAX.

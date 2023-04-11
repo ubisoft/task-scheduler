@@ -138,7 +138,7 @@ namespace common {
 		// consumer threads and from producer thread. So their
 		// separation from each other won't help much anyway. Also
 		// they are accessed and changed quite often.
-		MG_UNUSED_MEMBER char myFalseSharingProtection[64];
+		MG_UNUSED_MEMBER char myFalseSharingProtection[MG_CACHE_LINE_SIZE];
 		// Fields below are accessed *also* from all participants,
 		// but changed much rarer. So their cache line has more
 		// chances to stay in the cache for longer time, than for
