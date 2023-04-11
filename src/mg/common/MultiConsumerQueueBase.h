@@ -129,21 +129,19 @@ namespace common {
 		void PrivGarbageCollectLocked(
 			MCQBaseSubQueue* aItem);
 
-		mg::common::Mutex myLock;
-		int32_t mySubQueueCount;
+		// Fields accessed by all participants.
 		int32_t myCount;
+		MG_UNUSED_MEMBER char myFalseSharingProtection1[MG_CACHE_LINE_SIZE];
+		// Producer-exclusive fields.
 		int32_t myPendingCount;
-
-		// Fields above are accessed from all participants - from
-		// consumer threads and from producer thread. So their
-		// separation from each other won't help much anyway. Also
-		// they are accessed and changed quite often.
-		MG_UNUSED_MEMBER char myFalseSharingProtection[MG_CACHE_LINE_SIZE];
+		MG_UNUSED_MEMBER char myFalseSharingProtection2[MG_CACHE_LINE_SIZE];
 		// Fields below are accessed *also* from all participants,
 		// but changed much rarer. So their cache line has more
 		// chances to stay in the cache for longer time, than for
 		// the fields above.
 
+		mg::common::Mutex myLock;
+		int32_t mySubQueueCount;
 		int32_t myConsumerCount;
 		MCQBaseSubQueue* myHead;
 		MCQBaseSubQueue* myWpos;

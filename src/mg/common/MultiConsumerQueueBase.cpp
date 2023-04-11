@@ -36,6 +36,11 @@ namespace common {
 		// Read-index. This is where the next consumer will try to
 		// read.
 		int32_t myReadIndex;
+		//
+		// Separate consumers from the producer explicitly. Otherwise
+		// false sharing significantly hits performance in benchmarks.
+		char myFalseSharingProtection1[MG_CACHE_LINE_SIZE];
+		//
 		// Flush-index. This is the latest index visible to the
 		// readers. It always points at nullptr, and the element
 		// under it must be updated atomically. Consumers see data
@@ -47,23 +52,6 @@ namespace common {
 		// (findex, windex] are visible only to the producer, so
 		// can be updated non-atomically.
 		uint32_t myWriteIndex;
-		// Order of the indexes is always the following:
-		//
-		//     rindex <= findex <= windex.
-
-		// Fields above are accessed from all participants - from
-		// consumer threads and from producer thread. So their
-		// separation from each other won't help much anyway.
-		char myFalseSharingProtection[MG_CACHE_LINE_SIZE];
-		// Fields below are accessed *also* from all participants,
-		// but changed much rarer or are not changed at all. So
-		// their cache line has more chances to stay in the cache
-		// for longer time, than for the fields above.
-
-		// The queue pointer never changes, this is correct. The
-		// elements are changed, but not the pointer at the queue
-		// itself.
-		void**const myQueue;
 		// First pending element. It is saved here to be stored to
 		// the flush-index position upon flush or normal push to
 		// notify consumers that there is more to consume.
@@ -104,8 +92,24 @@ namespace common {
 		//     queue: [a,    b,    c],    saved = null
 		//             r             f,w
 		//
-		//
 		void* myFirstPending;
+		// Order of the indexes is always the following:
+		//
+		//     rindex <= findex <= windex.
+
+		// The members below are accessed by consumers and producers
+		// together. Prevent them from spoiling the consumer-exclusive
+		// and producer-exclusive memory in the CPU caches.
+		char myFalseSharingProtection2[MG_CACHE_LINE_SIZE];
+		// Fields below are accessed *also* from all participants,
+		// but changed much rarer or are not changed at all. So
+		// their cache line has more chances to stay in the cache
+		// for longer time, than for the fields above.
+
+		// The queue pointer never changes, this is correct. The
+		// elements are changed, but not the pointer at the queue
+		// itself.
+		void**const myQueue;
 		const uint32_t mySize;
 		uint32_t myConsumerCount;
 		MCQBaseSubQueue* myPrev;
@@ -119,8 +123,8 @@ namespace common {
 		, myWriteIndex(aSize)
 		// + 1 because the queue is null-terminated. See the
 		// methods implementation why.
-		, myQueue(new void*[aSize + 1])
 		, myFirstPending(nullptr)
+		, myQueue(new void*[aSize + 1])
 		, mySize(aSize)
 		, myConsumerCount(0)
 		, myPrev(nullptr)
@@ -408,9 +412,9 @@ namespace common {
 
 	MCQBaseQueue::MCQBaseQueue(
 		uint32_t aSubQueueSize)
-		: mySubQueueCount(0)
-		, myCount(0)
+		: myCount(0)
 		, myPendingCount(0)
+		, mySubQueueCount(0)
 		, myConsumerCount(0)
 	{
 		MG_COMMON_ASSERT(aSubQueueSize > 0);
