@@ -146,7 +146,7 @@ namespace unittests {
 			UTFLValue v2(2);
 			v1.myNext = &v2;
 			UTFLList list1(&v1, &v2);
-			UTFLList list2(mg::common::Move(list1));
+			UTFLList list2(std::move(list1));
 
 			MG_COMMON_ASSERT(list1.IsEmpty());
 			MG_COMMON_ASSERT(v1.myNext == &v2);
@@ -232,12 +232,12 @@ namespace unittests {
 			UTFLList list2;
 			UTFLValue v1(1);
 
-			list1.Append(mg::common::Move(list2));
+			list1.Append(std::move(list2));
 			MG_COMMON_ASSERT(list1.IsEmpty());
 			MG_COMMON_ASSERT(list2.IsEmpty());
 
 			list2.Append(&v1);
-			list1.Append(mg::common::Move(list2));
+			list1.Append(std::move(list2));
 			MG_COMMON_ASSERT(list1.GetFirst() == &v1);
 			MG_COMMON_ASSERT(list1.GetLast() == &v1);
 			MG_COMMON_ASSERT(list2.IsEmpty());
@@ -246,7 +246,7 @@ namespace unittests {
 			UTFLValue v3(2);
 			list2.Append(&v2);
 			list2.Append(&v3);
-			list1.Append(mg::common::Move(list2));
+			list1.Append(std::move(list2));
 			MG_COMMON_ASSERT(list1.GetFirst() == &v1);
 			MG_COMMON_ASSERT(list1.GetLast() == &v3);
 			MG_COMMON_ASSERT(list2.IsEmpty());
@@ -301,13 +301,13 @@ namespace unittests {
 			UTFLList list1;
 			UTFLList list2;
 
-			list1.Prepend(mg::common::Move(list2));
+			list1.Prepend(std::move(list2));
 			MG_COMMON_ASSERT(list1.IsEmpty());
 			MG_COMMON_ASSERT(list2.IsEmpty());
 
 			UTFLValue v1(1);
 			list2.Append(&v1);
-			list1.Prepend(mg::common::Move(list2));
+			list1.Prepend(std::move(list2));
 			MG_COMMON_ASSERT(list1.GetFirst() == &v1);
 			MG_COMMON_ASSERT(list1.GetLast() == &v1);
 			MG_COMMON_ASSERT(list2.IsEmpty());
@@ -316,7 +316,7 @@ namespace unittests {
 			UTFLValue v3(3);
 			list2.Append(&v2);
 			list2.Append(&v3);
-			list1.Prepend(mg::common::Move(list2));
+			list1.Prepend(std::move(list2));
 			MG_COMMON_ASSERT(list2.IsEmpty());
 			MG_COMMON_ASSERT(list1.GetFirst() == &v2);
 			MG_COMMON_ASSERT(list1.GetLast() == &v1);
@@ -391,19 +391,19 @@ namespace unittests {
 			UTFLList list2;
 			UTFLValue v1(1);
 
-			list1 = mg::common::Move(list2);
+			list1 = std::move(list2);
 			MG_COMMON_ASSERT(list1.IsEmpty());
 			MG_COMMON_ASSERT(list2.IsEmpty());
 
 			list1.Append(&v1);
-			list1 = mg::common::Move(list2);
+			list1 = std::move(list2);
 			MG_COMMON_ASSERT(list1.IsEmpty());
 			MG_COMMON_ASSERT(list2.IsEmpty());
 
 			UTFLValue v2(2);
 			list1.Append(&v1);
 			list2.Append(&v2);
-			list1 = mg::common::Move(list2);
+			list1 = std::move(list2);
 			MG_COMMON_ASSERT(list1.GetFirst() == &v2);
 			MG_COMMON_ASSERT(list1.GetLast() == &v2);
 			MG_COMMON_ASSERT(list2.IsEmpty());
@@ -413,7 +413,7 @@ namespace unittests {
 			list1.Append(&v1);
 			list2.Append(&v2);
 			list2.Append(&v3);
-			list1 = mg::common::Move(list2);
+			list1 = std::move(list2);
 			MG_COMMON_ASSERT(list2.IsEmpty());
 			MG_COMMON_ASSERT(list1.GetFirst() == &v2);
 			MG_COMMON_ASSERT(list1.GetLast() == &v3);
@@ -424,7 +424,7 @@ namespace unittests {
 			list1.Append(&v1);
 			list1.Append(&v2);
 			list2.Append(&v3);
-			list1 = mg::common::Move(list2);
+			list1 = std::move(list2);
 			MG_COMMON_ASSERT(list2.IsEmpty());
 			MG_COMMON_ASSERT(list1.GetFirst() == &v3);
 			MG_COMMON_ASSERT(list1.GetLast() == &v3);

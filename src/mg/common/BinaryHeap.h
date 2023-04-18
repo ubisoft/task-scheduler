@@ -393,7 +393,7 @@ namespace common {
 			myData.pop_back();
 			return true;
 		}
-		tree[0] = mg::common::Move(tree[count - 1]);
+		tree[0] = std::move(tree[count - 1]);
 		Methods::SetIndex(tree[0], 0);
 		myData.pop_back();
 		PrivUpdateDown(0);
@@ -417,7 +417,7 @@ namespace common {
 		Methods::SetIndex(tree[index], -1);
 		if (index + 1 == count)
 			return myData.pop_back();
-		tree[index] = mg::common::Move(tree[count - 1]);
+		tree[index] = std::move(tree[count - 1]);
 		Methods::SetIndex(tree[index], index);
 		myData.pop_back();
 		PrivUpdate(index);
@@ -430,7 +430,7 @@ namespace common {
 	{
 		if (myData.empty())
 			return false;
-		aOutValue = mg::common::Move(myData[0]);
+		aOutValue = std::move(myData[0]);
 		return RemoveTop();
 	}
 
@@ -500,14 +500,14 @@ namespace common {
 		// The checks above repeat the while-condition so as to
 		// avoid creation of the temporary object when the
 		// target element is already in place.
-		T tmp = mg::common::Move(tree[aIndex]);
+		T tmp = std::move(tree[aIndex]);
 		do {
-			tree[aIndex] = mg::common::Move(tree[parent]);
+			tree[aIndex] = std::move(tree[parent]);
 			Methods::SetIndex(tree[aIndex], aIndex);
 			aIndex = parent;
 			parent = PrivParentIndex(aIndex);
 		} while (aIndex != 0 && Methods::IsLeftAbove(tmp, tree[parent]));
-		tree[aIndex] = mg::common::Move(tmp);
+		tree[aIndex] = std::move(tmp);
 		Methods::SetIndex(tree[aIndex], aIndex);
 		return true;
 	}
@@ -535,10 +535,10 @@ namespace common {
 		// The checks above repeat the checks from the while
 		// loop so as avoid creation of the temporary object
 		// when the target element is already in place.
-		T tmp = mg::common::Move(tree[aIndex]);
+		T tmp = std::move(tree[aIndex]);
 		do
 		{
-			tree[aIndex] = mg::common::Move(tree[topChild]);
+			tree[aIndex] = std::move(tree[topChild]);
 			Methods::SetIndex(tree[aIndex], aIndex);
 			aIndex = topChild;
 
@@ -554,7 +554,7 @@ namespace common {
 				topChild = rightChild;
 		} while (Methods::IsLeftAbove(tree[topChild], tmp));
 		MG_COMMON_ASSERT(aIndex < count);
-		tree[aIndex] = mg::common::Move(tmp);
+		tree[aIndex] = std::move(tmp);
 		Methods::SetIndex(tree[aIndex], aIndex);
 		return true;
 	}
