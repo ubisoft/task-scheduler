@@ -35,7 +35,7 @@ namespace common {
 
 		// Read-index. This is where the next consumer will try to
 		// read.
-		int32_t myReadIndex;
+		mg::common::AtomicU32 myReadIndex;
 		//
 		// Separate consumers from the producer explicitly. Otherwise
 		// false sharing significantly hits performance in benchmarks.
@@ -109,7 +109,7 @@ namespace common {
 		// The queue pointer never changes, this is correct. The
 		// elements are changed, but not the pointer at the queue
 		// itself.
-		void**const myQueue;
+		mg::common::AtomicVoidPtr* const myQueue;
 		const uint32_t mySize;
 		uint32_t myConsumerCount;
 		MCQBaseSubQueue* myPrev;
@@ -124,7 +124,7 @@ namespace common {
 		// + 1 because the queue is null-terminated. See the
 		// methods implementation why.
 		, myFirstPending(nullptr)
-		, myQueue(new void*[aSize + 1])
+		, myQueue(new mg::common::AtomicVoidPtr[aSize + 1])
 		, mySize(aSize)
 		, myConsumerCount(0)
 		, myPrev(nullptr)
@@ -147,14 +147,17 @@ namespace common {
 		MG_COMMON_ASSERT(myConsumerCount == 0);
 		MG_COMMON_ASSERT(myPrev == nullptr);
 		MG_COMMON_ASSERT(myNext == nullptr);
-		MG_COMMON_ASSERT((uint32_t)myReadIndex == mySize);
+		MG_COMMON_ASSERT(myReadIndex.LoadRelaxed() == mySize);
 		MG_COMMON_ASSERT(myWriteIndex == mySize);
 		MG_COMMON_ASSERT(myFlushIndex == mySize);
 		MG_COMMON_ASSERT(myFirstPending == nullptr);
-		myReadIndex = 0;
+		myReadIndex.StoreRelaxed(0);
 		myFlushIndex = 0;
 		myWriteIndex = 0;
-		myQueue[0] = nullptr;
+		// Safe to be relaxed. Consumers will attach to this queue via
+		// the mutex which will sync them with the producer doing this
+		// store also inside the mutex.
+		myQueue[0].StoreRelaxed(nullptr);
 	}
 
 	bool
@@ -188,7 +191,9 @@ namespace common {
 		// 'store' instruction.
 		uint32_t nextWindex = windex + 1;
 		uint32_t findex = myFlushIndex;
-		myQueue[nextWindex] = nullptr;
+		// Use release for all queue items because consumers will sync
+		// with the same items using acquire.
+		myQueue[nextWindex].StoreRelease(nullptr);
 		myWriteIndex = nextWindex;
 		myFlushIndex = nextWindex;
 
@@ -196,17 +201,11 @@ namespace common {
 		if (old != nullptr)
 		{
 			MG_DEV_ASSERT(windex > findex);
-			// Tricky-trick. This operation is safe to be
-			// non-atomic. Because consumers see <= findex
-			// elements, and this one is beyond. Atomic operation
-			// on the flush-index below will ensure both writes
-			// reach the memory locations synchronously and in
-			// order. It will work like a 'release' barrier.
-			myQueue[windex] = aItem;
+			myQueue[windex].StoreRelease(aItem);
 			aItem = old;
 			myFirstPending = nullptr;
 		}
-		old = mg::common::AtomicExchangePtr(&myQueue[findex], aItem);
+		old = myQueue[findex].ExchangeRelease(aItem);
 		MG_DEV_ASSERT(old == nullptr);
 		return true;
 	}
@@ -226,14 +225,20 @@ namespace common {
 		if (windex == mySize)
 			return false;
 
-		// Can't write the first element right away. Otherwise it
-		// would become visible to the consumers, and would need
-		// to be atomic, which is not the point of the pending
-		// push. Save it to push later.
+		// Can't write the first element right away. Otherwise it would
+		// become visible to the consumers which is not the point of the
+		// pending push. Save it to push later.
+		//
+		// The non-first pending items have to use the release barrier
+		// even though they are not visible to the consumers yet.
+		// Because otherwise when they are exposed, acquire on them
+		// wouldn't guarantee sync with all writes done prior to their
+		// push. Plain release barrier on a specific memory spot won't
+		// sync with acquire barriers on other spots.
 		if (myFirstPending == nullptr)
 			myFirstPending = aItem;
 		else
-			myQueue[windex] = aItem;
+			myQueue[windex].StoreRelease(aItem);
 		myWriteIndex = windex + 1;
 		return true;
 	}
@@ -246,12 +251,10 @@ namespace common {
 		uint32_t windex = myWriteIndex;
 		uint32_t findex = myFlushIndex;
 		MG_DEV_ASSERT(windex > findex);
-		// Similar to normal push, here one atomic exchange will
-		// 'commit' multiple pending elements, in
-		// [findex, windex]. The atomic works as a 'release'
-		// memory barrier for all of them.
-		myQueue[windex] = nullptr;
-		void* old = mg::common::AtomicExchangePtr(&myQueue[findex], myFirstPending);
+		// All have to be release to sync with consumers doing acquire
+		// on the same locations.
+		myQueue[windex].StoreRelease(nullptr);
+		void* old = myQueue[findex].ExchangeRelease(myFirstPending);
 		MG_DEV_ASSERT(old == nullptr);
 		MG_UNUSED(old);
 		myFirstPending = nullptr;
@@ -263,34 +266,30 @@ namespace common {
 	MCQBaseSubQueue::Pop(
 		void*& aOutItem)
 	{
-		// Pop works in 2 steps: remember the current read-index,
+		// Pop works in 3 steps: remember the current read-index,
 		// load the element, and try to update the read-index if
 		// it is still the same. It can be not the same if another
 		// thread simultaneously read the same element and already
 		// returned it. In this case the current thread will
 		// retry.
-		uint32_t rindex;
-		// It is enough to make just one load. All the next loads
-		// are done implicitly by cmpxchg.
-		uint32_t oldRindex = (uint32_t)mg::common::AtomicLoad(&myReadIndex);
-		// The cycle is not a busy loop, is not a lock, and is not
-		// a 'waiting'. Because lock or waiting would mean the
-		// thread is blocked onto something not yet done by
-		// another thread. Here it is not so - the thread is never
-		// blocked, and always tries to progress. And it
-		// progresses in a single iteration almost always.
+		uint32_t rindex = myReadIndex.LoadRelaxed();
+		// The loop is not busy, is not a lock, and is not a 'waiting'.
+		// Because lock or waiting would mean the thread is blocked on
+		// something not yet done by another thread. Here it is not so -
+		// the thread is never blocked and always tries to progress. And
+		// it progresses in a single iteration almost always.
 		do
 		{
-			rindex = oldRindex;
 			if (rindex == mySize)
 				return false;
-			aOutItem = mg::common::AtomicLoadPtr(&myQueue[rindex]);
+			// Read index itself is fine to be relaxed. Broader sync
+			// is only needed for the queue items. To get all the
+			// writes done before their push which might be related
+			// to them.
+			aOutItem = myQueue[rindex].LoadAcquire();
 			if (aOutItem == nullptr)
 				return true;
-		} while ((oldRindex = (uint32_t)mg::common::AtomicCompareExchange(
-			&myReadIndex, rindex + 1, rindex
-		)) != rindex);
-
+		} while (!myReadIndex.CmpExchgWeakRelaxed(rindex, rindex + 1));
 		return true;
 	}
 
@@ -376,7 +375,7 @@ namespace common {
 			mySubQueue = cur;
 		}
 		if (res != nullptr)
-			mg::common::AtomicDecrement(&myQueue->myCount);
+			myQueue->myCount.DecrementRelaxed();
 		return res;
 	}
 
@@ -384,7 +383,7 @@ namespace common {
 	MCQBaseConsumer::Attach(
 		MCQBaseQueue* aQueue)
 	{
-		mg::common::AtomicIncrement(&aQueue->myConsumerCount);
+		aQueue->myConsumerCount.IncrementRelaxed();
 
 		aQueue->myLock.Lock();
 		MCQBaseSubQueue* head = aQueue->myHead;
@@ -400,7 +399,8 @@ namespace common {
 	{
 		if (myQueue == nullptr)
 			return;
-		mg::common::AtomicDecrement(&myQueue->myConsumerCount);
+		myQueue->myConsumerCount.DecrementRelaxed();
+
 		myQueue->myLock.Lock();
 		--mySubQueue->myConsumerCount;
 		myQueue->PrivGarbageCollectLocked(mySubQueue);
@@ -414,20 +414,19 @@ namespace common {
 		uint32_t aSubQueueSize)
 		: myCount(0)
 		, myPendingCount(0)
-		, mySubQueueCount(0)
+		, mySubQueueCount(1)
 		, myConsumerCount(0)
 	{
 		MG_COMMON_ASSERT(aSubQueueSize > 0);
 		myHead = new MCQBaseSubQueue(aSubQueueSize);
 		myWpos = myHead;
 		myTail = myHead;
-		++mySubQueueCount;
 	}
 
 	MCQBaseQueue::~MCQBaseQueue()
 	{
 		myLock.Lock();
-		MG_COMMON_ASSERT(myConsumerCount == 0);
+		MG_COMMON_ASSERT(myConsumerCount.LoadRelaxed() == 0);
 		uint32_t subQueueCount = 0;
 		while (myHead != nullptr)
 		{
@@ -438,7 +437,8 @@ namespace common {
 			myHead = next;
 			++subQueueCount;
 		}
-		MG_COMMON_ASSERT(subQueueCount == (uint32_t)mySubQueueCount);
+		MG_COMMON_ASSERT(subQueueCount ==
+			mySubQueueCount.LoadRelaxed());
 		myLock.Unlock();
 	}
 
@@ -451,7 +451,7 @@ namespace common {
 		// It is very important to update the count before pushing
 		// the element. Otherwise a consumer may pop it, decrement
 		// the count, and may make it negative.
-		bool becameNotEmpty = mg::common::AtomicAdd(&myCount, count) == 0;
+		bool becameNotEmpty = myCount.FetchAddRelaxed(count) == 0;
 
 		// Fast-path - almost always a lock-free push.
 		if (myWpos->Push(aItem))
@@ -493,7 +493,8 @@ namespace common {
 	{
 		if (myPendingCount == 0)
 			return false;
-		bool becameNotEmpty = mg::common::AtomicAdd(&myCount, myPendingCount) == 0;
+		bool becameNotEmpty = myCount.FetchAddRelaxed(
+			myPendingCount) == 0;
 		myPendingCount = 0;
 		myWpos->FlushPending();
 		return becameNotEmpty;
@@ -509,7 +510,7 @@ namespace common {
 		myLock.Lock();
 		uint32_t size = myTail->mySize;
 		aCount = aCount / size + (aCount % size != 0);
-		uint32_t count = (uint32_t)mg::common::AtomicLoad(&mySubQueueCount);
+		uint32_t count = mySubQueueCount.LoadRelaxed();
 		if (count >= aCount)
 		{
 			myLock.Unlock();
@@ -525,7 +526,7 @@ namespace common {
 			next->myPrev = tail;
 			tail = next;
 		}
-		mg::common::AtomicAdd(&mySubQueueCount, (int32_t)count);
+		mySubQueueCount.AddRelaxed(count);
 
 		head->myPrev = myTail;
 		myTail->myNext = head;
@@ -548,7 +549,7 @@ namespace common {
 			// constant. So can be accessed freely. No need to
 			// store the same size in the root queue.
 			myWpos = new MCQBaseSubQueue(myTail->mySize);
-			mg::common::AtomicIncrement(&mySubQueueCount);
+			mySubQueueCount.IncrementRelaxed();
 			myWpos->myPrev = myTail;
 			myTail->myNext = myWpos;
 			myTail = myWpos;
@@ -575,7 +576,7 @@ namespace common {
 		// Note, that it is safe to read rindex here. Because the
 		// sub-queue is not referenced by any consumer, and
 		// therefore rindex can't change here concurrently.
-		if ((uint32_t)aItem->myReadIndex < aItem->mySize)
+		if (aItem->myReadIndex.LoadRelaxed() < aItem->mySize)
 			return;
 		// Can't be last - wpos is always ahead and this item is not wpos.
 		MCQBaseSubQueue* next = aItem->myNext;

@@ -130,10 +130,10 @@ namespace common {
 			MCQBaseSubQueue* aItem);
 
 		// Fields accessed by all participants.
-		int32_t myCount;
+		mg::common::AtomicU32 myCount;
 		MG_UNUSED_MEMBER char myFalseSharingProtection1[MG_CACHE_LINE_SIZE];
 		// Producer-exclusive fields.
-		int32_t myPendingCount;
+		uint32_t myPendingCount;
 		MG_UNUSED_MEMBER char myFalseSharingProtection2[MG_CACHE_LINE_SIZE];
 		// Fields below are accessed *also* from all participants,
 		// but changed much rarer. So their cache line has more
@@ -141,8 +141,8 @@ namespace common {
 		// the fields above.
 
 		mg::common::Mutex myLock;
-		int32_t mySubQueueCount;
-		int32_t myConsumerCount;
+		mg::common::AtomicU32 mySubQueueCount;
+		mg::common::AtomicU32 myConsumerCount;
 		MCQBaseSubQueue* myHead;
 		MCQBaseSubQueue* myWpos;
 		MCQBaseSubQueue* myTail;
@@ -153,19 +153,19 @@ namespace common {
 	inline uint32_t
 	MCQBaseQueue::SubQueueCount()
 	{
-		return mg::common::AtomicLoad(&mySubQueueCount);
+		return mySubQueueCount.LoadRelaxed();
 	}
 
 	inline uint32_t
 	MCQBaseQueue::ConsumerCount()
 	{
-		return mg::common::AtomicLoad(&myConsumerCount);
+		return myConsumerCount.LoadRelaxed();
 	}
 
 	inline uint32_t
 	MCQBaseQueue::Count()
 	{
-		return mg::common::AtomicLoad(&myCount);
+		return myCount.LoadRelaxed();
 	}
 
 }
