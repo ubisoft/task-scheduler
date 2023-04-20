@@ -25,7 +25,7 @@ namespace serverbox {
 
 	TaskScheduler::~TaskScheduler()
 	{
-		mg::common::AtomicFlagSet(&myIsStopped);
+		myIsStopped.StoreRelease(true);
 		for (TaskSchedulerThread* t : myThreads)
 			t->Stop();
 		// It is enough to wake the sched-thread. It will wakeup
@@ -63,8 +63,7 @@ namespace serverbox {
 		// Don't do the load inside of the cycle. It is needed
 		// only first time. On next iterations the cmpxchg returns
 		// the old value anyway.
-		int32_t old;
-		int32_t oldNext = mg::common::AtomicLoad(&aTask->myStatus);
+		TaskStatus old = aTask->myStatus.LoadRelaxed();
 		// Note, that the loop is not a busy loop nor a spin-lock.
 		// Because it would mean the thread couldn't progress
 		// until some other thread does something. Here, on the
@@ -73,14 +72,15 @@ namespace serverbox {
 		// one iteration in like 99.9999% cases.
 		do
 		{
-			old = oldNext;
 			// Signal and ready mean the task will be executed
 			// ASAP anyway. Also can't override the signal,
 			// because it is stronger than a wakeup.
 			if (old == TASK_STATUS_SIGNALED || old == TASK_STATUS_READY)
 				return;
-		} while ((oldNext = mg::common::AtomicCompareExchange(&aTask->myStatus,
-			TASK_STATUS_READY, old)) != old);
+			// Relaxed is fine. The memory sync will happen via the scheduler
+			// queues if the wakeup succeeds.
+		} while (!aTask->myStatus.CmpExchgWeakRelaxed(
+			old, TASK_STATUS_READY));
 
 		// If the task was in the waiting queue. Need to re-push
 		// it to let the scheduler know the task must be removed
@@ -93,7 +93,11 @@ namespace serverbox {
 	TaskScheduler::Signal(
 		Task* aTask)
 	{
-		int32_t old = mg::common::AtomicExchange(&aTask->myStatus, TASK_STATUS_SIGNALED);
+		// Release-barrier to sync with the acquire-barrier on the
+		// signal receipt. Can't be relaxed, because the task might send
+		// and receive the signal without the scheduler's participation
+		// and can't count on synchronizing any memory via it.
+		TaskStatus old = aTask->myStatus.ExchangeRelease(TASK_STATUS_SIGNALED);
 		// WAITING - the task was in the waiting queue. Need to
 		// re-push it to let the scheduler know the task must be
 		// removed from the queue earlier.
@@ -113,10 +117,14 @@ namespace serverbox {
 	bool
 	TaskScheduler::PrivSchedule()
 	{
-		if (mg::common::AtomicFlagSet(&myIsSchedulerWorking) != 0)
+		if (myIsSchedulerWorking.ExchangeAcqRel(true))
 			return false;
 
-		int32_t old;
+		// Task status operations can all be relaxed inside the
+		// scheduler. Syncing writes and reads between producers and
+		// workers anyway happens via acquire-release of the front
+		// queue - all tasks go through it.
+		TaskStatus old;
 		Task* t;
 		Task* next;
 		Task* tail;
@@ -143,10 +151,11 @@ namespace serverbox {
 			myQueueWaiting.RemoveTop();
 			t->myIsExpired = true;
 
-			old = mg::common::AtomicCompareExchange(&t->myStatus, TASK_STATUS_READY,
-				TASK_STATUS_WAITING);
-			if (old == TASK_STATUS_READY || old == TASK_STATUS_SIGNALED)
+			old = TASK_STATUS_WAITING;
+			if (!t->myStatus.CmpExchgStrongRelaxed(old, TASK_STATUS_READY))
 			{
+				MG_DEV_ASSERT(old == TASK_STATUS_READY ||
+					old == TASK_STATUS_SIGNALED);
 				// The task is woken up explicitly or signaled. It
 				// means the waker thread saw the task in WAITING
 				// state.
@@ -162,7 +171,6 @@ namespace serverbox {
 				// thread.
 				continue;
 			}
-
 			MG_COMMON_ASSERT(old == TASK_STATUS_WAITING);
 			ready.Append(t);
 		}
@@ -184,9 +192,8 @@ namespace serverbox {
 			if (timestamp < t->myDeadline)
 			{
 				t->myIsExpired = false;
-				old = mg::common::AtomicCompareExchange(&t->myStatus, TASK_STATUS_WAITING,
-					TASK_STATUS_PENDING);
-				if (old == TASK_STATUS_PENDING)
+				old = TASK_STATUS_PENDING;
+				if (t->myStatus.CmpExchgStrongRelaxed(old, TASK_STATUS_WAITING))
 				{
 					// The task is not added to the heap in case
 					// it is put to sleep until explicit wakeup or
@@ -214,9 +221,8 @@ namespace serverbox {
 			else
 			{
 				t->myIsExpired = true;
-				old = mg::common::AtomicCompareExchange(
-					&t->myStatus, TASK_STATUS_READY, TASK_STATUS_PENDING
-				);
+				old = TASK_STATUS_PENDING;
+				t->myStatus.CmpExchgStrongRelaxed(old, TASK_STATUS_READY);
 				MG_COMMON_ASSERT(
 					// Normal task reached its dispatch.
 					old == TASK_STATUS_PENDING ||
@@ -270,8 +276,7 @@ namespace serverbox {
 		}
 
 	end:
-		mg::common::AtomicFlagClear(&myIsSchedulerWorking);
-
+		myIsSchedulerWorking.StoreRelease(false);
 		// The signal is absolutely vital to have exactly here.
 		// If the signal would not be emitted here, all the
 		// workers could block on ready tasks in their loops.
@@ -312,8 +317,8 @@ namespace serverbox {
 			return false;
 		MG_COMMON_ASSERT(aTask->myIsInQueues);
 		aTask->myIsInQueues = false;
-		int32_t old = mg::common::AtomicCompareExchange(&aTask->myStatus,
-			TASK_STATUS_PENDING, TASK_STATUS_READY);
+		TaskStatus old = TASK_STATUS_READY;
+		aTask->myStatus.CmpExchgStrongRelaxed(old, TASK_STATUS_PENDING);
 		MG_COMMON_ASSERT(old == TASK_STATUS_READY || old == TASK_STATUS_SIGNALED);
 		// The task object shall not be accessed anyhow after
 		// execution. It may be deleted inside.
@@ -336,7 +341,7 @@ namespace serverbox {
 	bool
 	TaskScheduler::PrivIsStopped()
 	{
-		return mg::common::AtomicFlagTest(&myIsStopped) != 0;
+		return myIsStopped.LoadAcquire();
 	}
 
 	TaskSchedulerThread::TaskSchedulerThread(
@@ -354,17 +359,17 @@ namespace serverbox {
 	void
 	TaskSchedulerThread::Run()
 	{
-		int64_t maxBatch = myScheduler->myExecBatchSize;
-		int64_t batch;
+		uint64_t maxBatch = myScheduler->myExecBatchSize;
+		uint64_t batch;
 		while (!myScheduler->PrivIsStopped())
 		{
 			do
 			{
 				if (myScheduler->PrivSchedule())
-					mg::common::AtomicIncrement64(&myScheduleCount);
+					myScheduleCount.IncrementRelaxed();
 				batch = 0;
 				while (myScheduler->PrivExecute(myConsumer.Pop()) && ++batch < maxBatch);
-				mg::common::AtomicAdd64(&myExecuteCount, batch);
+				myExecuteCount.AddRelaxed(batch);
 			} while (batch == maxBatch);
 			MG_COMMON_ASSERT(batch < maxBatch);
 

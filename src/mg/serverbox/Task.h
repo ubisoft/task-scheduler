@@ -156,7 +156,7 @@ namespace serverbox {
 		// waiting queue.
 		int32_t myIndex;
 	private:
-		int32_t myStatus;
+		mg::common::Atomic<TaskStatus> myStatus;
 		uint64_t myDeadline;
 		TaskCallback myCallback;
 		// True if the task is inside the scheduler in one of its
@@ -207,7 +207,7 @@ namespace serverbox {
 	inline bool
 	Task::IsSignaled()
 	{
-		return mg::common::AtomicLoad(&myStatus) == TASK_STATUS_SIGNALED;
+		return myStatus.LoadAcquire() == TASK_STATUS_SIGNALED;
 	}
 
 	inline bool

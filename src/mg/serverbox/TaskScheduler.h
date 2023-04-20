@@ -299,8 +299,8 @@ namespace serverbox {
 		//
 		// The worker thread, doing the scheduling right now, is
 		// called 'sched-thread' throughout the code.
-		int32_t myIsSchedulerWorking;
-		int32_t myIsStopped;
+		mg::common::AtomicBool myIsSchedulerWorking;
+		mg::common::AtomicBool myIsStopped;
 
 		friend class TaskSchedulerThread;
 	};
@@ -322,8 +322,8 @@ namespace serverbox {
 
 		TaskScheduler* myScheduler;
 		TaskSchedulerQueueReadyConsumer myConsumer;
-		int64_t myExecuteCount;
-		int64_t myScheduleCount;
+		mg::common::AtomicU64 myExecuteCount;
+		mg::common::AtomicU64 myScheduleCount;
 	};
 
 	struct TaskOneShot
@@ -376,13 +376,13 @@ namespace serverbox {
 	inline uint64_t
 	TaskSchedulerThread::StatPopExecuteCount()
 	{
-		return (uint64_t)mg::common::AtomicExchange64(&myExecuteCount, 0);
+		return myExecuteCount.ExchangeRelaxed(0);
 	}
 
 	inline uint64_t
 	TaskSchedulerThread::StatPopScheduleCount()
 	{
-		return (uint64_t)mg::common::AtomicExchange64(&myScheduleCount, 0);
+		return myScheduleCount.ExchangeRelaxed(0);
 	}
 
 	template<typename Functor>

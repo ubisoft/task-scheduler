@@ -56,8 +56,12 @@ namespace serverbox {
 	Task::ReceiveSignal()
 	{
 		PrivTouch();
-		return mg::common::AtomicCompareExchange(&myStatus, TASK_STATUS_PENDING,
-			TASK_STATUS_SIGNALED) == TASK_STATUS_SIGNALED;
+		TaskStatus oldStatus = TASK_STATUS_SIGNALED;
+		// Acquire-barrier to sync with the release-barrier on the
+		// signal sending. Can't be relaxed, because the task might send
+		// and receive the signal without the scheduler's participation
+		// and can't count on synchronizing any memory via it.
+		return myStatus.CmpExchgStrongAcquire(oldStatus, TASK_STATUS_PENDING);
 	}
 
 	void
@@ -78,7 +82,7 @@ namespace serverbox {
 	{
 		myNext = nullptr;
 		myIndex = -1;
-		myStatus = TASK_STATUS_PENDING;
+		myStatus.StoreRelease(TASK_STATUS_PENDING);
 		myDeadline = 0;
 		myIsInQueues = false;
 		myIsExpired = false;
