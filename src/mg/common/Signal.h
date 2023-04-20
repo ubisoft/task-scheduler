@@ -1,5 +1,6 @@
 #pragma once
 
+#include "mg/common/Atomic.h"
 #include "mg/common/ConditionVariable.h"
 #include "mg/common/Mutex.h"
 
@@ -72,7 +73,7 @@ namespace common {
 
 		mg::common::ConditionVariable myCond;
 		mg::common::Mutex myLock;
-		int32_t myState;
+		mg::common::Atomic<State> myState;
 	};
 
 }
