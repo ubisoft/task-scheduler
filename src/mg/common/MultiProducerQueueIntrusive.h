@@ -17,7 +17,7 @@ namespace common {
 		inline bool
 		IsEmpty()
 		{
-			return mg::common::AtomicLoadPtr(&myHead) == nullptr;
+			return myHead.LoadAcquire() == nullptr;
 		}
 
 		// Returns true if the object was first. That may be
@@ -94,7 +94,7 @@ namespace common {
 		inline T*
 		PopAllFastReversed()
 		{
-			return mg::common::AtomicExchangePtr(&myHead, (T*)nullptr);
+			return myHead.ExchangeAcqRel(nullptr);
 		}
 
 		inline T*
@@ -128,18 +128,15 @@ namespace common {
 			T* aFirst,
 			T* aLast)
 		{
-			T* oldHead;
+			T* oldHead = myHead.LoadAcquire();
 			do
 			{
-				oldHead = mg::common::AtomicLoadPtr(&myHead);
 				aLast->*myNext = oldHead;
-			} while (mg::common::AtomicCompareExchangePtr(
-				&myHead, aFirst, oldHead
-			) != oldHead);
+			} while (!myHead.CmpExchgWeakAcqRel(oldHead, aFirst));
 			return oldHead == nullptr;
 		}
 
-		T* myHead;
+		mg::common::Atomic<T*> myHead;
 	};
 
 }
