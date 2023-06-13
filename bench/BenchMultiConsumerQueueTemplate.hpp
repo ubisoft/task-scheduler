@@ -2,6 +2,7 @@
 
 #include "Bench.h"
 
+#include "mg/common/Atomic.h"
 #include "mg/common/Mutex.h"
 #include "mg/common/Random.h"
 #include "mg/common/Thread.h"
@@ -36,8 +37,8 @@ namespace bench {
 		void Run() override;
 
 		BenchQueueConsumer myConsumer;
-		int64_t myCount;
-		int32_t myPauseState;
+		mg::common::AtomicU64 myCount;
+		mg::common::AtomicU32 myPauseState;
 		BenchLoadType myLoadType;
 	};
 
@@ -112,29 +113,29 @@ namespace bench {
 	void
 	BenchConsumerThread::Pause()
 	{
-		int32_t old = mg::common::AtomicExchange(&myPauseState, 1);
+		uint32_t old = myPauseState.ExchangeRelease(1);
 		MG_COMMON_ASSERT(old == 0);
-		while (mg::common::AtomicLoad(&myPauseState) != 2)
+		while (myPauseState.LoadAcquire() != 2)
 			mg::common::Sleep(1);
 	}
 
 	void
 	BenchConsumerThread::Continue()
 	{
-		int32_t old = mg::common::AtomicExchange(&myPauseState, 0);
+		uint32_t old = myPauseState.ExchangeRelease(0);
 		MG_COMMON_ASSERT(old == 2);
 	}
 
 	void
 	BenchConsumerThread::StatClear()
 	{
-		mg::common::AtomicExchange64(&myCount, 0);
+		myCount.StoreRelaxed(0);
 	}
 
 	uint64_t
 	BenchConsumerThread::StatGetCount() const
 	{
-		return (uint64_t)mg::common::AtomicLoad64((int64_t*)&myCount);
+		return myCount.LoadRelaxed();
 	}
 
 	void
@@ -144,16 +145,16 @@ namespace bench {
 		{
 			while (myConsumer.Pop() != nullptr)
 			{
-				mg::common::AtomicIncrement64(&myCount);
+				myCount.IncrementRelaxed();
 				if (myLoadType == BENCH_LOAD_MICRO)
 					BenchMakeMicroWork();
 			}
-			int32_t pause = mg::common::AtomicLoad(&myPauseState);
+			uint32_t pause = myPauseState.LoadAcquire();
 			if (pause != 0)
 			{
 				MG_COMMON_ASSERT(pause == 1);
-				mg::common::AtomicExchange(&myPauseState, 2);
-				while (mg::common::AtomicLoad(&myPauseState) != 0)
+				myPauseState.StoreRelease(2);
+				while (myPauseState.LoadAcquire() != 0)
 					mg::common::Sleep(1);
 			}
 		}

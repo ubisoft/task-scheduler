@@ -108,7 +108,7 @@ namespace bench {
 		void Run() override;
 
 		TaskScheduler* myScheduler;
-		int64_t myExecuteCount;
+		mg::common::AtomicU64 myExecuteCount;
 	};
 
 	//////////////////////////////////////////////////////////////////////////////////////
@@ -239,7 +239,7 @@ namespace bench {
 	uint64_t
 	TaskSchedulerThread::StatPopExecuteCount()
 	{
-		return (uint64_t)mg::common::AtomicExchange64(&myExecuteCount, 0);
+		return myExecuteCount.ExchangeRelaxed(0);
 	}
 
 	uint64_t
@@ -268,7 +268,7 @@ namespace bench {
 				t->myCallback(t);
 				mutex.Lock();
 			}
-			mg::common::AtomicAdd64(&myExecuteCount, batch);
+			myExecuteCount.AddRelaxed(batch);
 			if (isStopped)
 				break;
 			cond.Wait(mutex);

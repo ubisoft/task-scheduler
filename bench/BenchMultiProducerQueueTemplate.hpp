@@ -2,7 +2,6 @@
 
 #include "Bench.h"
 
-#include "mg/common/Atomic.h"
 #include "mg/common/ForwardList.h"
 #include "mg/common/Signal.h"
 #include "mg/common/Thread.h"
@@ -22,7 +21,7 @@ namespace bench {
 		BenchThreadSender(
 			MultiProducerQueue& aQueue,
 			mg::common::Signal* aSignal,
-			int64_t& aSharedQueueSize,
+			mg::common::AtomicU64& aSharedQueueSize,
 			uint64_t aItemCount,
 			BenchLoadType aLoadType);
 
@@ -35,14 +34,14 @@ namespace bench {
 
 		MultiProducerQueue& myQueue;
 		MG_BENCH_FALSE_SHARING_BARRIER(myPadding1);
-		int64_t& mySharedQueueSize;
+		mg::common::AtomicU64& mySharedQueueSize;
 		MG_BENCH_FALSE_SHARING_BARRIER(myPadding2);
 		const uint64_t myItemCount;
 		BenchValueList myItems;
 		MG_BENCH_FALSE_SHARING_BARRIER(myPadding3);
 		mg::common::Signal* mySignal;
 		BenchLoadType myLoadType;
-		int32_t myIsPaused;
+		mg::common::AtomicBool myIsPaused;
 	};
 
 	class BenchThreadReceiver
@@ -52,28 +51,28 @@ namespace bench {
 		BenchThreadReceiver(
 			MultiProducerQueue& aQueue,
 			mg::common::Signal* aSignal,
-			int64_t& aSharedQueueSize,
+			mg::common::AtomicU64& aSharedQueueSize,
 			BenchLoadType aLoadType);
 
 		~BenchThreadReceiver() override;
 
 		void Begin();
 
-		uint64_t StatPopItemCount() const;
+		uint64_t StatPopItemCount();
 
 	private:
 		void Run() override;
 
 		MultiProducerQueue& myQueue;
 		MG_BENCH_FALSE_SHARING_BARRIER(myPadding1);
-		int64_t& mySharedQueueSize;
+		mg::common::AtomicU64& mySharedQueueSize;
 		MG_BENCH_FALSE_SHARING_BARRIER(myPadding2);
-		int64_t myItemCount;
+		mg::common::AtomicU64 myItemCount;
 		BenchValueList myItems;
 		MG_BENCH_FALSE_SHARING_BARRIER(myPadding3);
 		mg::common::Signal* mySignal;
 		BenchLoadType myLoadType;
-		int32_t myIsPaused;
+		mg::common::AtomicBool myIsPaused;
 	};
 
 	//////////////////////////////////////////////////////////////////////////////////////
@@ -104,7 +103,7 @@ namespace bench {
 	BenchThreadSender::BenchThreadSender(
 		MultiProducerQueue& aQueue,
 		mg::common::Signal* aSignal,
-		int64_t& aSharedQueueSize,
+		mg::common::AtomicU64& aSharedQueueSize,
 		uint64_t aItemCount,
 		BenchLoadType aLoadType)
 		: myQueue(aQueue)
@@ -112,10 +111,10 @@ namespace bench {
 		, myItemCount(aItemCount)
 		, mySignal(aSignal)
 		, myLoadType(aLoadType)
-		, myIsPaused(0)
+		, myIsPaused(false)
 	{
 		Start();
-		while (mg::common::AtomicFlagTest(&myIsPaused) == 0)
+		while (!myIsPaused.LoadAcquire())
 			mg::common::Sleep(1);
 	}
 
@@ -127,7 +126,7 @@ namespace bench {
 	void
 	BenchThreadSender::Begin()
 	{
-		MG_COMMON_ASSERT(mg::common::AtomicFlagClear(&myIsPaused) == 1);
+		MG_COMMON_ASSERT(myIsPaused.ExchangeRelease(false));
 	}
 
 	void
@@ -135,8 +134,8 @@ namespace bench {
 	{
 		for (uint64_t i = 0; i < myItemCount; ++i)
 			myItems.Append(new BenchValue());
-		MG_COMMON_ASSERT(mg::common::AtomicFlagSet(&myIsPaused) == 0);
-		while (mg::common::AtomicFlagTest(&myIsPaused) != 0);
+		MG_COMMON_ASSERT(!myIsPaused.ExchangeRelease(true));
+		while (myIsPaused.LoadAcquire());
 
 		while (!StopRequested() && !myItems.IsEmpty())
 		{
@@ -155,7 +154,7 @@ namespace bench {
 					MG_COMMON_ASSERT(false);
 					break;
 			}
-			mg::common::AtomicIncrement64(&mySharedQueueSize);
+			mySharedQueueSize.IncrementRelaxed();
 			if (myQueue.Push(myItems.PopFirst()) && mySignal != nullptr)
 				mySignal->Send();
 		}
@@ -164,17 +163,17 @@ namespace bench {
 	BenchThreadReceiver::BenchThreadReceiver(
 		MultiProducerQueue& aQueue,
 		mg::common::Signal* aSignal,
-		int64_t& aSharedQueueSize,
+		mg::common::AtomicU64& aSharedQueueSize,
 		BenchLoadType aLoadType)
 		: myQueue(aQueue)
 		, mySharedQueueSize(aSharedQueueSize)
 		, myItemCount(0)
 		, mySignal(aSignal)
 		, myLoadType(aLoadType)
-		, myIsPaused(0)
+		, myIsPaused(false)
 	{
 		Start();
-		while (mg::common::AtomicFlagTest(&myIsPaused) == 0)
+		while (!myIsPaused.LoadAcquire())
 			mg::common::Sleep(1);
 	}
 
@@ -195,20 +194,20 @@ namespace bench {
 	void
 	BenchThreadReceiver::Begin()
 	{
-		MG_COMMON_ASSERT(mg::common::AtomicFlagClear(&myIsPaused) == 1);
+		MG_COMMON_ASSERT(myIsPaused.ExchangeRelease(false));
 	}
 
 	uint64_t
-	BenchThreadReceiver::StatPopItemCount() const
+	BenchThreadReceiver::StatPopItemCount()
 	{
-		return (uint64_t)mg::common::AtomicExchange64((int64_t*)&myItemCount, 0);
+		return myItemCount.ExchangeRelaxed(0);
 	}
 
 	void
 	BenchThreadReceiver::Run()
 	{
-		MG_COMMON_ASSERT(mg::common::AtomicFlagSet(&myIsPaused) == 0);
-		while (mg::common::AtomicFlagTest(&myIsPaused) != 0);
+		MG_COMMON_ASSERT(!myIsPaused.ExchangeRelease(true));
+		while (myIsPaused.LoadAcquire());
 
 		while (!StopRequested())
 		{
@@ -232,8 +231,7 @@ namespace bench {
 			BenchValue* tail;
 			BenchValue* head = myQueue.PopAll(tail);
 			myItems.Append(head, tail);
-			mg::common::AtomicAdd64(&myItemCount,
-				mg::common::AtomicExchange64(&mySharedQueueSize, 0));
+			myItemCount.AddRelaxed(mySharedQueueSize.ExchangeRelaxed(0));
 		}
 	}
 
@@ -277,7 +275,7 @@ namespace bench {
 			signalPtr = &signal;
 
 		MultiProducerQueue queue;
-		int64_t sharedQueueSize = 0;
+		mg::common::AtomicU64 sharedQueueSize(0);
 		BenchThreadReceiver* receiver = new BenchThreadReceiver(queue, signalPtr,
 			sharedQueueSize, aLoadType);
 		std::vector<BenchThreadSender*> senders;

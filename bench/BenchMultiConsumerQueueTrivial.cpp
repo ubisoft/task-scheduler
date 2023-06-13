@@ -1,6 +1,5 @@
 #include "Bench.h"
 
-#include "mg/common/Atomic.h"
 #include "mg/common/ForwardList.h"
 #include "mg/common/Mutex.h"
 

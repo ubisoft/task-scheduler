@@ -2,6 +2,7 @@
 
 #include "Bench.h"
 
+#include "mg/common/Atomic.h"
 #include "mg/common/Mutex.h"
 #include "mg/common/Random.h"
 
@@ -44,8 +45,8 @@ namespace bench {
 		BenchTask* myTasks;
 		const uint32_t myTaskCount;
 		const uint32_t myExecuteCount;
-		int32_t myStopCount;
-		int64_t myTotalExecuteCount;
+		mg::common::AtomicU32 myStopCount;
+		mg::common::AtomicU64 myTotalExecuteCount;
 		TaskScheduler* myScheduler;
 	};
 
@@ -130,14 +131,14 @@ namespace bench {
 	void
 	BenchTaskCtl::Warmup()
 	{
-		int32_t execCount = 0;
+		mg::common::AtomicU32 execCount(0);
 		for (int i = 0; i < MG_WARMUP_TASK_COUNT; ++i)
 		{
 			myScheduler->PostOneShot([&]() {
-				mg::common::AtomicIncrement(&execCount);
+				execCount.IncrementRelaxed();
 			});
 		}
-		while (mg::common::AtomicLoad(&execCount) != MG_WARMUP_TASK_COUNT)
+		while (execCount.LoadRelaxed() != MG_WARMUP_TASK_COUNT)
 			mg::common::Sleep(1);
 		// Cleanup the stats to make the bench's results clean.
 		uint32_t count = 0;
@@ -175,21 +176,21 @@ namespace bench {
 	{
 		uint64_t total = myExecuteCount * myTaskCount;
 		WaitExecuteCount(total);
-		MG_COMMON_ASSERT((int64_t)total == mg::common::AtomicLoad64(&myTotalExecuteCount));
+		MG_COMMON_ASSERT(total == myTotalExecuteCount.LoadRelaxed());
 	}
 
 	void
 	BenchTaskCtl::WaitExecuteCount(
 		uint64_t aCount)
 	{
-		while (mg::common::AtomicLoad64(&myTotalExecuteCount) < (int64_t)aCount)
+		while (myTotalExecuteCount.LoadRelaxed() < aCount)
 			mg::common::Sleep(1);
 	}
 
 	void
 	BenchTaskCtl::WaitAllStopped()
 	{
-		while (mg::common::AtomicLoad(&myStopCount) != (int32_t)myTaskCount)
+		while (myStopCount.LoadAcquire() != myTaskCount)
 			mg::common::Sleep(1);
 		for (uint32_t i = 0; i < myTaskCount; ++i)
 			MG_COMMON_ASSERT(myTasks[i].myExecuteCount == myExecuteCount);
@@ -253,7 +254,7 @@ namespace bench {
 	{
 		MG_COMMON_ASSERT(aTask == this);
 		++myExecuteCount;
-		mg::common::AtomicIncrement64(&myCtx->myTotalExecuteCount);
+		myCtx->myTotalExecuteCount.IncrementRelaxed();
 		if (myExecuteCount >= myCtx->myExecuteCount)
 			return Stop();
 		return myCtx->myScheduler->Post(aTask);
@@ -265,7 +266,7 @@ namespace bench {
 	{
 		MG_COMMON_ASSERT(aTask == this);
 		++myExecuteCount;
-		mg::common::AtomicIncrement64(&myCtx->myTotalExecuteCount);
+		myCtx->myTotalExecuteCount.IncrementRelaxed();
 		BenchMakeMicroWork();
 		if (myExecuteCount >= myCtx->myExecuteCount)
 			return Stop();
@@ -279,7 +280,7 @@ namespace bench {
 		MG_COMMON_ASSERT(aTask == this);
 		aTask->ReceiveSignal();
 		++myExecuteCount;
-		mg::common::AtomicIncrement64(&myCtx->myTotalExecuteCount);
+		myCtx->myTotalExecuteCount.IncrementRelaxed();
 		BenchMakeHeavyWork();
 		bool isLast = myExecuteCount >= myCtx->myExecuteCount;
 		if (myExecuteCount % 10 == 0)
@@ -305,7 +306,7 @@ namespace bench {
 	void
 	BenchTask::Stop()
 	{
-		mg::common::AtomicIncrement(&myCtx->myStopCount);
+		myCtx->myStopCount.IncrementRelease();
 	}
 
 	//////////////////////////////////////////////////////////////////////////////////////
@@ -396,9 +397,10 @@ namespace bench {
 		timed.Report();
 		double durationMs = timed.GetMilliseconds();
 
-		report.myExecPerSec = (uint64_t)(ctl.myTotalExecuteCount * 1000 / durationMs);
+		uint64_t totalExecCount = ctl.myTotalExecuteCount.LoadRelaxed();
+		report.myExecPerSec = (uint64_t)(totalExecCount * 1000 / durationMs);
 		report.myExecPerSecPerThread = report.myExecPerSec / aThreadCount;
-		report.myUsPerExec = durationMs * 1000 / ctl.myTotalExecuteCount * aThreadCount;
+		report.myUsPerExec = durationMs * 1000 / totalExecCount * aThreadCount;
 
 		TaskSchedulerThread*const* threads = sched.GetThreads(aThreadCount);
 		report.myThreads.resize(aThreadCount);

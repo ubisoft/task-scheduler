@@ -213,8 +213,8 @@ namespace bench {
 	{
 		for (int i = 0; i < aCount; ++i)
 		{
-			int32_t flag = mg::common::RandomBool();
-			mg::common::AtomicFlagSet(&flag);
+			mg::common::AtomicBool flag(mg::common::RandomBool());
+			flag.Store(true);
 		}
 	}
 
