@@ -2,6 +2,7 @@
 
 #include "mg/common/Definitions.h"
 
+#include <cstdarg>
 #include <string>
 
 #if !defined(_DEBUG) || IS_ORBIS_PLATFORM
