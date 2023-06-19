@@ -277,15 +277,15 @@ namespace unittests {
 
 		std::vector<mg::common::ThreadFunc*> threads;
 		threads.reserve(threadCount);
-		int32_t readyCount = 0;
+		mg::common::AtomicU32 readyCount(0);
 		for (uint32_t ti = 0; ti < threadCount; ++ti)
 		{
 			threads.push_back(new mg::common::ThreadFunc([&]() {
 
 				const uint32_t packMaxSize = 5;
 
-				uint32_t threadId = mg::common::AtomicIncrement(&readyCount) - 1;
-				while ((uint32_t)mg::common::AtomicLoad(&readyCount) != threadCount)
+				uint32_t threadId = readyCount.FetchIncrementRelaxed();
+				while (readyCount.LoadRelaxed() != threadCount)
 					mg::common::Sleep(1);
 
 				uint32_t i = 0;

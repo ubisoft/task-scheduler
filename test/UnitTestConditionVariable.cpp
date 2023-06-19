@@ -17,20 +17,20 @@ namespace unittests {
 
 	static inline void
 	UnitTestCondVarSend(
-		int32_t* aCounter,
-		int32_t* aNextCounter)
+		mg::common::AtomicU32& aCounter,
+		uint32_t& aOutNextCounter)
 	{
-		*aNextCounter = mg::common::AtomicIncrement(aCounter) + 1;
+		aOutNextCounter = aCounter.IncrementFetchRelaxed() + 1;
 	}
 
 	static inline void
 	UnitTestCondVarReceive(
-		int32_t* aCounter,
-		int32_t* aNextCounter)
+		mg::common::AtomicU32& aCounter,
+		uint32_t& aNextCounter)
 	{
-		while (mg::common::AtomicCompareExchange(aCounter, *aNextCounter,
-			*aNextCounter) != *aNextCounter);
-		++*aNextCounter;
+		while (aCounter.LoadRelaxed() != aNextCounter)
+			continue;
+		++aNextCounter;
 	}
 
 	static void
@@ -38,44 +38,44 @@ namespace unittests {
 	{
 		mg::common::ConditionVariable var;
 		mg::common::Mutex mutex;
-		int32_t stepCounter = 0;
-		int32_t next = 0;
+		mg::common::AtomicU32 stepCounter(0);
+		uint32_t next = 0;
 		mg::common::ThreadFunc worker([&]() {
-			int32_t workerNext = 1;
+			uint32_t workerNext = 1;
 
 			// Test that simple lock/unlock work correct.
-			UnitTestCondVarReceive(&stepCounter, &workerNext);
+			UnitTestCondVarReceive(stepCounter, workerNext);
 
 			mutex.Lock();
-			UnitTestCondVarSend(&stepCounter, &workerNext);
+			UnitTestCondVarSend(stepCounter, workerNext);
 			var.Wait(mutex);
 			MG_COMMON_ASSERT(mutex.IsOwnedByThisThread());
 			mutex.Unlock();
 			mutex.Lock();
-			UnitTestCondVarSend(&stepCounter, &workerNext);
+			UnitTestCondVarSend(stepCounter, workerNext);
 
 			// Test that timed wait correctly returns a timeout
 			// error.
-			UnitTestCondVarReceive(&stepCounter, &workerNext);
+			UnitTestCondVarReceive(stepCounter, workerNext);
 
 			bool isTimedOut = false;
 			var.TimedWait(mutex, 100, &isTimedOut);
 			MG_COMMON_ASSERT(isTimedOut);
 			MG_COMMON_ASSERT(mutex.IsOwnedByThisThread());
-			UnitTestCondVarSend(&stepCounter, &workerNext);
+			UnitTestCondVarSend(stepCounter, workerNext);
 
 			// Test that timed wait does not set the flag if
 			// there was no a timeout.
-			UnitTestCondVarReceive(&stepCounter, &workerNext);
+			UnitTestCondVarReceive(stepCounter, workerNext);
 
-			UnitTestCondVarSend(&stepCounter, &workerNext);
+			UnitTestCondVarSend(stepCounter, workerNext);
 			// Wait signal.
 			var.TimedWait(mutex, UNIT_TEST_CONDVAR_TIMEOUT, &isTimedOut);
 			MG_COMMON_ASSERT(!isTimedOut);
 			MG_COMMON_ASSERT(mutex.IsOwnedByThisThread());
 
-			UnitTestCondVarReceive(&stepCounter, &workerNext);
-			UnitTestCondVarSend(&stepCounter, &workerNext);
+			UnitTestCondVarReceive(stepCounter, workerNext);
+			UnitTestCondVarSend(stepCounter, workerNext);
 			// Wait broadcast.
 			var.TimedWait(mutex, UNIT_TEST_CONDVAR_TIMEOUT, &isTimedOut);
 			MG_COMMON_ASSERT(!isTimedOut);
@@ -86,28 +86,28 @@ namespace unittests {
 		worker.Start();
 
 		// Test that simple lock/unlock work correct.
-		UnitTestCondVarSend(&stepCounter, &next);
-		UnitTestCondVarReceive(&stepCounter, &next);
+		UnitTestCondVarSend(stepCounter, next);
+		UnitTestCondVarReceive(stepCounter, next);
 		mutex.Lock();
 		var.Signal();
 		mutex.Unlock();
-		UnitTestCondVarReceive(&stepCounter, &next);
+		UnitTestCondVarReceive(stepCounter, next);
 
 		// Test that timed wait correctly returns a timeout
 		// error.
-		UnitTestCondVarSend(&stepCounter, &next);
-		UnitTestCondVarReceive(&stepCounter, &next);
+		UnitTestCondVarSend(stepCounter, next);
+		UnitTestCondVarReceive(stepCounter, next);
 
 		// Test that timed wait does not set the flag if
 		// was no a timeout.
-		UnitTestCondVarSend(&stepCounter, &next);
-		UnitTestCondVarReceive(&stepCounter, &next);
+		UnitTestCondVarSend(stepCounter, next);
+		UnitTestCondVarReceive(stepCounter, next);
 		mutex.Lock();
 		var.Signal();
 		mutex.Unlock();
 
-		UnitTestCondVarSend(&stepCounter, &next);
-		UnitTestCondVarReceive(&stepCounter, &next);
+		UnitTestCondVarSend(stepCounter, next);
+		UnitTestCondVarReceive(stepCounter, next);
 		mutex.Lock();
 		var.Broadcast();
 		mutex.Unlock();

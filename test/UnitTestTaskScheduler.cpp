@@ -17,40 +17,40 @@ namespace unittests {
 		mg::serverbox::TaskScheduler sched("tst", 1, 5);
 		mg::serverbox::TaskCallback cb;
 		mg::serverbox::Task* tp;
-		int32_t progress;
+		mg::common::AtomicU32 progress;
 
 		// Simple test for a task being executed 3 times.
-		progress = 0;
+		progress.StoreRelaxed(0);
 		cb = [&](mg::serverbox::Task* aTask) {
 			MG_COMMON_ASSERT(aTask == tp);
 			MG_COMMON_ASSERT(aTask->IsExpired());
-			if (mg::common::AtomicIncrement(&progress) < 3)
+			if (progress.IncrementFetchRelaxed() < 3)
 				sched.Post(aTask);
 		};
 		mg::serverbox::Task t(cb);
 		tp = &t;
 		sched.Post(&t);
-		while (mg::common::AtomicLoad(&progress) != 3)
+		while (progress.LoadRelaxed() != 3)
 			mg::common::Sleep(1);
 
 		// Delay should be respected.
 		uint64_t timestamp = mg::common::GetMilliseconds();
-		progress = 0;
+		progress.StoreRelaxed(false);
 		cb = [&](mg::serverbox::Task* aTask) {
 			MG_COMMON_ASSERT(aTask == tp);
 			MG_COMMON_ASSERT(aTask->IsExpired());
 			MG_COMMON_ASSERT(mg::common::GetMilliseconds() >= timestamp + 5);
-			mg::common::AtomicFlagSet(&progress);
+			progress.StoreRelaxed(true);
 		};
 		t.SetCallback(cb);
 		t.SetDelay(5);
 		sched.Post(&t);
-		while (!mg::common::AtomicFlagTest(&progress))
+		while (!progress.LoadRelaxed())
 			mg::common::Sleep(1);
 
 		// Deadline should be respected.
 		timestamp = 0;
-		progress = 0;
+		progress.StoreRelaxed(false);
 		cb = [&](mg::serverbox::Task* aTask) {
 			MG_COMMON_ASSERT(aTask == tp);
 			MG_COMMON_ASSERT(aTask->IsExpired());
@@ -60,34 +60,34 @@ namespace unittests {
 				return sched.PostDeadline(aTask, timestamp);
 			}
 			MG_COMMON_ASSERT(mg::common::GetMilliseconds() >= timestamp);
-			mg::common::AtomicFlagSet(&progress);
+			progress.StoreRelaxed(true);
 		};
 		t.SetCallback(cb);
 		sched.Post(&t);
-		while (!mg::common::AtomicFlagTest(&progress))
+		while (!progress.LoadRelaxed())
 			mg::common::Sleep(1);
 
 		// Task can delete itself before return.
-		progress = 0;
+		progress.StoreRelaxed(false);
 		tp = new mg::serverbox::Task();
 		cb = [&](mg::serverbox::Task* aTask) {
 			MG_COMMON_ASSERT(aTask == tp);
 			MG_COMMON_ASSERT(aTask->IsExpired());
-			mg::common::AtomicFlagSet(&progress);
+			progress.StoreRelaxed(true);
 			delete aTask;
 		};
 		tp->SetCallback(cb);
 		sched.Post(tp);
-		while (!mg::common::AtomicFlagTest(&progress))
+		while (!progress.LoadRelaxed())
 			mg::common::Sleep(1);
 
 		// Task's callback can be created in-place.
-		progress = 0;
+		progress.StoreRelaxed(false);
 		tp = new mg::serverbox::Task([&](mg::serverbox::Task* aTask) {
 			cb(aTask);
 		});
 		sched.Post(tp);
-		while (!mg::common::AtomicFlagTest(&progress))
+		while (!progress.LoadRelaxed())
 			mg::common::Sleep(1);
 	}
 
@@ -104,25 +104,25 @@ namespace unittests {
 		mg::serverbox::Task t1;
 		mg::serverbox::Task t2;
 		mg::serverbox::Task t3;
-		int32_t progress = 0;
+		mg::common::AtomicU32 progress(0);
 		cb = [&](mg::serverbox::Task* aTask) {
-			MG_COMMON_ASSERT(progress == 0);
+			MG_COMMON_ASSERT(progress.LoadRelaxed() == 0);
 			MG_COMMON_ASSERT(aTask->IsExpired());
-			mg::common::AtomicIncrement(&progress);
+			progress.IncrementRelaxed();
 		};
 		t1.SetCallback(cb);
 
 		cb = [&](mg::serverbox::Task* aTask) {
-			MG_COMMON_ASSERT(progress == 1);
+			MG_COMMON_ASSERT(progress.LoadRelaxed() == 1);
 			MG_COMMON_ASSERT(aTask->IsExpired());
-			mg::common::AtomicIncrement(&progress);
+			progress.IncrementRelaxed();
 		};
 		t2.SetCallback(cb);
 
 		cb = [&](mg::serverbox::Task* aTask) {
-			MG_COMMON_ASSERT(progress == 2);
+			MG_COMMON_ASSERT(progress.LoadRelaxed() == 2);
 			MG_COMMON_ASSERT(aTask->IsExpired());
-			mg::common::AtomicIncrement(&progress);
+			progress.IncrementRelaxed();
 		};
 		t3.SetCallback(cb);
 
@@ -130,7 +130,7 @@ namespace unittests {
 		sched.PostDelay(&t2, 3);
 		sched.PostDelay(&t3, 5);
 
-		while (mg::common::AtomicLoad(&progress) != 3)
+		while (progress.LoadRelaxed() != 3)
 			mg::common::Sleep(1);
 	}
 
@@ -147,14 +147,14 @@ namespace unittests {
 		mg::serverbox::Task t1;
 		mg::serverbox::Task t2;
 		mg::serverbox::Task t3;
-		int32_t progres = 0;
-		int32_t finish = 0;
+		mg::common::AtomicU32 progress(0);
+		mg::common::AtomicBool finish(false);
 		cb = [&](mg::serverbox::Task* aTask) {
 			MG_COMMON_ASSERT(aTask->IsExpired());
-			mg::common::AtomicIncrement(&progres);
-			while (!mg::common::AtomicFlagTest(&finish))
+			progress.IncrementRelaxed();
+			while (!finish.LoadAcquire())
 				mg::common::Sleep(1);
-			mg::common::AtomicIncrement(&progres);
+			progress.IncrementRelaxed();
 		};
 		t1.SetCallback(cb);
 		t2.SetCallback(cb);
@@ -164,11 +164,11 @@ namespace unittests {
 		sched.Post(&t2);
 		sched.Post(&t3);
 
-		while (mg::common::AtomicLoad(&progres) != 3)
+		while (progress.LoadRelaxed() != 3)
 			mg::common::Sleep(1);
-		progres = 0;
-		mg::common::AtomicFlagSet(&finish);
-		while (mg::common::AtomicLoad(&progres) != 3)
+		progress.StoreRelaxed(0);
+		finish.StoreRelease(true);
+		while (progress.LoadRelaxed() != 3)
 			mg::common::Sleep(1);
 	}
 
@@ -180,9 +180,9 @@ namespace unittests {
 		mg::serverbox::TaskScheduler sched("tst", 1, 5);
 		mg::serverbox::TaskCallback cb;
 		mg::serverbox::Task t1;
-		int32_t progress = 0;
+		mg::common::AtomicU32 progress(false);
 		cb = [&](mg::serverbox::Task*) {
-			mg::common::AtomicFlagSet(&progress);
+			progress.StoreRelaxed(true);
 		};
 		t1.SetCallback(cb);
 
@@ -190,82 +190,82 @@ namespace unittests {
 		// dispatched immediately to the ready queue.
 		sched.Post(&t1);
 		sched.Wakeup(&t1);
-		while (!mg::common::AtomicFlagTest(&progress))
+		while (!progress.LoadRelaxed())
 			mg::common::Sleep(1);
 
 		// Works for deadlined tasks too.
-		progress = 0;
+		progress.StoreRelaxed(false);
 		sched.PostDeadline(&t1, MG_DEADLINE_INFINITE - 1);
 		sched.Wakeup(&t1);
-		while (!mg::common::AtomicFlagTest(&progress))
+		while (!progress.LoadRelaxed())
 			mg::common::Sleep(1);
 
 		// If a task was woken up, it should not reuse the old
 		// deadline after rescheduling.
-		progress = 0;
+		progress.StoreRelaxed(0);
 		cb = [&](mg::serverbox::Task* aTask) {
-			if (mg::common::AtomicIncrement(&progress) == 1)
+			if (progress.IncrementFetchRelaxed() == 1)
 				sched.Post(aTask);
 		};
 		t1.SetCallback(cb);
 		sched.PostWait(&t1);
 		sched.Wakeup(&t1);
-		while (mg::common::AtomicLoad(&progress) != 2)
+		while (progress.LoadRelaxed() != 2)
 			mg::common::Sleep(1);
 
 		// Wakeup works even if the task is being executed now.
-		progress = 0;
+		progress.StoreRelaxed(0);
 		cb = [&](mg::serverbox::Task* aTask) {
-			if (mg::common::AtomicLoad(&progress) == 0)
+			if (progress.LoadRelaxed() == 0)
 			{
-				mg::common::AtomicExchange(&progress, 1);
+				progress.StoreRelaxed(1);
 				// Wakeup will happen here, and will make the task
 				// executed early despite PostWait() below.
-				while (mg::common::AtomicLoad(&progress) != 2)
+				while (progress.LoadRelaxed() != 2)
 					mg::common::Sleep(1);
 				return sched.PostWait(aTask);
 			}
-			mg::common::AtomicExchange(&progress, 3);
+			progress.StoreRelaxed(3);
 		};
 		t1.SetCallback(cb);
 		sched.Post(&t1);
-		while (mg::common::AtomicLoad(&progress) != 1)
+		while (progress.LoadRelaxed() != 1)
 			mg::common::Sleep(1);
 		sched.Wakeup(&t1);
-		mg::common::AtomicExchange(&progress, 2);
-		while (mg::common::AtomicLoad(&progress) != 3)
+		progress.StoreRelaxed(2);
+		while (progress.LoadRelaxed() != 3)
 			mg::common::Sleep(1);
 
 		// Wakeup for signaled task does not work.
-		progress = 0;
+		progress.StoreRelaxed(0);
 		cb = [&](mg::serverbox::Task* aTask) {
 			if (aTask->IsSignaled())
 			{
-				mg::common::AtomicExchange(&progress, 1);
+				progress.StoreRelaxed(1);
 				// Wakeup will happen here, and will not affect
 				// PostWait(), because the signal is still active.
-				while (mg::common::AtomicLoad(&progress) != 2)
+				while (progress.LoadRelaxed() != 2)
 					mg::common::Sleep(1);
 				MG_COMMON_ASSERT(aTask->ReceiveSignal());
 				return sched.PostWait(aTask);
 			}
-			mg::common::AtomicExchange(&progress, 3);
+			progress.StoreRelaxed(3);
 		};
 		t1.SetCallback(cb);
 		sched.PostWait(&t1);
 		sched.Signal(&t1);
-		while (mg::common::AtomicLoad(&progress) != 1)
+		while (progress.LoadRelaxed() != 1)
 			mg::common::Sleep(1);
 
 		sched.Wakeup(&t1);
-		mg::common::AtomicExchange(&progress, 2);
+		progress.StoreRelaxed(2);
 		mg::common::Sleep(1);
-		MG_COMMON_ASSERT(mg::common::AtomicLoad(&progress) == 2);
+		MG_COMMON_ASSERT(progress.LoadRelaxed() == 2);
 		while (t1.IsSignaled())
 			mg::common::Sleep(1);
 
 		sched.Wakeup(&t1);
-		while (mg::common::AtomicLoad(&progress) != 3)
+		while (progress.LoadRelaxed() != 3)
 			mg::common::Sleep(1);
 	}
 
@@ -276,98 +276,98 @@ namespace unittests {
 
 		mg::serverbox::TaskScheduler sched("tst", 1, 100);
 		mg::serverbox::Task t1;
-		int32_t progress;
+		mg::common::AtomicU32 progress;
 
 		// Expiration check for non-woken task not having a
 		// deadline.
-		progress = 0;
+		progress.StoreRelaxed(false);
 		t1.SetCallback([&](mg::serverbox::Task* aTask) {
 			MG_COMMON_ASSERT(!aTask->ReceiveSignal());
 			MG_COMMON_ASSERT(aTask->IsExpired());
-			mg::common::AtomicFlagSet(&progress);
+			progress.StoreRelaxed(true);
 		});
 		sched.Post(&t1);
-		while (!mg::common::AtomicFlagTest(&progress))
+		while (!progress.LoadRelaxed())
 			mg::common::Sleep(1);
 
 		// Expiration check for woken task not having a deadline.
-		progress = 0;
+		progress.StoreRelaxed(false);
 		sched.Wakeup(&t1);
 		sched.Post(&t1);
-		while (!mg::common::AtomicFlagTest(&progress))
+		while (!progress.LoadRelaxed())
 			mg::common::Sleep(1);
 
 		// Expiration check for non-woken task having a deadline.
-		progress = 0;
+		progress.StoreRelaxed(false);
 		sched.PostDelay(&t1, 1);
-		while (!mg::common::AtomicFlagTest(&progress))
+		while (!progress.LoadRelaxed())
 			mg::common::Sleep(1);
 
 		// Expiration check for woken task having a deadline.
-		progress = 0;
+		progress.StoreRelaxed(false);
 		t1.SetCallback([&](mg::serverbox::Task* aTask) {
 			MG_COMMON_ASSERT(!aTask->ReceiveSignal());
 			MG_COMMON_ASSERT(!aTask->IsExpired());
-			mg::common::AtomicFlagSet(&progress);
+			progress.StoreRelaxed(true);
 		});
 		sched.Wakeup(&t1);
 		sched.PostDeadline(&t1, MG_DEADLINE_INFINITE - 1);
-		while (!mg::common::AtomicFlagTest(&progress))
+		while (!progress.LoadRelaxed())
 			mg::common::Sleep(1);
 
 		// Expiration check for signaled task not having a
 		// deadline.
-		progress = 0;
+		progress.StoreRelaxed(false);
 		t1.SetCallback([&](mg::serverbox::Task* aTask) {
 			MG_COMMON_ASSERT(aTask->ReceiveSignal());
 			MG_COMMON_ASSERT(aTask->IsExpired());
-			mg::common::AtomicFlagSet(&progress);
+			progress.StoreRelaxed(true);
 		});
 		sched.Signal(&t1);
 		sched.Post(&t1);
-		while (!mg::common::AtomicFlagTest(&progress))
+		while (!progress.LoadRelaxed())
 			mg::common::Sleep(1);
 
 		// Expiration check for signaled task having a deadline.
-		progress = 0;
+		progress.StoreRelaxed(false);
 		t1.SetCallback([&](mg::serverbox::Task* aTask) {
 			MG_COMMON_ASSERT(aTask->ReceiveSignal());
 			MG_COMMON_ASSERT(!aTask->IsExpired());
-			mg::common::AtomicFlagSet(&progress);
+			progress.StoreRelaxed(true);
 		});
 		sched.Signal(&t1);
 		sched.PostDeadline(&t1, MG_DEADLINE_INFINITE - 1);
-		while (!mg::common::AtomicFlagTest(&progress))
+		while (!progress.LoadRelaxed())
 			mg::common::Sleep(1);
 
 		// Expiration check for woken task which was in infinite
 		// wait.
-		progress = 0;
+		progress.StoreRelaxed(false);
 		t1.SetCallback([&](mg::serverbox::Task* aTask) {
 			MG_COMMON_ASSERT(!aTask->ReceiveSignal());
 			MG_COMMON_ASSERT(!aTask->IsExpired());
-			mg::common::AtomicFlagSet(&progress);
+			progress.StoreRelaxed(true);
 		});
 		sched.Wakeup(&t1);
 		sched.PostWait(&t1);
-		while (!mg::common::AtomicFlagTest(&progress))
+		while (!progress.LoadRelaxed())
 			mg::common::Sleep(1);
 
 		// Expiration check for signaled task which was in
 		// infinite wait.
-		progress = 0;
+		progress.StoreRelaxed(false);
 		t1.SetCallback([&](mg::serverbox::Task* aTask) {
 			MG_COMMON_ASSERT(aTask->ReceiveSignal());
 			MG_COMMON_ASSERT(!aTask->IsExpired());
-			mg::common::AtomicFlagSet(&progress);
+			progress.StoreRelaxed(true);
 		});
 		sched.Signal(&t1);
 		sched.PostWait(&t1);
-		while (!mg::common::AtomicFlagTest(&progress))
+		while (!progress.LoadRelaxed())
 			mg::common::Sleep(1);
 
 		// Deadline adjustment.
-		progress = 0;
+		progress.StoreRelaxed(false);
 		t1.SetDeadline(MG_DEADLINE_INFINITE);
 		MG_COMMON_ASSERT(t1.GetDeadline() == MG_DEADLINE_INFINITE);
 		t1.AdjustDeadline(1);
@@ -379,10 +379,10 @@ namespace unittests {
 		MG_COMMON_ASSERT(t1.GetDeadline() == 1);
 		t1.SetCallback([&](mg::serverbox::Task* aTask) {
 			MG_COMMON_ASSERT(aTask->IsExpired());
-			mg::common::AtomicFlagSet(&progress);
+			progress.StoreRelaxed(true);
 		});
 		sched.Post(&t1);
-		while (!mg::common::AtomicFlagTest(&progress))
+		while (!progress.LoadRelaxed())
 			mg::common::Sleep(1);
 	}
 
@@ -397,14 +397,14 @@ namespace unittests {
 		mg::serverbox::Task t1;
 		mg::serverbox::Task t2;
 		mg::serverbox::Task t3;
-		int32_t progress = 0;
+		mg::common::AtomicU32 progress(0);
 		// A task can schedule another task into the same or
 		// different scheduler.
 		cb = [&](mg::serverbox::Task* aTask) {
 			MG_COMMON_ASSERT(aTask == &t1);
 			MG_COMMON_ASSERT(aTask->IsExpired());
 			sched1.Post(&t2);
-			mg::common::AtomicIncrement(&progress);
+			progress.IncrementRelaxed();
 		};
 		t1.SetCallback(cb);
 
@@ -412,7 +412,7 @@ namespace unittests {
 			MG_COMMON_ASSERT(aTask == &t2);
 			MG_COMMON_ASSERT(aTask->IsExpired());
 			sched2.Post(&t3);
-			mg::common::AtomicIncrement(&progress);
+			progress.IncrementRelaxed();
 		};
 		t2.SetCallback(cb);
 		t2.SetDelay(3);
@@ -420,28 +420,28 @@ namespace unittests {
 		cb = [&](mg::serverbox::Task* aTask) {
 			MG_COMMON_ASSERT(aTask == &t3);
 			MG_COMMON_ASSERT(aTask->IsExpired());
-			mg::common::AtomicIncrement(&progress);
+			progress.IncrementRelaxed();
 		};
 		t3.SetCallback(cb);
 		t3.SetDelay(5);
 
 		sched1.Post(&t1);
 
-		while (mg::common::AtomicLoad(&progress) != 3)
+		while (progress.LoadRelaxed() != 3)
 			mg::common::Sleep(1);
 
 		// A task can be signaled while not scheduled. But the
 		// signal won't be consumed until the task is posted
 		// again.
-		progress = 0;
+		progress.StoreRelaxed(false);
 		t1.SetCallback([&](mg::serverbox::Task* aTask) {
 			MG_COMMON_ASSERT(aTask == &t1);
 			MG_COMMON_ASSERT(aTask->IsExpired());
-			if (mg::common::AtomicFlagSet(&progress) == 1)
+			if (progress.ExchangeRelaxed(true))
 				MG_COMMON_ASSERT(aTask->ReceiveSignal());
 		});
 		sched1.Post(&t1);
-		while (mg::common::AtomicFlagTest(&progress) != 1)
+		while (!progress.LoadRelaxed())
 			mg::common::Sleep(1);
 
 		sched1.Signal(&t1);
@@ -453,23 +453,23 @@ namespace unittests {
 
 		// A task can be woken up while not scheduled. But the
 		// task is not executed until posted again.
-		progress = 0;
+		progress.StoreRelaxed(0);
 		t1.SetCallback([&](mg::serverbox::Task* aTask) {
 			MG_COMMON_ASSERT(aTask == &t1);
-			if (mg::common::AtomicIncrement(&progress) != 1)
+			if (progress.IncrementFetchRelaxed() != 1)
 				MG_COMMON_ASSERT(!aTask->IsExpired());
 			else
 				MG_COMMON_ASSERT(aTask->IsExpired());
 		});
 		sched1.Post(&t1);
-		while (mg::common::AtomicLoad(&progress) != 1)
+		while (progress.LoadRelaxed() != 1)
 			mg::common::Sleep(1);
 
 		sched1.Wakeup(&t1);
 		mg::common::Sleep(1);
-		MG_COMMON_ASSERT(mg::common::AtomicLoad(&progress) == 1);
+		MG_COMMON_ASSERT(progress.LoadRelaxed() == 1);
 		sched1.PostWait(&t1);
-		while (mg::common::AtomicLoad(&progress) != 2)
+		while (progress.LoadRelaxed() != 2)
 			mg::common::Sleep(1);
 	}
 
@@ -481,44 +481,44 @@ namespace unittests {
 		mg::serverbox::TaskScheduler sched("tst", 1, 2);
 
 		// Signal works during execution.
-		int32_t progress = 0;
+		mg::common::AtomicU32 progress(0);
 		mg::serverbox::Task t([&](mg::serverbox::Task* aTask) {
 			bool isSignaled = aTask->ReceiveSignal();
-			mg::common::AtomicIncrement(&progress);
+			progress.IncrementRelaxed();
 			if (isSignaled)
 				return;
 			// Inject a sleep to ensure the signal works
 			// during execution.
-			while (mg::common::AtomicLoad(&progress) != 2)
+			while (progress.LoadRelaxed() != 2)
 				mg::common::Sleep(1);
 			sched.PostWait(aTask);
 		});
 		sched.Post(&t);
-		while (mg::common::AtomicLoad(&progress) != 1)
+		while (progress.LoadRelaxed() != 1)
 			mg::common::Sleep(1);
 		sched.Signal(&t);
-		mg::common::AtomicIncrement(&progress);
-		while (mg::common::AtomicLoad(&progress) != 3)
+		progress.IncrementRelaxed();
+		while (progress.LoadRelaxed() != 3)
 			mg::common::Sleep(1);
 
 		// Signal works for tasks in the front queue.
-		progress = 0;
+		progress.StoreRelaxed(false);
 		t.SetCallback([&](mg::serverbox::Task*) {
 			MG_COMMON_ASSERT(t.ReceiveSignal());
-			mg::common::AtomicFlagSet(&progress);
+			progress.StoreRelaxed(true);
 		});
 		sched.PostDeadline(&t, MG_DEADLINE_INFINITE);
 		sched.Signal(&t);
-		while (mg::common::AtomicFlagTest(&progress) != 1)
+		while (!progress.LoadRelaxed())
 			mg::common::Sleep(1);
 
 		// Signal works for tasks in the waiting queue. Without
 		// -1 the task won't be saved to the waiting queue.
-		progress = 0;
+		progress.StoreRelaxed(false);
 		sched.PostDeadline(&t, MG_DEADLINE_INFINITE - 1);
 		mg::common::Sleep(1);
 		sched.Signal(&t);
-		while (mg::common::AtomicFlagTest(&progress) != 1)
+		while (!progress.LoadRelaxed())
 			mg::common::Sleep(1);
 
 		// Signal can be checked before receipt.
@@ -533,9 +533,9 @@ namespace unittests {
 			mg::common::Sleep(1);
 
 		// Double signal works.
-		progress = 0;
+		progress.StoreRelaxed(false);
 		t.SetCallback([&](mg::serverbox::Task* aTask) {
-			while (mg::common::AtomicFlagTest(&progress) != 1)
+			while (!progress.LoadRelaxed())
 				mg::common::Sleep(1);
 			MG_COMMON_ASSERT(aTask->IsSignaled());
 			MG_COMMON_ASSERT(aTask->ReceiveSignal());
@@ -543,15 +543,15 @@ namespace unittests {
 		sched.Post(&t);
 		sched.Signal(&t);
 		sched.Signal(&t);
-		mg::common::AtomicFlagSet(&progress);
+		progress.StoreRelaxed(true);
 		while (t.IsSignaled())
 			mg::common::Sleep(1);
 
 		// Task is rescheduled until signal is received.
-		progress = 0;
+		progress.StoreRelaxed(0);
 		t.SetCallback([&](mg::serverbox::Task* aTask) {
 			MG_COMMON_ASSERT(aTask->IsSignaled());
-			int32_t p = mg::common::AtomicIncrement(&progress);
+			uint32_t p = progress.IncrementFetchRelaxed();
 			if (p == 1)
 				return sched.PostWait(aTask);
 			if (p == 2)
@@ -566,7 +566,7 @@ namespace unittests {
 		sched.Post(&t);
 		while (t.IsSignaled())
 			mg::common::Sleep(1);
-		MG_COMMON_ASSERT(mg::common::AtomicLoad(&progress) == 5);
+		MG_COMMON_ASSERT(progress.LoadRelaxed() == 5);
 	}
 
 	struct UTTSchedulerTask;
@@ -598,10 +598,10 @@ namespace unittests {
 		UTTSchedulerTask* myTasks;
 		const uint32_t myTaskCount;
 		const uint32_t myExecuteCount;
-		int32_t myCurrentParallel;
-		int32_t myMaxParallel;
-		int32_t myStopCount;
-		int64_t myTotalExecuteCount;
+		mg::common::AtomicU32 myCurrentParallel;
+		mg::common::AtomicU32 myMaxParallel;
+		mg::common::AtomicU32 myStopCount;
+		mg::common::AtomicU64 myTotalExecuteCount;
 		mg::serverbox::TaskScheduler* myScheduler;
 	};
 
@@ -654,19 +654,19 @@ namespace unittests {
 			MG_COMMON_ASSERT(aTask == this);
 			aTask->ReceiveSignal();
 			++myExecuteCount;
-			mg::common::AtomicIncrement64(&myCtx->myTotalExecuteCount);
+			myCtx->myTotalExecuteCount.IncrementRelaxed();
 
 			uint32_t i;
 			// Tracking max parallel helps to ensure the tasks
 			// really use all the worker threads.
-			int32_t old = mg::common::AtomicIncrement(&myCtx->myCurrentParallel);
-			int32_t max = mg::common::AtomicLoad(&myCtx->myMaxParallel);
+			uint32_t old = myCtx->myCurrentParallel.IncrementFetchRelaxed();
+			uint32_t max = myCtx->myMaxParallel.LoadRelaxed();
 			if (old > max)
-				mg::common::AtomicCompareExchange(&myCtx->myMaxParallel, old, max);
+				myCtx->myMaxParallel.CmpExchgStrong(max, old);
 			// Simulate heavy work.
 			for (i = 0; i < 100; ++i)
 				mg::common::RandomBool();
-			mg::common::AtomicDecrement(&myCtx->myCurrentParallel);
+			myCtx->myCurrentParallel.DecrementRelaxed();
 
 			bool isLast = myExecuteCount >= myCtx->myExecuteCount;
 			if (myExecuteCount % 10 == 0)
@@ -694,7 +694,7 @@ namespace unittests {
 		{
 			MG_COMMON_ASSERT(aTask == this);
 			++myExecuteCount;
-			mg::common::AtomicIncrement64(&myCtx->myTotalExecuteCount);
+			myCtx->myTotalExecuteCount.IncrementRelaxed();
 			if (myExecuteCount >= myCtx->myExecuteCount)
 				return Stop();
 			return myCtx->myScheduler->Post(aTask);
@@ -708,7 +708,7 @@ namespace unittests {
 			MG_COMMON_ASSERT(!aTask->IsExpired());
 			MG_COMMON_ASSERT(aTask->ReceiveSignal());
 			++myExecuteCount;
-			mg::common::AtomicIncrement64(&myCtx->myTotalExecuteCount);
+			myCtx->myTotalExecuteCount.IncrementRelaxed();
 			if (myExecuteCount >= myCtx->myExecuteCount)
 				return Stop();
 			return myCtx->myScheduler->PostWait(aTask);
@@ -717,7 +717,7 @@ namespace unittests {
 		void
 		Stop()
 		{
-			mg::common::AtomicIncrement(&myCtx->myStopCount);
+			myCtx->myStopCount.IncrementRelaxed();
 		}
 
 		uint32_t myExecuteCount;
@@ -765,21 +765,21 @@ namespace unittests {
 	{
 		uint64_t total = myExecuteCount * myTaskCount;
 		WaitExecuteCount(total);
-		MG_COMMON_ASSERT((int64_t)total == mg::common::AtomicLoad64(&myTotalExecuteCount));
+		MG_COMMON_ASSERT(total == myTotalExecuteCount.LoadRelaxed());
 	}
 
 	void
 	UTTSchedulerTaskCtx::WaitExecuteCount(
 		uint64_t aCount)
 	{
-		while (mg::common::AtomicLoad64(&myTotalExecuteCount) < (int64_t)aCount)
+		while (myTotalExecuteCount.LoadRelaxed() < aCount)
 			mg::common::Sleep(1);
 	}
 
 	void
 	UTTSchedulerTaskCtx::WaitAllStopped()
 	{
-		while (mg::common::AtomicLoad(&myStopCount) != (int32_t)myTaskCount)
+		while (myStopCount.LoadRelaxed() != myTaskCount)
 			mg::common::Sleep(1);
 		for (uint32_t i = 0; i < myTaskCount; ++i)
 			MG_COMMON_ASSERT(myTasks[i].myExecuteCount == myExecuteCount);
@@ -872,10 +872,10 @@ namespace unittests {
 		// tasks.
 		Report("Micro new test: %u threads, %u tasks", aThreadCount, aTaskCount);
 		mg::serverbox::TaskScheduler sched("tst", aThreadCount, 5000);
-		int64_t executeCount = 0;
+		mg::common::AtomicU64 executeCount(0);
 		mg::serverbox::TaskCallback cb(
 			[&](mg::serverbox::Task* aTask) {
-				mg::common::AtomicIncrement64(&executeCount);
+				executeCount.IncrementRelaxed();
 				delete aTask;
 			}
 		);
@@ -884,7 +884,7 @@ namespace unittests {
 		timer.Start();
 		for (uint32_t i = 0; i < aTaskCount; ++i)
 			sched.Post(new mg::serverbox::Task(cb));
-		while (mg::common::AtomicLoad64(&executeCount) != aTaskCount)
+		while (executeCount.LoadRelaxed() != aTaskCount)
 			mg::common::Sleep(1);
 		double duration = timer.GetMilliSeconds();
 		Report("Duration: %lf ms", duration);
@@ -903,16 +903,16 @@ namespace unittests {
 		// automatically inside of the scheduler.
 		Report("Micro one shot test: %u threads, %u tasks", aThreadCount, aTaskCount);
 		mg::serverbox::TaskScheduler sched("tst", aThreadCount, 5000);
-		int64_t executeCount = 0;
+		mg::common::AtomicU64 executeCount(0);
 		mg::serverbox::TaskCallbackOneShot cb([&](void) -> void {
-			mg::common::AtomicIncrement64(&executeCount);
+			executeCount.IncrementRelaxed();
 		});
 		mg::common::QPTimer timer;
 
 		timer.Start();
 		for (uint32_t i = 0; i < aTaskCount; ++i)
 			sched.PostOneShot(cb);
-		while (mg::common::AtomicLoad64(&executeCount) != aTaskCount)
+		while (executeCount.LoadRelaxed() != aTaskCount)
 			mg::common::Sleep(1);
 		double duration = timer.GetMilliSeconds();
 		Report("Duration: %lf ms", duration);
@@ -944,7 +944,7 @@ namespace unittests {
 		}
 		ctx.WaitAllStopped();
 
-		Report("Max parallel: %u", ctx.myMaxParallel);
+		Report("Max parallel: %u", ctx.myMaxParallel.LoadRelaxed());
 		UnitTestTaskSchedulerPrintStat(&sched);
 	}
 
@@ -975,7 +975,7 @@ namespace unittests {
 		}
 		ctx.WaitAllStopped();
 
-		Report("Max parallel: %u", ctx.myMaxParallel);
+		Report("Max parallel: %u", ctx.myMaxParallel.LoadRelaxed());
 		UnitTestTaskSchedulerPrintStat(&sched);
 	}
 
@@ -1001,19 +1001,19 @@ namespace unittests {
 		// Create one special task pushed last, whose execution
 		// would mean all the previous tasks surely ended up in
 		// the waiting queue.
-		mg::serverbox::Task* t = new mg::serverbox::Task(
+		mg::common::Atomic<mg::serverbox::Task*> t(new mg::serverbox::Task(
 			[&](mg::serverbox::Task* aTask) {
-				mg::common::AtomicExchangePtr(&t, (mg::serverbox::Task*)nullptr);
+				t.StoreRelaxed(nullptr);
 				delete aTask;
 			}
-		);
+		));
 
 		mg::common::QPTimer timer;
 		timer.Start();
 		ctx.PostAll();
-		sched.Post(t);
+		sched.Post(t.LoadRelaxed());
 
-		while (mg::common::AtomicLoadPtr(&t) != nullptr)
+		while (t.LoadRelaxed() != nullptr)
 			mg::common::Sleep(1);
 
 		// Wakeup so as the scheduler would remove tasks from the

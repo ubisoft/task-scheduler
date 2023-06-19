@@ -602,7 +602,7 @@ namespace unittests {
 		void
 		Create(
 			UTMCQueueLocked* aQueue,
-			int32_t* aTotalPopCount)
+			mg::common::AtomicU32* aTotalPopCount)
 		{
 			myQueue = aQueue;
 			myPopCount = 0;
@@ -628,7 +628,7 @@ namespace unittests {
 					MG_COMMON_ASSERT(v->myValue >= 0);
 					v->myValue = -v->myValue;
 					++myPopCount;
-					mg::common::AtomicIncrement(myTotalPopCount);
+					myTotalPopCount->IncrementRelaxed();
 					if (++yield % 10000 == 0)
 						mg::common::Sleep(1);
 				}
@@ -638,8 +638,8 @@ namespace unittests {
 		}
 
 		UTMCQueueLocked* myQueue;
-		int32_t myPopCount;
-		int32_t* myTotalPopCount;
+		uint32_t myPopCount;
+		mg::common::AtomicU32* myTotalPopCount;
 	};
 
 	static void
@@ -648,7 +648,7 @@ namespace unittests {
 		int aThreadCount)
 	{
 		UTMCQueueLocked queue;
-		int32_t popCount = 0;
+		mg::common::AtomicU32 popCount(0);
 		UTMCQValue* values = new UTMCQValue[aElementCount];
 		for (int i = 0; i < aElementCount; ++i)
 			values[i].myValue = i;
@@ -671,7 +671,7 @@ namespace unittests {
 				mg::common::Sleep(1);
 		}
 
-		while (mg::common::AtomicLoad(&popCount) != aElementCount)
+		while (popCount.LoadRelaxed() != (uint32_t)aElementCount)
 			mg::common::Sleep(1);
 
 		double duration = timer.GetMilliSeconds();
@@ -700,7 +700,7 @@ namespace unittests {
 		void
 		Create(
 			UTMCQueue* aQueue,
-			int32_t* aTotalPopCount)
+			mg::common::AtomicU32* aTotalPopCount)
 		{
 			myConsumer.Attach(aQueue);
 			myPopCount = 0;
@@ -726,7 +726,7 @@ namespace unittests {
 					MG_COMMON_ASSERT(v->myValue >= 0);
 					v->myValue = -v->myValue;
 					++myPopCount;
-					mg::common::AtomicIncrement(myTotalPopCount);
+					myTotalPopCount->IncrementRelaxed();
 					if (++yield % 10000 == 0)
 						mg::common::Sleep(1);
 				}
@@ -736,8 +736,8 @@ namespace unittests {
 		}
 
 		UTMCQueueConsumer myConsumer;
-		int32_t myPopCount;
-		int32_t* myTotalPopCount;
+		uint32_t myPopCount;
+		mg::common::AtomicU32* myTotalPopCount;
 	};
 
 	static void
@@ -752,7 +752,7 @@ namespace unittests {
 		if (aReserve)
 			queue.Reserve(aElementCount);
 
-		int32_t popCount = 0;
+		mg::common::AtomicU32 popCount(0);
 		UTMCQValue* values = new UTMCQValue[aElementCount];
 		for (int i = 0; i < aElementCount; ++i)
 			values[i].myValue = i;
@@ -780,7 +780,7 @@ namespace unittests {
 		}
 		double durationPush = timer.GetMilliSeconds();
 
-		while (mg::common::AtomicLoad(&popCount) != aElementCount)
+		while (popCount.LoadRelaxed() != (uint32_t)aElementCount)
 			mg::common::Sleep(1);
 
 		double duration = timer.GetMilliSeconds();
