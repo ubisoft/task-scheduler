@@ -1,7 +1,6 @@
 #include "Thread.h"
 
 #include "mg/common/Assert.h"
-#include "mg/common/Atomic.h"
 #include "mg/common/Util.h"
 
 namespace mg {
@@ -51,7 +50,7 @@ namespace common {
 		MG_COMMON_ASSERT(!myWasStarted);
 		MG_COMMON_ASSERT(!StopRequested());
 		myWasStarted = true;
-		MG_COMMON_ASSERT(mg::common::AtomicFlagSet(&myIsRunning) == 0);
+		MG_COMMON_ASSERT(!myIsRunning.ExchangeRelease(true));
 		myHandle = new std::thread(&Thread::PrivTrampoline, this);
 	}
 
@@ -59,7 +58,7 @@ namespace common {
 	Thread::Stop()
 	{
 		myLock.Lock();
-		mg::common::AtomicFlagSet(&myIsStopRequested);
+		myIsStopRequested.StoreRelease(true);
 		myCond.Broadcast();
 		myLock.Unlock();
 	}
@@ -90,13 +89,13 @@ namespace common {
 	bool
 	Thread::StopRequested()
 	{
-		return mg::common::AtomicFlagTest(&myIsStopRequested) != 0;
+		return myIsStopRequested.LoadAcquire();
 	}
 
 	bool
 	Thread::IsRunning()
 	{
-		return mg::common::AtomicFlagTest(&myIsRunning) != 0;
+		return myIsRunning.LoadAcquire();
 	}
 
 	void
@@ -105,7 +104,7 @@ namespace common {
 		ThreadSetCurrentName(myName.c_str());
 		Run();
 		myLock.Lock();
-		MG_COMMON_ASSERT(mg::common::AtomicFlagClear(&myIsRunning) != 0);
+		MG_COMMON_ASSERT(myIsRunning.ExchangeRelease(false));
 		myCond.Broadcast();
 		myLock.Unlock();
 	}

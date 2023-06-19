@@ -1,5 +1,6 @@
 #pragma once
 
+#include "mg/common/Atomic.h"
 #include "mg/common/ConditionVariable.h"
 #include "mg/common/Mutex.h"
 
@@ -47,8 +48,8 @@ namespace common {
 		ConditionVariable myCond;
 		std::thread* myHandle;
 		std::string myName;
-		int32_t myIsStopRequested;
-		int32_t myIsRunning;
+		mg::common::AtomicBool myIsStopRequested;
+		mg::common::AtomicBool myIsRunning;
 		bool myWasStarted;
 	};
 
