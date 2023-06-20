@@ -1,23 +1,22 @@
 #include "Mutex.h"
 
-#include "mg/common/Atomic.h"
 #include "mg/common/Thread.h"
 
 namespace mg {
 namespace common {
 
-	int64_t theMutexStartContentCount = 0;
+	mg::common::AtomicU64 theMutexStartContentCount(0);
 
 	void
 	MutexStatClear()
 	{
-		mg::common::AtomicExchange64(&theMutexStartContentCount, 0);
+		theMutexStartContentCount.StoreRelaxed(0);
 	}
 
 	uint64_t
 	MutexStatContentionCount()
 	{
-		return (uint64_t)mg::common::AtomicLoad64(&theMutexStartContentCount);
+		return theMutexStartContentCount.LoadRelaxed();
 	}
 
 	void
@@ -34,7 +33,7 @@ namespace common {
 	{
 		if (!myHandle.try_lock())
 		{
-			mg::common::AtomicIncrement64(&theMutexStartContentCount);
+			theMutexStartContentCount.IncrementRelaxed();
 			return false;
 		}
 		myOwner = GetCurrentThreadId();

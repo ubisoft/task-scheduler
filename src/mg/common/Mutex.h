@@ -1,6 +1,7 @@
 #pragma once
 
 #include "mg/common/Assert.h"
+#include "mg/common/Atomic.h"
 
 #include <atomic>
 #include <mutex>
@@ -10,7 +11,7 @@ F_DECLARE_CLASS(mg, common, ConditionVariable)
 namespace mg {
 namespace common {
 
-	extern int64_t theMutexStartContentCount;
+	extern mg::common::AtomicU64 theMutexStartContentCount;
 
 	void MutexStatClear();
 
