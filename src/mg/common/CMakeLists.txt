@@ -33,14 +33,12 @@ set(mgcommon_src
 
 if(WIN32)
 	set(mgcommon_src ${mgcommon_src}
-		Atomic_Win.h
 		QPTimer_Win.cpp
 		Thread_Win.cpp
 		Time_Win.cpp
 	)
 else()
 	set(mgcommon_src ${mgcommon_src}
-		Atomic_Posix.h
 		QPTimer_Posix.cpp
 		Thread_Posix.cpp
 		Time_Posix.cpp
