@@ -135,22 +135,22 @@ namespace common {
 
 	MCQBaseSubQueue::~MCQBaseSubQueue()
 	{
-		MG_COMMON_ASSERT(myConsumerCount == 0);
-		MG_COMMON_ASSERT(myPrev == nullptr);
-		MG_COMMON_ASSERT(myNext == nullptr);
+		MG_DEV_ASSERT(myConsumerCount == 0);
+		MG_DEV_ASSERT(myPrev == nullptr);
+		MG_DEV_ASSERT(myNext == nullptr);
 		delete[] myQueue;
 	}
 
 	void
 	MCQBaseSubQueue::Reset()
 	{
-		MG_COMMON_ASSERT(myConsumerCount == 0);
-		MG_COMMON_ASSERT(myPrev == nullptr);
-		MG_COMMON_ASSERT(myNext == nullptr);
-		MG_COMMON_ASSERT(myReadIndex.LoadRelaxed() == mySize);
-		MG_COMMON_ASSERT(myWriteIndex == mySize);
-		MG_COMMON_ASSERT(myFlushIndex == mySize);
-		MG_COMMON_ASSERT(myFirstPending == nullptr);
+		MG_DEV_ASSERT(myConsumerCount == 0);
+		MG_DEV_ASSERT(myPrev == nullptr);
+		MG_DEV_ASSERT(myNext == nullptr);
+		MG_DEV_ASSERT(myReadIndex.LoadRelaxed() == mySize);
+		MG_DEV_ASSERT(myWriteIndex == mySize);
+		MG_DEV_ASSERT(myFlushIndex == mySize);
+		MG_DEV_ASSERT(myFirstPending == nullptr);
 		myReadIndex.StoreRelaxed(0);
 		myFlushIndex = 0;
 		myWriteIndex = 0;
@@ -169,7 +169,7 @@ namespace common {
 		// necessary, it is possible to use some other value. For
 		// instance, the queue pointer itself. But the user code
 		// can just do the same, if wants kind of a special value.
-		MG_COMMON_ASSERT(aItem != nullptr);
+		MG_DEV_ASSERT(aItem != nullptr);
 
 		uint32_t windex = myWriteIndex;
 		if (windex == mySize)
@@ -219,7 +219,7 @@ namespace common {
 		// necessary, it is possible to use some other value. For
 		// instance, the queue pointer itself. But the user code
 		// can just do the same, if wants kind of a special value.
-		MG_COMMON_ASSERT(aItem != nullptr);
+		MG_DEV_ASSERT(aItem != nullptr);
 
 		uint32_t windex = myWriteIndex;
 		if (windex == mySize)
@@ -581,10 +581,10 @@ namespace common {
 		// Can't be last - wpos is always ahead and this item is not wpos.
 		MCQBaseSubQueue* next = aItem->myNext;
 		MCQBaseSubQueue* prev = aItem->myPrev;
-		MG_COMMON_ASSERT(next != nullptr);
+		MG_DEV_ASSERT(next != nullptr);
 		if (prev == nullptr)
 		{
-			MG_COMMON_ASSERT(aItem == myHead);
+			MG_DEV_ASSERT(aItem == myHead);
 			next->myPrev = nullptr;
 			myHead = next;
 		}

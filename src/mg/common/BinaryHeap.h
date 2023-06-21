@@ -372,10 +372,10 @@ namespace common {
 		const T& aValue)
 	{
 		int32_t index = Methods::GetIndex(aValue);
-		MG_COMMON_ASSERT(index >= 0);
+		MG_DEV_ASSERT(index >= 0);
 		// Ensure the index really points at the value it is
 		// referencing.
-		MG_COMMON_ASSERT(Methods::IsSame(aValue, myData[index]));
+		MG_DEV_ASSERT(Methods::IsSame(aValue, myData[index]));
 		PrivUpdate(index);
 	}
 
@@ -406,14 +406,14 @@ namespace common {
 		const T& aValue)
 	{
 		int32_t iIndex = Methods::GetIndex(aValue);
-		MG_COMMON_ASSERT(iIndex >= 0);
+		MG_DEV_ASSERT(iIndex >= 0);
 		uint32_t index = (uint32_t)iIndex;
 		uint32_t count = myData.size();
-		MG_COMMON_ASSERT(index < count);
+		MG_DEV_ASSERT(index < count);
 		T* tree = myData.data();
 		// Ensure the index really points at the value it is
 		// referencing.
-		MG_COMMON_ASSERT(Methods::IsSame(aValue, tree[index]));
+		MG_DEV_ASSERT(Methods::IsSame(aValue, tree[index]));
 		Methods::SetIndex(tree[index], -1);
 		if (index + 1 == count)
 			return myData.pop_back();
@@ -553,7 +553,7 @@ namespace common {
 			else
 				topChild = rightChild;
 		} while (Methods::IsLeftAbove(tree[topChild], tmp));
-		MG_COMMON_ASSERT(aIndex < count);
+		MG_DEV_ASSERT(aIndex < count);
 		tree[aIndex] = std::move(tmp);
 		Methods::SetIndex(tree[aIndex], aIndex);
 		return true;

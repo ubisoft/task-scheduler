@@ -27,13 +27,13 @@ namespace common {
 		va_list va;
 		va_copy(va, aParams);
 		int size = vsnprintf(nullptr, 0, aFormat, va);
-		MG_COMMON_ASSERT(size >= 0);
+		MG_DEV_ASSERT(size >= 0);
 		va_end(va);
 		++size;
 		char* data = new char[size];
 		va_copy(va, aParams);
 		int size2 = vsnprintf(data, size, aFormat, va);
-		MG_COMMON_ASSERT(size2 + 1 == size);
+		MG_DEV_ASSERT(size2 + 1 == size);
 		va_end(va);
 		std::string res(data);
 		delete[] data;

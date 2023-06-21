@@ -51,7 +51,7 @@ namespace serverbox {
 	TaskScheduler::Post(
 		Task* aTask)
 	{
-		MG_COMMON_ASSERT(!aTask->myIsInQueues);
+		MG_DEV_ASSERT(!aTask->myIsInQueues);
 		aTask->myIsInQueues = true;
 		PrivPost(aTask);
 	}
@@ -109,7 +109,7 @@ namespace serverbox {
 	TaskScheduler::PrivPost(
 		Task* aTask)
 	{
-		MG_COMMON_ASSERT(aTask->myIsInQueues);
+		MG_DEV_ASSERT(aTask->myIsInQueues);
 		if (myQueueFront.Push(aTask))
 			mySignalFront.Send();
 	}
@@ -171,7 +171,7 @@ namespace serverbox {
 				// thread.
 				continue;
 			}
-			MG_COMMON_ASSERT(old == TASK_STATUS_WAITING);
+			MG_DEV_ASSERT(old == TASK_STATUS_WAITING);
 			ready.Append(t);
 		}
 
@@ -204,7 +204,7 @@ namespace serverbox {
 					if (t->myDeadline != MG_DEADLINE_INFINITE)
 						myQueueWaiting.Push(t);
 					else
-						MG_COMMON_ASSERT(t->myIndex == -1);
+						MG_DEV_ASSERT(t->myIndex == -1);
 					// Even if the task is woken right now, it is
 					// ok to add it to the waiting queue. Because
 					// it is also added to the front queue by the
@@ -212,7 +212,7 @@ namespace serverbox {
 					// below.
 					continue;
 				}
-				MG_COMMON_ASSERT(
+				MG_DEV_ASSERT(
 					// The task was woken up or signaled
 					// specifically to ignore the deadline.
 					old == TASK_STATUS_READY ||
@@ -223,7 +223,7 @@ namespace serverbox {
 				t->myIsExpired = true;
 				old = TASK_STATUS_PENDING;
 				t->myStatus.CmpExchgStrongRelaxed(old, TASK_STATUS_READY);
-				MG_COMMON_ASSERT(
+				MG_DEV_ASSERT(
 					// Normal task reached its dispatch.
 					old == TASK_STATUS_PENDING ||
 					// The task was woken up or signaled
@@ -315,11 +315,11 @@ namespace serverbox {
 	{
 		if (aTask == nullptr)
 			return false;
-		MG_COMMON_ASSERT(aTask->myIsInQueues);
+		MG_DEV_ASSERT(aTask->myIsInQueues);
 		aTask->myIsInQueues = false;
 		TaskStatus old = TASK_STATUS_READY;
 		aTask->myStatus.CmpExchgStrongRelaxed(old, TASK_STATUS_PENDING);
-		MG_COMMON_ASSERT(old == TASK_STATUS_READY || old == TASK_STATUS_SIGNALED);
+		MG_DEV_ASSERT(old == TASK_STATUS_READY || old == TASK_STATUS_SIGNALED);
 		// The task object shall not be accessed anyhow after
 		// execution. It may be deleted inside.
 		aTask->PrivExecute();
@@ -371,7 +371,7 @@ namespace serverbox {
 				while (myScheduler->PrivExecute(myConsumer.Pop()) && ++batch < maxBatch);
 				myExecuteCount.AddRelaxed(batch);
 			} while (batch == maxBatch);
-			MG_COMMON_ASSERT(batch < maxBatch);
+			MG_DEV_ASSERT(batch < maxBatch);
 
 			myScheduler->PrivWaitReady();
 		}
@@ -382,7 +382,7 @@ namespace serverbox {
 	TaskOneShot::Execute(
 		Task* aTask)
 	{
-		MG_COMMON_ASSERT(aTask == this);
+		MG_DEV_ASSERT(aTask == this);
 		myCallback();
 		delete this;
 	}

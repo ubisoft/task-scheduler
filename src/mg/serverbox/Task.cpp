@@ -91,7 +91,7 @@ namespace serverbox {
 	void
 	Task::PrivTouch() const
 	{
-		MG_COMMON_ASSERT_F(!myIsInQueues,
+		MG_DEV_ASSERT_F(!myIsInQueues,
 			"An attempt to modify a task while it is in scheduler queues");
 	}
 
