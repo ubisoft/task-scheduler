@@ -5,8 +5,6 @@
 namespace mg {
 namespace common {
 
-	const bool glob_TrueBool = true;
-
 	std::string
 	StringFormat(
 		const char *aFormat,

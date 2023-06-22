@@ -3,12 +3,12 @@
 #include "mg/common/Util.h"
 
 #define MG_COMMON_ASSERT_F(X, ...) do {														\
-	if (MG_TEST(!(X)))																		\
+	if (!(X))																				\
 		mg::common::AssertF(#X, __FILE__, __LINE__, __VA_ARGS__);							\
 } while(false)
 
 #define MG_COMMON_ASSERT(X) do {															\
-	if (MG_TEST(!(X)))																		\
+	if (!(X))																				\
 		mg::common::AssertS(#X, __FILE__, __LINE__);										\
 } while(false)
 
