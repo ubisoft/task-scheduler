@@ -16,8 +16,6 @@ set(mgcommon_src
 	Mutex.cpp
 	Mutex.h
 	QPTimer.h
-	Random.cpp
-	Random.h
 	Signal.cpp
 	Signal.h
 	StringFunctions.cpp

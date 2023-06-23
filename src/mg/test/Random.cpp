@@ -6,7 +6,7 @@
 #include <ctime>
 
 namespace mg {
-namespace common {
+namespace test {
 
 	using RandomGenerator = std::mt19937;
 
@@ -28,13 +28,13 @@ namespace common {
 	}
 
 	uint32_t
-	Randomuint32_t()
+	RandomUInt32()
 	{
-		return RandomUniformuint32_t(0, UINT32_MAX);
+		return RandomUniformUInt32(0, UINT32_MAX);
 	}
 
 	uint32_t
-	RandomUniformuint32_t(
+	RandomUniformUInt32(
 		uint32_t aMin,
 		uint32_t aMax)
 	{

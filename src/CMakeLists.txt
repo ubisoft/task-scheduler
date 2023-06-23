@@ -5,3 +5,4 @@ set(install_lib_root "lib/")
 
 add_subdirectory(mg/common)
 add_subdirectory(mg/serverbox)
+add_subdirectory(mg/test)

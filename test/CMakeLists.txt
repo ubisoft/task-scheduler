@@ -22,4 +22,5 @@ target_include_directories(test PUBLIC
 
 target_link_libraries(test
 	mgserverbox
+	mgtest
 )

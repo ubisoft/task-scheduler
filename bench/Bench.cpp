@@ -2,8 +2,9 @@
 
 #include "mg/common/Assert.h"
 #include "mg/common/Atomic.h"
-#include "mg/common/Random.h"
 #include "mg/common/Util.h"
+
+#include "mg/test/Random.h"
 
 #include <ctype.h>
 #include <stdio.h>
@@ -214,7 +215,7 @@ namespace bench {
 	{
 		for (int i = 0; i < aCount; ++i)
 		{
-			mg::common::AtomicBool flag(mg::common::RandomBool());
+			mg::common::AtomicBool flag(mg::test::RandomBool());
 			flag.Store(true);
 		}
 	}

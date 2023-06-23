@@ -4,7 +4,8 @@
 
 #include "mg/common/Atomic.h"
 #include "mg/common/Mutex.h"
-#include "mg/common/Random.h"
+
+#include "mg/test/Random.h"
 
 #include <algorithm>
 #include <vector>
@@ -286,13 +287,13 @@ namespace bench {
 		if (myExecuteCount % 10 == 0)
 		{
 			uint32_t i;
-			i = mg::common::RandomUniformuint32_t(0, myCtx->myTaskCount - 1);
+			i = mg::test::RandomUniformUInt32(0, myCtx->myTaskCount - 1);
 			myCtx->myScheduler->Wakeup(&myCtx->myTasks[i]);
-			i = mg::common::RandomUniformuint32_t(0, myCtx->myTaskCount - 1);
+			i = mg::test::RandomUniformUInt32(0, myCtx->myTaskCount - 1);
 			myCtx->myScheduler->Signal(&myCtx->myTasks[i]);
-			i = mg::common::RandomUniformuint32_t(0, myCtx->myTaskCount - 1);
+			i = mg::test::RandomUniformUInt32(0, myCtx->myTaskCount - 1);
 			myCtx->myScheduler->Wakeup(&myCtx->myTasks[i]);
-			i = mg::common::RandomUniformuint32_t(0, myCtx->myTaskCount - 1);
+			i = mg::test::RandomUniformUInt32(0, myCtx->myTaskCount - 1);
 			myCtx->myScheduler->Signal(&myCtx->myTasks[i]);
 			return isLast ? Stop() : myCtx->myScheduler->Post(aTask);
 		}
