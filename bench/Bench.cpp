@@ -3,6 +3,7 @@
 #include "mg/common/Assert.h"
 #include "mg/common/Atomic.h"
 #include "mg/common/Random.h"
+#include "mg/common/Util.h"
 
 #include <ctype.h>
 #include <stdio.h>

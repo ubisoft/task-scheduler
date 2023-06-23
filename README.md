@@ -93,15 +93,14 @@ Useful tips (for clean project, from the `build` folder created above):
 
 ### Installation
 
-Doesn't need an installation. The scheduler builds into a static library: `./build/src/mg/serverbox/libmgserverbox.a` which should be linked with user's project. The header files can be taken from `src/` folder, not all are needed.
-
-However it is important to know that most of the project consists of the scheduler's dependencies which basically re-implement or wrap STL (containers, various thread-related types). That is done in order to keep the code of `TaskScheduler` itself intact from its original version used inside of Ubisoft. Full version of Massgate, where the original scheduler is located, doesn't use STL almost at all.
-
-That means the project is not really supposed to be embedded into some other library or an executable exactly as is. Unless the user is fine with dragging along with it the things like custom array, string, thread, mutex, etc.
-
-The ideal way of "installation" is to take the code, replace all dependencies of `TaskScheduler` with STL or QT or some other library used in user's project, and build it there. For example, replace `mg::common::BinaryHeap` with `std::priority_queue`, `mg::common::Array` with `std::vector`, `mg::common::Callback` with `std::function`, etc. Although it is likely the performance might got down a bit.
-
-This repository is rather one of the possible implementations of the scheduler algorithms + fully covering unit tests than a ready-to-use library.
+```Bash
+mkdir build
+cd build
+# Your own install directory is optional.
+cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$(pwd)/installed ../
+make install
+```
+This creates a folder `installed/` which contains the library binaries and headers.
 
 ### Examples
 

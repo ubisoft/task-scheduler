@@ -5,6 +5,7 @@
 #include "mg/common/ForwardList.h"
 #include "mg/common/Mutex.h"
 #include "mg/common/Thread.h"
+#include "mg/common/Util.h"
 
 #include <functional>
 

@@ -50,3 +50,22 @@ add_library(mgcommon ${mgcommon_src} "ThreadFunc.h")
 target_include_directories(mgcommon PUBLIC
 	${CMAKE_SOURCE_DIR}/src/
 )
+
+set(install_headers
+	Assert.h
+	Atomic.h
+	BinaryHeap.h
+	ConditionVariable.h
+	Definitions.h
+	ForwardList.h
+	MultiConsumerQueue.h
+	MultiConsumerQueueBase.h
+	MultiProducerQueueIntrusive.h
+	Mutex.h
+	Signal.h
+	Thread.h
+	TypeTraits.h
+)
+
+install(TARGETS mgcommon DESTINATION "${install_lib_root}")
+install(FILES ${install_headers} DESTINATION "${install_include_root}/mg/common/")

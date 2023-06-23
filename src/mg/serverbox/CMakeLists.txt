@@ -14,3 +14,11 @@ target_include_directories(mgserverbox PUBLIC
 target_link_libraries(mgserverbox
 	mgcommon
 )
+
+set(install_headers
+	Task.h
+	TaskScheduler.h
+)
+
+install(TARGETS mgserverbox DESTINATION "${install_lib_root}")
+install(FILES ${install_headers} DESTINATION "${install_include_root}/mg/serverbox/")

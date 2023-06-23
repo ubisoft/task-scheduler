@@ -1,6 +1,6 @@
 #pragma once
 
-#include "mg/common/Util.h"
+#include "mg/common/Definitions.h"
 
 #define MG_COMMON_ASSERT_F(X, ...) do {														\
 	if (!(X))																				\
