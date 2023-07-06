@@ -110,7 +110,7 @@ namespace bench {
 					"Argument %d has invalid chars", i);
 				++pos;
 			}
-			uint32_t argi = myArgs.size();
+			uint32_t argi = (uint32_t)myArgs.size();
 			myArgs.resize(argi + 1);
 			Pair& p = myArgs[argi];
 			p.myKey = arg;

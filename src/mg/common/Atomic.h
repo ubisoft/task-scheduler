@@ -72,16 +72,16 @@ namespace common {
 
 		void AddRelaxed(
 			const T& aValue)
-		{ myValue.fetch_add(aValue, std::memory_order_relaxed) + aValue; }
+		{ myValue.fetch_add(aValue, std::memory_order_relaxed); }
 		void AddAcqRel(
 			const T& aValue)
-		{ myValue.fetch_add(aValue, std::memory_order_acq_rel) + aValue; }
+		{ myValue.fetch_add(aValue, std::memory_order_acq_rel); }
 		void AddRelease(
 			const T& aValue)
-		{ myValue.fetch_add(aValue, std::memory_order_release) + aValue; }
+		{ myValue.fetch_add(aValue, std::memory_order_release); }
 		void Add(
 			const T& aValue)
-		{ myValue.fetch_add(aValue, std::memory_order_seq_cst) + aValue; }
+		{ myValue.fetch_add(aValue, std::memory_order_seq_cst); }
 
 		T FetchSubRelaxed(
 			const T& aValue)

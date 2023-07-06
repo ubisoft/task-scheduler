@@ -50,7 +50,7 @@ namespace unittests {
 		for (uint32_t i = 0; i < count; ++i)
 			signals.push_back(new mg::common::Signal());
 		mg::common::ThreadFunc worker([&]() {
-			uint32_t count = signals.size();
+			uint32_t count = (uint32_t)signals.size();
 			for (uint32_t i = 0; i < count; ++i)
 				signals[i]->Send();
 		});

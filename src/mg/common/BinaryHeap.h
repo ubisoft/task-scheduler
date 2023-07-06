@@ -353,7 +353,7 @@ namespace common {
 	BinaryHeap<T, Methods>::Push(
 		const T& aValue)
 	{
-		int32_t index = myData.size();
+		int32_t index = (int32_t)myData.size();
 		myData.push_back(aValue);
 		Methods::SetIndex(myData[index], index);
 		PrivUpdateUp(index);
@@ -383,7 +383,7 @@ namespace common {
 	bool
 	BinaryHeap<T, Methods>::RemoveTop()
 	{
-		uint32_t count = myData.size();
+		uint32_t count = (uint32_t)myData.size();
 		if (count == 0)
 			return false;
 		T* tree = myData.data();
@@ -408,7 +408,7 @@ namespace common {
 		int32_t iIndex = Methods::GetIndex(aValue);
 		MG_DEV_ASSERT(iIndex >= 0);
 		uint32_t index = (uint32_t)iIndex;
-		uint32_t count = myData.size();
+		uint32_t count = (uint32_t)myData.size();
 		MG_DEV_ASSERT(index < count);
 		T* tree = myData.data();
 		// Ensure the index really points at the value it is
@@ -452,14 +452,14 @@ namespace common {
 	inline uint32_t
 	BinaryHeap<T, Methods>::Count() const
 	{
-		return myData.size();
+		return (uint32_t)myData.size();
 	}
 
 	template<typename T, typename Methods>
 	inline uint32_t
 	BinaryHeap<T, Methods>::GetCapacity() const
 	{
-		return myData.capacity();
+		return (uint32_t)myData.capacity();
 	}
 
 	template<typename T, typename Methods>
@@ -517,7 +517,7 @@ namespace common {
 	BinaryHeap<T, Methods>::PrivUpdateDown(
 		uint32_t aIndex)
 	{
-		uint32_t count = myData.size();
+		uint32_t count = (uint32_t)myData.size();
 		uint32_t leftChild = PrivLeftChildIndex(aIndex);
 		if (leftChild >= count)
 			return false;

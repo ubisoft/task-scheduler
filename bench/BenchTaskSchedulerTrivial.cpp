@@ -218,7 +218,7 @@ namespace bench {
 	TaskScheduler::GetThreads(
 		uint32_t& aOutCount) const
 	{
-		aOutCount = myWorkers.size();
+		aOutCount = (uint32_t)myWorkers.size();
 		return myWorkers.data();
 	}
 

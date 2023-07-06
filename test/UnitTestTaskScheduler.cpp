@@ -1002,7 +1002,8 @@ namespace unittests {
 		// Create one special task pushed last, whose execution
 		// would mean all the previous tasks surely ended up in
 		// the waiting queue.
-		mg::common::Atomic<mg::serverbox::Task*> t(new mg::serverbox::Task(
+		mg::common::Atomic<mg::serverbox::Task*> t;
+		t.StoreRelaxed(new mg::serverbox::Task(
 			[&](mg::serverbox::Task* aTask) {
 				t.StoreRelaxed(nullptr);
 				delete aTask;

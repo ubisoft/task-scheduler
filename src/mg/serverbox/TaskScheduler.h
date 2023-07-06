@@ -369,7 +369,7 @@ namespace serverbox {
 	TaskScheduler::GetThreads(
 		uint32_t& aOutCount) const
 	{
-		aOutCount = myThreads.size();
+		aOutCount = (uint32_t)myThreads.size();
 		return myThreads.data();
 	}
 
