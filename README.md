@@ -1,3 +1,5 @@
+**The project isn't being actively developed**. Follow [here (Gerold103/serverbox)](https://github.com/Gerold103/serverbox) for further evolution.
+
 # TaskScheduler
 
 **TaskScheduler** is a set of algorithms for asynchronous threaded code execution.
